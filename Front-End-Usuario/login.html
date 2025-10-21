@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Administrativo - Centro Deportivo UABC</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+
+
+  <!-- LOGIN -->
+  <main class="login-container">
+    <div class="login-card">
+      <img src="../image/pngaaa.com-3770431.png" alt="Logo Centro Deportivo UABC" class="login-logo">
+      
+      <h2 style="text-align: center; margin-bottom: 20px; color: #003366;">Acceso Administrativo</h2>
+      <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 25px;">
+        Solo personal autorizado
+      </p>
+
+      <form id="loginForm">
+        <input type="email" id="correo" name="correo" placeholder="Correo electrónico" required>
+        <input type="password" id="password" name="password" placeholder="Contraseña" required>
+        <button type="submit">Ingresar</button>
+      </form>
+
+      <p id="mensajeError" style="color:red; display:none; text-align: center; margin-top: 15px;"></p>
+
+      <div style="margin-top: 25px; text-align: center; padding-top: 20px; border-top: 1px solid #ddd;">
+        <p style="font-size: 13px; color: #666;">
+          <a href="../index.html" style="color: #003366; text-decoration: none; font-weight: bold;">
+            ← Volver al inicio
+          </a>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(this);
+      const btnSubmit = this.querySelector('button[type="submit"]');
+      const mensajeError = document.getElementById("mensajeError");
+      
+      // Deshabilitar botón mientras se procesa
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Verificando...';
+      mensajeError.style.display = 'none';
+
+      // Enviar petición al servidor
+      fetch('../Back-End-Admin/login.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Login exitoso - redirigir al dashboard admin
+          window.location.href = '../Front-End-Admin/admin.html';
+        } else {
+          // Mostrar error
+          mensajeError.textContent = data.mensaje;
+          mensajeError.style.display = 'block';
+          
+          // Rehabilitar botón
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Ingresar';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        mensajeError.textContent = 'Error de conexión. Intenta nuevamente.';
+        mensajeError.style.display = 'block';
+        
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Ingresar';
+      });
+    });
+  </script>
+
+</body>
+</html>

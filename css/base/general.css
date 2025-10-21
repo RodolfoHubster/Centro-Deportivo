@@ -1,0 +1,12 @@
+/* css/base/_general.css */
+/* Importacion de las variables disponibles */
+
+@import url(variables.css);
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: var(--color-fondo); /* Se esta usando la variable de variables */
+    color: var(--color-texto);
+
+}
