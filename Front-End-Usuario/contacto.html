@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto - Centro Deportivo UABC</title>
+  <link rel="stylesheet" href="../css/style.css?v=1">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="logo">
+      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
+    </div>
+    <div class="title">
+      <h1>Universidad Autónoma de Baja California</h1>
+      <p>Centro Deportivo</p>
+    </div>
+    <div class="logout">
+      <i>⎋</i>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <ul>
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="eventos.html">Eventos</a></li>
+      <li><a href="torneos.html">Torneos</a></li>
+      <li><a href="actividades.html">Actividades</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="login.html">Admin</a></li>
+    </ul>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="page-content">
+    <h1>Contacto</h1>
+    <p>Si tienes dudas o comentarios, envianos un mensaje a traves del siguiente formulario:</p>
+
+    <!-- Mensaje de respuesta (se mostrará dinámicamente) -->
+    <div id="mensaje-respuesta" style="display: none;"></div>
+
+    <form id="formularioContacto" class="contact-form">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" name="nombre" required>
+
+      <label for="correo">Correo electrónico:</label>
+      <input type="email" id="correo" name="correo" required>
+
+      <label for="mensaje">Mensaje:</label>
+      <textarea id="mensaje" name="mensaje" rows="5" required></textarea>
+
+      <button type="submit">Enviar</button>
+    </form>
+  </main>
+  <!-- Script de contacto -->
+  <script src="../Back-End-Usuario/Contacto.js"></script>
+</body>
+</html>

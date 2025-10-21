@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ver Inscripciones - Admin</title>
+  <link rel="stylesheet" href="../css/style.css?v=1">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="logo">
+      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
+    </div>
+    <div class="title">
+      <h1>Universidad Autónoma de Baja California</h1>
+      <p>Inscripciones a Eventos</p>
+    </div>
+    <div class="logout" style="cursor: pointer;" id="btnCerrarSesion" title="Cerrar sesión">
+      <i>⎋</i>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <ul>
+      <li><a href="admin.html">Dashboard</a></li>
+      <li><a href="gestionar-eventos.html">Gestionar Eventos</a></li>
+      <li><a href="ver-inscripciones.html">Inscripciones</a></li>
+      <li><a href="ver-mensajes.html">Mensajes</a></li>
+      <li><a href="../index.html">Ver Sitio Público</a></li>
+    </ul>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <main class="page-content">
+    <h1>Inscripciones a Eventos</h1>
+    <p>Lista completa de personas inscritas a los eventos deportivos.</p>
+
+    <!-- Filtros -->
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        
+        <!-- Búsqueda -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Buscar:</label>
+          <input type="text" id="buscarInscripcion" placeholder="Nombre, matrícula, correo..." 
+                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        </div>
+
+        <!-- Filtro por Evento -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Evento:</label>
+          <select id="filtroEvento" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todos los eventos</option>
+          </select>
+        </div>
+
+        <!-- Filtro por Género -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Género:</label>
+          <select id="filtroGenero" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todos</option>
+            <option value="Hombre">Hombre</option>
+            <option value="Mujer">Mujer</option>
+          </select>
+        </div>
+
+        <!-- Filtro por Tipo -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Tipo:</label>
+          <select id="filtroTipo" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todos</option>
+            <option value="Estudiante">Estudiante</option>
+            <option value="Docente">Docente</option>
+            <option value="Externo">Externo</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Botón Limpiar Filtros -->
+      <button id="btnLimpiarFiltros" style="margin-top: 15px; padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Limpiar Filtros
+      </button>
+    </div>
+
+    <!-- Estadísticas -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+      <div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+        <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-inscripciones">0</h3>
+        <p style="margin: 0; font-size: 14px;">Total Inscripciones</p>
+      </div>
+      <div style="background: linear-gradient(135deg, #28a745, #1e7e34); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+        <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-hombres">0</h3>
+        <p style="margin: 0; font-size: 14px;">Hombres</p>
+      </div>
+      <div style="background: linear-gradient(135deg, #dc3545, #bd2130); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+        <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-mujeres">0</h3>
+        <p style="margin: 0; font-size: 14px;">Mujeres</p>
+      </div>
+      <div style="background: linear-gradient(135deg, #ffc107, #e0a800); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+        <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="mostrando">0</h3>
+        <p style="margin: 0; font-size: 14px;">Mostrando</p>
+      </div>
+    </div>
+
+    <!-- Tabla de inscripciones -->
+    <div style="overflow-x: auto;">
+      <table id="tabla-inscripciones" style="width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <thead>
+          <tr style="background: #003366; color: white;">
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Matrícula</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Nombre Completo</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Correo</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Género</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Tipo</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Carrera/Facultad</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Evento</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Fecha Inscripción</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-inscripciones">
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 30px; color: #666;">
+              Cargando inscripciones...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    let todasInscripciones = [];
+    let inscripcionesFiltradas = [];
+
+    // Verificar sesión y cargar datos
+    window.addEventListener('DOMContentLoaded', () => {
+      verificarSesion();
+      cargarInscripciones();
+      configurarFiltros();
+    });
+
+    function verificarSesion() {
+      fetch('../Back-End-Admin/verificarSesion.php')
+        .then(response => response.json())
+        .then(data => {
+          if (!data.loggedin) {
+            window.location.href = '../Front-End-Usuario/login.html';
+          }
+        });
+    }
+
+    function cargarInscripciones() {
+      fetch('../Back-End-Admin/verInscripciones.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            todasInscripciones = data.inscripciones;
+            inscripcionesFiltradas = data.inscripciones;
+            
+            mostrarInscripciones(inscripcionesFiltradas);
+            actualizarEstadisticas(data.estadisticas);
+            poblarFiltroEventos();
+          } else {
+            document.getElementById('tbody-inscripciones').innerHTML = 
+              '<tr><td colspan="8" style="text-align: center; padding: 30px; color: red;">Error al cargar inscripciones</td></tr>';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('tbody-inscripciones').innerHTML = 
+            '<tr><td colspan="8" style="text-align: center; padding: 30px; color: red;">Error de conexión</td></tr>';
+        });
+    }
+
+    function poblarFiltroEventos() {
+      const selectEvento = document.getElementById('filtroEvento');
+      const eventosUnicos = [...new Set(todasInscripciones.map(i => i.evento_nombre))];
+      
+      selectEvento.innerHTML = '<option value="">Todos los eventos</option>';
+      eventosUnicos.forEach(evento => {
+        selectEvento.innerHTML += `<option value="${evento}">${evento}</option>`;
+      });
+    }
+
+    function mostrarInscripciones(inscripciones) {
+      const tbody = document.getElementById('tbody-inscripciones');
+      
+      if (inscripciones.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 30px; color: #666;">No hay inscripciones que coincidan con los filtros</td></tr>';
+        document.getElementById('mostrando').textContent = '0';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      
+      inscripciones.forEach(insc => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #ddd';
+        
+        // Formatear carrera (manejar tronco común)
+        let carreraDisplay = insc.carrera_display || insc.carrera_nombre || 'No especificada';
+        const facultadInfo = insc.facultad_siglas ? ` (${insc.facultad_siglas})` : '';
+        
+        tr.innerHTML = `
+          <td style="padding: 12px; border: 1px solid #ddd;"><strong>${insc.participante_matricula}</strong></td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${insc.nombre_completo}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${insc.correo_institucional}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${insc.genero}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;">
+            <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: ${getTipoColor(insc.tipo_participante)}; color: white;">
+              ${insc.tipo_participante}
+            </span>
+          </td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${carreraDisplay}${facultadInfo}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;"><strong>${insc.evento_nombre}</strong></td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${formatearFechaHora(insc.fecha_inscripcion)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      
+      document.getElementById('mostrando').textContent = inscripciones.length;
+    }
+
+    function getTipoColor(tipo) {
+      switch(tipo) {
+        case 'Estudiante': return '#007bff';
+        case 'Docente': return '#28a745';
+        case 'Externo': return '#ffc107';
+        default: return '#6c757d';
+      }
+    }
+
+    function actualizarEstadisticas(stats) {
+      document.getElementById('total-inscripciones').textContent = stats.total_inscripciones || 0;
+      document.getElementById('total-hombres').textContent = stats.por_genero?.Hombre || 0;
+      document.getElementById('total-mujeres').textContent = stats.por_genero?.Mujer || 0;
+      document.getElementById('mostrando').textContent = stats.mostrando || 0;
+    }
+
+    function formatearFechaHora(fecha) {
+      if (!fecha) return 'N/A';
+      const fechaObj = new Date(fecha);
+      const opciones = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return fechaObj.toLocaleString('es-MX', opciones);
+    }
+
+    function configurarFiltros() {
+      // Búsqueda en tiempo real
+      document.getElementById('buscarInscripcion').addEventListener('input', aplicarFiltros);
+      document.getElementById('filtroEvento').addEventListener('change', aplicarFiltros);
+      document.getElementById('filtroGenero').addEventListener('change', aplicarFiltros);
+      document.getElementById('filtroTipo').addEventListener('change', aplicarFiltros);
+      
+      // Limpiar filtros
+      document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
+        document.getElementById('buscarInscripcion').value = '';
+        document.getElementById('filtroEvento').value = '';
+        document.getElementById('filtroGenero').value = '';
+        document.getElementById('filtroTipo').value = '';
+        aplicarFiltros();
+      });
+    }
+
+    function aplicarFiltros() {
+      const textoBusqueda = document.getElementById('buscarInscripcion').value.toLowerCase();
+      const eventoFiltro = document.getElementById('filtroEvento').value;
+      const generoFiltro = document.getElementById('filtroGenero').value;
+      const tipoFiltro = document.getElementById('filtroTipo').value;
+      
+      inscripcionesFiltradas = todasInscripciones.filter(insc => {
+        // Filtro de búsqueda
+        const coincideBusqueda = !textoBusqueda || 
+          insc.nombre_completo.toLowerCase().includes(textoBusqueda) ||
+          insc.participante_matricula.toLowerCase().includes(textoBusqueda) ||
+          insc.correo_institucional.toLowerCase().includes(textoBusqueda) ||
+          insc.evento_nombre.toLowerCase().includes(textoBusqueda);
+        
+        // Filtro de evento
+        const coincideEvento = !eventoFiltro || insc.evento_nombre === eventoFiltro;
+        
+        // Filtro de género
+        const coincideGenero = !generoFiltro || insc.genero === generoFiltro;
+        
+        // Filtro de tipo
+        const coincideTipo = !tipoFiltro || insc.tipo_participante === tipoFiltro;
+        
+        return coincideBusqueda && coincideEvento && coincideGenero && coincideTipo;
+      });
+      
+      mostrarInscripciones(inscripcionesFiltradas);
+      
+      // Actualizar estadísticas filtradas
+      const statsLocales = {
+        total_inscripciones: inscripcionesFiltradas.length,
+        mostrando: inscripcionesFiltradas.length,
+        por_genero: {
+          Hombre: inscripcionesFiltradas.filter(i => i.genero === 'Hombre').length,
+          Mujer: inscripcionesFiltradas.filter(i => i.genero === 'Mujer').length
+        }
+      };
+      actualizarEstadisticas(statsLocales);
+    }
+
+    // Cerrar sesión
+    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
+      if (confirm('¿Cerrar sesión?')) {
+        fetch('../Back-End-Admin/cerrarSesion.php')
+          .then(() => {
+            localStorage.removeItem('usuarioLogeado');
+            window.location.href = '../Front-End-Usuario/login.html';
+          });
+      }
+    });
+  </script>
+</body>
+</html>

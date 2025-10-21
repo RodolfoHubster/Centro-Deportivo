@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eventos - Centro Deportivo UABC</title>
+  <link rel="stylesheet" href="../css/style.css?v=1">
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="logo">
+      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
+    </div>
+    <div class="title">
+      <h1>Universidad Autónoma de Baja California</h1>
+      <p>Centro Deportivo</p>
+    </div>
+    <div class="logout">
+      <i>⎋</i>
+    </div>
+  </header>
+
+  <!-- NAV BAR -->
+  <nav class="main-nav">
+    <ul>
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="eventos.html">Eventos</a></li>
+      <li><a href="torneos.html" id="nav-torneos">Torneos</a></li>
+      <li><a href="actividades.html" id="nav-actividades">Actividades</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="login.html">Admin</a></li>
+    </ul>
+  </nav>
+
+  <!-- FILTROS -->
+  <div class="filtros-container" style="padding: 20px; background: #f5f5f5; text-align: center;">
+    <label for="tipoQuery" style="margin-right: 10px; font-weight: bold;">Filtrar por tipo:</label>
+    <select id="tipoQuery" style="padding: 8px 15px; border-radius: 5px; border: 1px solid #ccc;">
+      <option value="">Cargando...</option>
+    </select>
+  </div>
+
+  <!-- CONTENIDO -->
+  <main class="page-content">
+    <h1> Eventos Deportivos</h1>
+    <p>Aqui se mostraran los eventos deportivos programados en el Centro Deportivo UABC.</p>
+  </main>
+  <script src="../Back-End-Usuario/Eventos.js"></script>
+  <script src="../Back-End-Usuario/FiltrarEventos.js"></script>
+  <script src="../Back-End-Usuario/Inscripcion.js"></script>  
+</body>
+</html>

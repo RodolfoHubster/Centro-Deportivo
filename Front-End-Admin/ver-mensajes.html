@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ver Mensajes - Admin</title>
+  <link rel="stylesheet" href="../css/style.css?v=1">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="logo">
+      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
+    </div>
+    <div class="title">
+      <h1>Universidad Autónoma de Baja California</h1>
+      <p>Mensajes de Contacto</p>
+    </div>
+    <div class="logout" style="cursor: pointer;" id="btnCerrarSesion" title="Cerrar sesión">
+      <i>⎋</i>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <ul>
+      <li><a href="admin.html">Dashboard</a></li>
+      <li><a href="gestionar-eventos.html">Gestionar Eventos</a></li>
+      <li><a href="ver-inscripciones.html">Inscripciones</a></li>
+      <li><a href="ver-mensajes.html">Mensajes</a></li>
+      <li><a href="../index.html">Ver Sitio Público</a></li>
+    </ul>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <main class="page-content">
+    <h1>Mensajes de Contacto</h1>
+    <p>Mensajes enviados por usuarios a través del formulario de contacto.</p>
+
+    <!-- Contador -->
+    <p style="margin: 15px 0; font-weight: bold; color: #666;">
+      Total de mensajes: <span id="total-mensajes">0</span>
+    </p>
+
+    <!-- Lista de mensajes -->
+    <div id="lista-mensajes" style="margin-top: 20px;">
+      <p style="text-align: center; color: #666;">Cargando mensajes...</p>
+    </div>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      verificarSesion();
+      cargarMensajes();
+    });
+
+    function verificarSesion() {
+      fetch('../Back-End-Admin/verificarSesion.php')
+        .then(response => response.json())
+        .then(data => {
+          if (!data.loggedin) {
+            window.location.href = 'login-admin.html';
+          }
+        });
+    }
+
+    function cargarMensajes() {
+      fetch('../Back-End-Admin/verMensajes.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            mostrarMensajes(data.mensajes);
+            document.getElementById('total-mensajes').textContent = data.total;
+          } else {
+            document.getElementById('lista-mensajes').innerHTML = 
+              '<p style="text-align: center; color: red;">Error al cargar mensajes</p>';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('lista-mensajes').innerHTML = 
+            '<p style="text-align: center; color: red;">Error de conexión</p>';
+        });
+    }
+
+    function mostrarMensajes(mensajes) {
+      const container = document.getElementById('lista-mensajes');
+      
+      if (mensajes.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">No hay mensajes</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      
+      mensajes.forEach(msg => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #003366;';
+        
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+            <div>
+              <h3 style="margin: 0 0 5px 0; color: #003366;">${msg.asunto}</h3>
+              <p style="margin: 0; color: #666; font-size: 14px;">
+                <strong>${msg.nombre}</strong> - ${msg.correo}
+              </p>
+            </div>
+            <span style="font-size: 12px; color: #999;">${formatearFecha(msg.fecha)}</span>
+          </div>
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+            <p style="margin: 0; line-height: 1.6; color: #333;">${msg.mensaje}</p>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    function formatearFecha(fecha) {
+      const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      return new Date(fecha).toLocaleDateString('es-MX', opciones);
+    }
+
+    // Cerrar sesión
+    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
+      if (confirm('¿Cerrar sesión?')) {
+        fetch('../Back-End-Admin/cerrarSesion.php')
+          .then(() => window.location.href = 'login-admin.html');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin - Centro Deportivo UABC</title>
+  <link rel="stylesheet" href="../css/style.css?v=1">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="logo">
+      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
+    </div>
+    <div class="title">
+      <h1>Universidad Autónoma de Baja California</h1>
+      <p>Panel Administrativo</p>
+    </div>
+    <div class="logout" style="cursor: pointer;" id="btnCerrarSesion" title="Cerrar sesión">
+      <i>⎋</i>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <ul>
+      <li><a href="admin.html">Dashboard</a></li>
+      <li><a href="gestionar-eventos.html">Gestionar Eventos</a></li>
+      <li><a href="ver-inscripciones.html">Inscripciones</a></li>
+      <li><a href="ver-mensajes.html">Mensajes</a></li>
+      <li><a href="../index.html">Ver Sitio Público</a></li>
+    </ul>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <main class="page-content">
+    <h1>Bienvenido al Panel Administrativo</h1>
+    <p id="mensaje-bienvenida">Cargando información...</p>
+
+    <!-- Tarjetas de estadísticas -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+      
+      <!-- Tarjeta Eventos -->
+      <div style="background: linear-gradient(135deg, #006633 0%, #00cc66 100%); color: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <h3 style="margin: 0 0 10px 0; font-size: 18px;">Total Eventos</h3>
+        <p style="font-size: 48px; font-weight: bold; margin: 10px 0;" id="total-eventos">-</p>
+        <a href="gestionar-eventos.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.9;">Ver todos →</a>
+      </div>
+
+      <!-- Tarjeta Inscripciones -->
+      <div style="background: linear-gradient(135deg, #008844 0%, #33cc77 100%); color: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <h3 style="margin: 0 0 10px 0; font-size: 18px;">Inscripciones</h3>
+        <p style="font-size: 48px; font-weight: bold; margin: 10px 0;" id="total-inscripciones">-</p>
+        <a href="ver-inscripciones.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.9;">Ver todas →</a>
+      </div>
+
+      <!-- Tarjeta Mensajes -->
+      <div style="background: linear-gradient(135deg, #008844 0%, #00cc66 100%); color: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <h3 style="margin: 0 0 10px 0; font-size: 18px;">Mensajes</h3>
+        <p style="font-size: 48px; font-weight: bold; margin: 10px 0;" id="total-mensajes">-</p>
+        <a href="ver-mensajes.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.9;">Ver todos →</a>
+      </div>
+
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div style="margin-top: 40px;">
+      <h2>Accesos Rápidos</h2>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px;">
+        <a href="gestionar-eventos.html" style="padding: 15px 30px; background: #006633; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          Crear Nuevo Evento
+        </a>
+        <a href="ver-inscripciones.html" style="padding: 15px 30px; background: #008844; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          Ver Inscripciones
+        </a>
+        <a href="ver-mensajes.html" style="padding: 15px 30px; background: #33cc77; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          Ver Mensajes
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Verificar sesión al cargar
+    window.addEventListener('DOMContentLoaded', () => {
+      verificarSesion();
+      cargarEstadisticas();
+    });
+
+    function verificarSesion() {
+      fetch('../Back-End-Admin/verificarSesion.php')
+        .then(response => response.json())
+        .then(data => {
+          if (!data.loggedin) {
+            // No hay sesión válida, redirigir al login
+            window.location.href = '../Front-End-Usuario/login.html';
+          } else {
+            // Sesión válida, mostrar mensaje de bienvenida
+            document.getElementById('mensaje-bienvenida').textContent = 
+              `¡Hola ${data.nombre}! Aquí puedes administrar el contenido del sitio.`;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          window.location.href = '../Front-End-Usuario/login.html';
+        });
+    }
+
+    function cargarEstadisticas() {
+      // Cargar total de eventos
+      fetch('../Back-End-PHP/obtenerEventos.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('total-eventos').textContent = data.total || 0;
+          }
+        })
+        .catch(error => console.error('Error al cargar eventos:', error));
+
+      // Cargar total de inscripciones
+      fetch('../Back-End-Admin/verInscripciones.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('total-inscripciones').textContent = data.total || 0;
+          }
+        })
+        .catch(error => console.error('Error al cargar inscripciones:', error));
+
+      // Cargar total de mensajes
+      fetch('../Back-End-Admin/verMensajes.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('total-mensajes').textContent = data.total || 0;
+          }
+        })
+        .catch(error => console.error('Error al cargar mensajes:', error));
+    }
+
+    // Cerrar sesión
+    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
+      if (confirm('¿Estás seguro de cerrar sesión?')) {
+        fetch('../Back-End-Admin/cerrarSesion.php')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Limpiar localStorage por si acaso
+              localStorage.removeItem('usuarioLogeado');
+              // Redirigir al login
+              window.location.href = '../Front-End-Usuario/login.html';
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            // Forzar redirección aunque haya error
+            localStorage.removeItem('usuarioLogeado');
+            window.location.href = '../Front-End-Usuario/login.html';
+          });
+      }
+    });
+  </script>
+
+</body>
+</html>
