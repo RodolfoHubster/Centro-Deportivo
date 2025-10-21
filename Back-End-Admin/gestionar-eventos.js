@@ -283,7 +283,8 @@ document.getElementById('formEvento').addEventListener('submit', (e) => {
     
     fetch(url, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials:'include'
     })
     .then(response => response.json())
     .then(data => {
@@ -360,7 +361,8 @@ function eliminarEvento(id, nombre) {
     
     fetch('../Back-End-Admin/eliminarEvento.php', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
     })
     .then(response => response.json())
     .then(data => {
