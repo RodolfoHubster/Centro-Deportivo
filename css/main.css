@@ -1,0 +1,30 @@
+/* css/main.css */
+
+/* * 1. BASE
+ * Variables y estilos globales.
+ */
+ @import url('base/general.css'); /* _variables.css ya importado dentro de general.css */
+
+ /* * 2. LAYOUT
+  * Estructura principal del sitio.
+  */
+
+
+  
+ @import url('layout/header.css');    /* La parte de la cabeza, el logo, titulo y el logout*/
+ @import url('layout/navigation.css'); /* La parte del main nav, como lo es el inicio, eventos, torneos, actividades, contactos y el registro */
+ @import url('layout/layout.css'); /* El contenido de la pagin, como lo es la bienvenida, el concepto de la pagina, el apartado de eventos, torneos y actividades al igual que si hay dudas y el contacto */
+ @import url('layout/footer.css');
+ /* * 3. COMPONENTS
+  * Piezas reutilizables.
+  */
+ @import url('components/buttons.css'); /* (No hay nada, pero es buena practica) */
+ @import url('components/cards.css');
+ @import url('components/forms.css');
+ 
+ /* * 4. PAGES
+  * Estilos específicos de páginas.
+  */
+ @import url('pages/login.css');
+
+ @import url('pages/home.css'); /* Pagina principal donde se editaran los eventos torneos actividades etc. */

@@ -1,0 +1,30 @@
+.main-header {
+    background-color: var(--color-verde-uabc);
+    color: var(--color-blanco);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 30px;
+    border-bottom: 5px solid var(--color-dorado-uabc);
+}
+
+.main-header .logo img {
+    height: 60px;
+}
+
+.main-header .title {
+    text-align: center;
+}
+
+.main-header .title h1{
+    margin: 0;
+    font-size: 1.3rem;
+} 
+.main-header .title p {
+    margin: 0;
+    font-size: 0.9rem;
+} 
+.main-header .logout i {
+    font-size: 1.5rem;
+    cursor: pointer;
+} 

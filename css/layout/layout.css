@@ -1,0 +1,18 @@
+.page-content {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    background: var(--color-blanco);
+    border-radius: var(--borde-redondeado);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.page-content h1 {
+    color: var(--color-verde-uabc);
+    margin-bottom: 15px;
+}
+
+.page-content p {
+    font-size: 1rem;
+    line-height: 1.5;
+}
