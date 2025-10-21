@@ -8,30 +8,7 @@
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="main-header">
-    <div class="logo">
-      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
-    </div>
-    <div class="title">
-      <h1>Universidad Autónoma de Baja California</h1>
-      <p>Inscripciones a Eventos</p>
-    </div>
-    <div class="logout" style="cursor: pointer;" id="btnCerrarSesion" title="Cerrar sesión">
-      <i>⎋</i>
-    </div>
-  </header>
-
-  <!-- NAV -->
-  <nav class="main-nav">
-    <ul>
-      <li><a href="admin.html">Dashboard</a></li>
-      <li><a href="gestionar-eventos.html">Gestionar Eventos</a></li>
-      <li><a href="ver-inscripciones.html">Inscripciones</a></li>
-      <li><a href="ver-mensajes.html">Mensajes</a></li>
-      <li><a href="../index.html">Ver Sitio Público</a></li>
-    </ul>
-  </nav>
+  <div id="header-placeholder"></div>
 
   <!-- CONTENIDO -->
   <main class="page-content">
@@ -74,6 +51,8 @@
     </div>
   </main>
 
+  <div id="footer-placeholder"></div>
+  
   <script>
     let todasInscripciones = [];
 
@@ -168,5 +147,7 @@
       }
     });
   </script>
+
+  <script src="../Back-End-Usuario/headFooter.js"></script>
 </body>
 </html>

@@ -4,11 +4,13 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
 
-if (isset($_SESSION['admin_logged']) && $_SESSION['admin_logged'] === true) {
+if (isset($_SESSION['user_logged']) && $_SESSION['user_logged'] === true) {
     echo json_encode([
         'loggedin' => true,
-        'nombre' => $_SESSION['admin_nombre'],
-        'correo' => $_SESSION['admin_correo']
+        'id' => $_SESSION['user_id'],
+        'nombre' => $_SESSION['user_nombre'],
+        'correo' => $_SESSION['user_correo'],
+        'rol' => $_SESSION['user_rol']
     ]);
 } else {
     echo json_encode([

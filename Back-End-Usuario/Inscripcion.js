@@ -1,3 +1,8 @@
+/**
+ * Inscripcion.js - VERSIÓN CORREGIDA
+ * Actualizado para nueva estructura de BD con tabla participante
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         agregarBotonesInscripcion();
@@ -57,7 +62,6 @@ function agregarBotonesInscripcion() {
             mostrarFormularioInscripcion(eventoId);
         });
         
-        // Buscar el contenedor de botones o el final de la tarjeta
         const contenedorBotones = tarjeta.querySelector('.card-actions, .evento-actions, .btn-container');
         if (contenedorBotones) {
             contenedorBotones.appendChild(btnInscribir);
@@ -118,9 +122,9 @@ function mostrarFormularioInscripcion(eventoId) {
                         </label>
                         
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Maestro/Personal Académico" 
+                            <input type="radio" name="tipo_participante" value="Docente" 
                                    style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Maestro / Personal Académico</span>
+                            <span style="font-size: 15px; font-weight: 500;">Docente / Personal Académico</span>
                         </label>
                         
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
@@ -131,7 +135,7 @@ function mostrarFormularioInscripcion(eventoId) {
                     </div>
                 </div>
 
-                <!-- Nombres -->
+                <!-- Apellidos y Nombres (NUEVO FORMATO) -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
@@ -154,7 +158,7 @@ function mostrarFormularioInscripcion(eventoId) {
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
                         Nombre(s) <span style="color: #dc3545;">*</span>
                     </label>
-                    <input type="text" name="nombre" required class="form-input"
+                    <input type="text" name="nombres" required class="form-input"
                            style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
                 </div>
 
@@ -165,8 +169,9 @@ function mostrarFormularioInscripcion(eventoId) {
                             <span id="label-matricula">Matrícula</span> <span style="color: #dc3545;" id="required-matricula">*</span>
                         </label>
                         <input type="text" name="matricula" id="input-matricula" placeholder="12345678" required class="form-input"
+                               pattern="[0-9]{6,10}"
                                style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
-                        <small id="help-matricula" style="color: #666; font-size: 12px; display: none; margin-top: 4px;">Ingresa tu número de empleado UABC</small>
+                        <small id="help-matricula" style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Solo números (6-10 dígitos)</small>
                     </div>
                     
                     <div>
@@ -176,8 +181,8 @@ function mostrarFormularioInscripcion(eventoId) {
                         <select name="genero" required class="form-input"
                                 style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; background: white; box-sizing: border-box;">
                             <option value="">Selecciona</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
+                            <option value="Hombre">Hombre</option>
+                            <option value="Mujer">Mujer</option>
                         </select>
                     </div>
                 </div>
@@ -185,10 +190,12 @@ function mostrarFormularioInscripcion(eventoId) {
                 <!-- Correo -->
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        Correo Electrónico <span style="color: #dc3545;">*</span>
+                        Correo Electrónico UABC <span style="color: #dc3545;">*</span>
                     </label>
                     <input type="email" name="correo" required placeholder="ejemplo@uabc.edu.mx" class="form-input"
+                           pattern="[a-zA-Z0-9._%+-]+@uabc\.(edu\.)?mx"
                            style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
                 </div>
 
                 <!-- Facultad y Carrera -->
@@ -211,7 +218,7 @@ function mostrarFormularioInscripcion(eventoId) {
                         <option value="">Selecciona primero una facultad</option>
                     </select>
                     <small id="help-carrera" style="color: #666; font-style: italic; display: block; margin-top: 5px; font-size: 12px;">
-                        Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área
+                        💡 Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área
                     </small>
                 </div>
 
@@ -239,7 +246,7 @@ function mostrarFormularioInscripcion(eventoId) {
         </div>
     `;
     
-    // Agregar estilos
+    // Agregar estilos CSS
     const style = document.createElement('style');
     style.textContent = `
         @keyframes fadeIn {
@@ -262,6 +269,12 @@ function mostrarFormularioInscripcion(eventoId) {
             outline: none;
             border-color: #00843D !important;
             box-shadow: 0 0 0 3px rgba(0, 132, 61, 0.1) !important;
+        }
+        .form-input:invalid:not(:placeholder-shown) {
+            border-color: #dc3545 !important;
+        }
+        .form-input:valid:not(:placeholder-shown) {
+            border-color: #28a745 !important;
         }
     `;
     document.head.appendChild(style);
@@ -327,8 +340,10 @@ function actualizarCamposSegunTipo(tipo) {
         labelMatricula.textContent = 'Matrícula';
         inputMatricula.placeholder = '12345678';
         inputMatricula.required = true;
+        inputMatricula.setAttribute('pattern', '[0-9]{6,10}');
         requiredMatricula.style.display = 'inline';
-        helpMatricula.style.display = 'none';
+        helpMatricula.textContent = 'Solo números (6-10 dígitos)';
+        helpMatricula.style.display = 'block';
         
         labelFacultad.textContent = 'Unidad Académica';
         selectFacultad.required = true;
@@ -345,37 +360,36 @@ function actualizarCamposSegunTipo(tipo) {
             cargarCarreras(selectFacultad.value);
         }
         
-    } else if (tipo === 'Maestro/Personal Académico') {
+    } else if (tipo === 'Docente') {
         labelMatricula.textContent = 'Número de Empleado';
         inputMatricula.placeholder = 'Núm. empleado';
         inputMatricula.required = true;
+        inputMatricula.setAttribute('pattern', '[0-9]{4,10}');
         requiredMatricula.style.display = 'inline';
+        helpMatricula.textContent = 'Ingresa tu número de empleado UABC';
         helpMatricula.style.display = 'block';
         
         labelFacultad.textContent = 'Unidad Académica';
-        selectFacultad.required = true;
-        requiredFacultad.style.display = 'inline';
-        facultadContainer.style.display = 'block';
-        
-        labelCarrera.textContent = 'Departamento / Área';
-        selectCarrera.required = true;
-        requiredCarrera.style.display = 'inline';
-        helpCarrera.style.display = 'none';
-        carreraContainer.style.display = 'block';
-        
-        cargarDepartamentos();
-        
-    } else { // Externo
-        labelMatricula.textContent = 'Identificación (Opcional)';
-        inputMatricula.placeholder = 'ID (opcional)';
-        inputMatricula.required = false;
-        requiredMatricula.style.display = 'none';
-        helpMatricula.style.display = 'none';
-        
-        labelFacultad.textContent = 'Unidad Académica (Opcional)';
         selectFacultad.required = false;
         requiredFacultad.style.display = 'none';
         facultadContainer.style.display = 'block';
+        
+        selectCarrera.required = false;
+        requiredCarrera.style.display = 'none';
+        helpCarrera.style.display = 'none';
+        carreraContainer.style.display = 'block';
+        
+    } else { // Externo
+        labelMatricula.textContent = 'Identificación (Opcional)';
+        inputMatricula.placeholder = 'ID opcional';
+        inputMatricula.required = false;
+        inputMatricula.removeAttribute('pattern');
+        requiredMatricula.style.display = 'none';
+        helpMatricula.style.display = 'none';
+        
+        selectFacultad.required = false;
+        requiredFacultad.style.display = 'none';
+        facultadContainer.style.display = 'none';
         
         selectCarrera.required = false;
         carreraContainer.style.display = 'none';
@@ -392,11 +406,16 @@ function cargarFacultades() {
             if (data.error) {
                 throw new Error(data.mensaje);
             }
+            
             selectFacultad.innerHTML = '<option value="">Selecciona tu facultad</option>';
-            data.forEach(facultad => {
+            
+            // Si tiene estructura {success: true, facultades: [...]}
+            const facultades = data.success ? data.facultades : data;
+            
+            facultades.forEach(facultad => {
                 const option = document.createElement('option');
                 option.value = facultad.id;
-                option.textContent = facultad.nombre;
+                option.textContent = `${facultad.nombre} (${facultad.siglas})`;
                 selectFacultad.appendChild(option);
             });
         })
@@ -422,11 +441,28 @@ function cargarCarreras(facultadId) {
             if (data.error) {
                 throw new Error(data.mensaje);
             }
+            
             selectCarrera.innerHTML = '<option value="">Selecciona tu carrera</option>';
-            data.forEach(carrera => {
+            
+            // Si tiene estructura {success: true, carreras: [...]}
+            const carreras = data.success ? data.carreras : data;
+            
+            carreras.forEach(carrera => {
                 const option = document.createElement('option');
                 option.value = carrera.id;
-                option.textContent = carrera.nombre;
+                
+                // Usar nombre_completo si existe (incluye "Tronco Común - ")
+                const nombreMostrar = carrera.nombre_completo || carrera.nombre;
+                
+                // Agregar badge visual para tronco común
+                if (carrera.es_tronco_comun) {
+                    option.textContent = ` ${nombreMostrar}`;
+                    option.style.fontWeight = '600';
+                    option.style.color = '#00843D';
+                } else {
+                    option.textContent = nombreMostrar;
+                }
+                
                 selectCarrera.appendChild(option);
             });
         })
@@ -437,44 +473,30 @@ function cargarCarreras(facultadId) {
         });
 }
 
-function cargarDepartamentos() {
-    const selectCarrera = document.getElementById('select-carrera');
-    selectCarrera.innerHTML = '<option value="">Selecciona tu departamento</option>';
-    
-    const departamentos = [
-        { id: 'dt_completo', nombre: 'Docente - Tiempo Completo' },
-        { id: 'dt_medio', nombre: 'Docente - Medio Tiempo' },
-        { id: 'dt_asignatura', nombre: 'Docente - Por Asignatura' },
-        { id: 'p_admin', nombre: 'Personal Administrativo' },
-        { id: 'investigador', nombre: 'Investigador' }
-    ];
-    
-    departamentos.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept.id;
-        option.textContent = dept.nombre;
-        selectCarrera.appendChild(option);
-    });
-}
-
 function enviarInscripcion(form, modal) {
     const formData = new FormData(form);
     const btnEnviar = document.getElementById('btnSubmit');
     
-    // Construir nombre completo
-    const nombreCompleto = `${formData.get('nombre')} ${formData.get('apellido_paterno')} ${formData.get('apellido_materno')}`;
-    
-    // Preparar datos para enviar
+    // CRÍTICO: Preparar datos en el formato que espera el PHP actualizado
     const datosEnvio = new FormData();
-    datosEnvio.append('nombre', nombreCompleto);
-    datosEnvio.append('correo', formData.get('correo'));
-    datosEnvio.append('telefono', formData.get('matricula') || 'N/A');
     datosEnvio.append('evento_id', formData.get('evento_id'));
-    datosEnvio.append('tipo_participante', formData.get('tipo_participante'));
-    datosEnvio.append('matricula', formData.get('matricula') || null);
+    datosEnvio.append('matricula', formData.get('matricula') || '');
+    datosEnvio.append('apellido_paterno', formData.get('apellido_paterno'));
+    datosEnvio.append('apellido_materno', formData.get('apellido_materno'));
+    datosEnvio.append('nombres', formData.get('nombres'));
+    datosEnvio.append('correo', formData.get('correo'));
     datosEnvio.append('genero', formData.get('genero'));
-    datosEnvio.append('facultad', formData.get('facultad') || null);
-    datosEnvio.append('carrera', formData.get('carrera') || null);
+    datosEnvio.append('carrera', formData.get('carrera') || '');
+    datosEnvio.append('tipo_participante', formData.get('tipo_participante'));
+    
+    // Validar campos requeridos según tipo
+    const tipo = formData.get('tipo_participante');
+    if (tipo === 'Estudiante') {
+        if (!formData.get('matricula') || !formData.get('carrera')) {
+            mostrarToast('Los estudiantes deben proporcionar matrícula y carrera', 'error');
+            return;
+        }
+    }
     
     btnEnviar.disabled = true;
     btnEnviar.innerHTML = `
@@ -506,7 +528,7 @@ function enviarInscripcion(form, modal) {
         if (data.success) {
             mostrarModalExito(data.mensaje, modal);
         } else {
-            mostrarToast(' ' + data.mensaje, 'error');
+            mostrarToast(data.mensaje, 'error');
             btnEnviar.disabled = false;
             btnEnviar.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
@@ -521,7 +543,7 @@ function enviarInscripcion(form, modal) {
     })
     .catch(error => {
         console.error('Error:', error);
-        mostrarToast(' Error al procesar la inscripción. Intenta de nuevo.', 'error');
+        mostrarToast('Error al procesar la inscripción. Intenta de nuevo.', 'error');
         btnEnviar.disabled = false;
         btnEnviar.innerHTML = `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">

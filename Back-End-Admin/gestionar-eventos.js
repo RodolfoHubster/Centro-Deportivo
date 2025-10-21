@@ -1,38 +1,77 @@
+/**
+ * Gestionar Eventos - JavaScript ACTUALIZADO
+ * Mantiene funcionalidad de QR + agrega nuevos campos de BD
+ */
+
 let modoEdicion = false;
 let eventoEditandoId = null;
+let usuarioId = null;
 
-// Verificar sesión y cargar datos al iniciar
+// ================================
+// INICIALIZACIÓN
+// ================================
+
 window.addEventListener('DOMContentLoaded', () => {
     verificarSesion();
+    cargarCampus();
     cargarActividades();
+    cargarFacultades();
     cargarEventos();
 });
+
+// ================================
+// VERIFICAR SESIÓN
+// ================================
 
 function verificarSesion() {
     fetch('../Back-End-Admin/verificarSesion.php')
         .then(response => response.json())
         .then(data => {
             if (!data.loggedin) {
-                window.location.href = '../Front-End-Usuario/login.html'; //  CORREGIDO
+                window.location.href = '../Front-End-Usuario/login.html';
+            } else {
+                usuarioId = data.id;
+                console.log('Usuario ID:', usuarioId); // DEBUG
             }
         })
         .catch(() => {
-            window.location.href = '../Front-End-Usuario/login.html'; //  CORREGIDO
+            window.location.href = '../Front-End-Usuario/login.html';
         });
 }
 
-// Cargar tipos de actividades para el select
+// ================================
+// CARGAR DATOS INICIALES
+// ================================
+
+async function cargarCampus() {
+    try {
+        const response = await fetch('../Back-End-PHP/obtenerCampus.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            const select = document.getElementById('evento-campus');
+            select.innerHTML = '<option value="">Seleccionar campus...</option>';
+            
+            data.campus.forEach(campus => {
+                select.innerHTML += `<option value="${campus.id}">${campus.nombre}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error cargando campus:', error);
+    }
+}
+
 function cargarActividades() {
     fetch('../Back-End-PHP/obtenerActividades.php')
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('evento-actividad');
-            select.innerHTML = '<option value="">Selecciona una actividad</option>';
+            select.innerHTML = '<option value="">Ninguna (crear nueva)</option>';
             
             if (data.success && data.actividades.length > 0) {
                 data.actividades.forEach(act => {
                     const option = document.createElement('option');
-                    option.value = act.nombre;
+                    option.value = act.id;
                     option.textContent = act.nombre;
                     select.appendChild(option);
                 });
@@ -41,7 +80,36 @@ function cargarActividades() {
         .catch(error => console.error('Error al cargar actividades:', error));
 }
 
-// Cargar todos los eventos
+async function cargarFacultades() {
+    try {
+        const response = await fetch('../Back-End-PHP/obtenerFacultades.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            const container = document.getElementById('facultades-checkbox');
+            container.innerHTML = '';
+            
+            data.facultades.forEach(facultad => {
+                container.innerHTML += `
+                    <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
+                        <input type="checkbox" name="facultades[]" value="${facultad.id}" style="margin-right: 10px;">
+                        <span style="font-weight: 500;">${facultad.nombre}</span> 
+                        <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
+                    </label>
+                `;
+            });
+        }
+    } catch (error) {
+        console.error('Error cargando facultades:', error);
+        document.getElementById('facultades-checkbox').innerHTML = 
+            '<p style="color: red; text-align: center;">Error al cargar facultades</p>';
+    }
+}
+
+// ================================
+// CARGAR Y MOSTRAR EVENTOS
+// ================================
+
 function cargarEventos() {
     fetch('../Back-End-PHP/obtenerEventos.php')
         .then(response => response.json())
@@ -60,7 +128,6 @@ function cargarEventos() {
         });
 }
 
-// Mostrar eventos en tarjetas
 function mostrarEventos(eventos) {
     const container = document.getElementById('lista-eventos');
     container.innerHTML = '';
@@ -69,50 +136,85 @@ function mostrarEventos(eventos) {
         const card = document.createElement('div');
         card.style.cssText = 'background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #003366;';
         
+        // Calcular cupo disponible
+        const cupoTexto = evento.cupo_maximo 
+            ? `${evento.registros_actuales || 0} / ${evento.cupo_maximo}` 
+            : `${evento.registros_actuales || 0} (Sin límite)`;
+        
+        const cupoColor = evento.cupo_maximo && evento.registros_actuales >= evento.cupo_maximo 
+            ? '#dc3545' 
+            : '#28a745';
+        
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: start;">
                 <div style="flex: 1;">
                     <h3 style="margin: 0 0 10px 0; color: #003366;">${evento.nombre}</h3>
-                    <p style="margin: 5px 0; color: #666;"><strong>Descripción:</strong> ${evento.descripcion}</p>
-                    <p style="margin: 5px 0; color: #666;"><strong>Fecha:</strong> ${formatearFecha(evento.fecha)}</p>
-                    <p style="margin: 5px 0; color: #666;"><strong>Lugar:</strong> ${evento.lugar}</p>
-                    <p style="margin: 5px 0; color: #666;"><strong>Actividad:</strong> ${evento.actividad}</p>
+                    <p style="margin: 5px 0; color: #666;">${evento.descripcion || 'Sin descripción'}</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
+                        <div>
+                            <strong>Fechas:</strong><br>
+                            ${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}
+                        </div>
+                        <div>
+                            <strong>Lugar:</strong><br>
+                            ${evento.lugar}
+                        </div>
+                        <div>
+                            <strong>Campus:</strong><br>
+                            ${evento.campus_nombre || 'No especificado'}
+                        </div>
+                        <div>
+                            <strong>Tipo:</strong><br>
+                            ${evento.tipo_actividad || 'No especificado'}
+                        </div>
+                        <div>
+                            <strong>Categoría:</strong><br>
+                            ${evento.categoria_deporte || 'No especificado'}
+                        </div>
+                        <div>
+                            <strong>Registro:</strong><br>
+                            ${evento.tipo_registro || 'Individual'}
+                        </div>
+                        <div>
+                            <strong>Cupo:</strong><br>
+                            <span style="color: ${cupoColor}; font-weight: bold;">${cupoTexto}</span>
+                        </div>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 10px;">
+                
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-left: 20px;">
                     <button onclick="editarEvento(${evento.id})" 
-                            style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">
                         Editar
                     </button>
-                    <button onclick="eliminarEvento(${evento.id}, '${evento.nombre}')" 
-                            style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    <button onclick="eliminarEvento(${evento.id}, '${evento.nombre.replace(/'/g, "\\'")}')" 
+                            style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">
                         Eliminar
                     </button>
-
-                    <button id="btnGenerarQR${evento.id}" data-id="${evento.id}"
-                            style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                        Generar QR
+                    <button onclick="generarQR(${evento.id})" 
+                            style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">
+                        Ver QR
                     </button>
-
                 </div>
             </div>
         `;
         
         container.appendChild(card);
-
-        card.querySelector(`#btnGenerarQR${evento.id}`).addEventListener('click', () => {
-            generarQR(evento.id);
-        });
-
     });
 }
 
 function formatearFecha(fecha) {
-    // FIX: Evitar conversión de zona horaria
-    // Agregar 'T00:00:00' fuerza que se interprete como hora local, no UTC
+    if (!fecha) return 'N/A';
     const fechaLocal = new Date(fecha + 'T00:00:00');
-    const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+    const opciones = { year: 'numeric', month: 'short', day: 'numeric' };
     return fechaLocal.toLocaleDateString('es-MX', opciones);
 }
+
+// ================================
+// MODAL Y FORMULARIO
+// ================================
+
 // Abrir modal para crear nuevo evento
 document.getElementById('btnNuevoEvento').addEventListener('click', () => {
     modoEdicion = false;
@@ -120,21 +222,103 @@ document.getElementById('btnNuevoEvento').addEventListener('click', () => {
     document.getElementById('tituloModal').textContent = 'Crear Nuevo Evento';
     document.getElementById('formEvento').reset();
     document.getElementById('evento-id').value = '';
-    document.getElementById('modalEvento').style.display = 'flex';
+    
+    // Desmarcar facultades
+    document.querySelectorAll('input[name="facultades[]"]').forEach(cb => cb.checked = false);
+    
+    document.getElementById('modalEvento').style.display = 'block';
 });
-
 
 // Cerrar modal
 document.getElementById('btnCancelar').addEventListener('click', () => {
     document.getElementById('modalEvento').style.display = 'none';
 });
 
-// Editar evento
+// Guardar evento (crear o editar)
+document.getElementById('formEvento').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    
+    // Datos básicos
+    formData.append('nombre', document.getElementById('evento-nombre').value);
+    formData.append('descripcion', document.getElementById('evento-descripcion').value);
+    formData.append('fecha_inicio', document.getElementById('evento-fecha-inicio').value);
+    formData.append('fecha_termino', document.getElementById('evento-fecha-termino').value);
+    formData.append('lugar', document.getElementById('evento-lugar').value);
+    
+    // Nuevos campos obligatorios
+    formData.append('campus_id', document.getElementById('evento-campus').value);
+    formData.append('ubicacion_tipo', document.getElementById('evento-ubicacion-tipo').value);
+    formData.append('tipo_registro', document.getElementById('evento-tipo-registro').value);
+    formData.append('categoria_deporte', document.getElementById('evento-categoria').value);
+    formData.append('tipo_actividad', document.getElementById('evento-tipo-actividad').value);
+    
+    // Campos opcionales
+    const actividadId = document.getElementById('evento-actividad').value;
+    if (actividadId) formData.append('id_actividad', actividadId);
+    
+    const cupoMaximo = document.getElementById('evento-cupo-maximo').value;
+    if (cupoMaximo) formData.append('cupo_maximo', cupoMaximo);
+    
+    // ID del promotor
+    formData.append('id_promotor', usuarioId);
+    
+    // Facultades seleccionadas
+    const facultades = Array.from(document.querySelectorAll('input[name="facultades[]"]:checked'))
+                            .map(cb => cb.value);
+    facultades.forEach(id => formData.append('facultades[]', id));
+    
+    const btnSubmit = e.target.querySelector('button[type="submit"]');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Guardando...';
+    
+    const url = modoEdicion ? 
+        '../Back-End-Admin/editarEvento.php' : 
+        '../Back-End-Admin/crearEvento.php';
+    
+    if (modoEdicion) {
+        formData.append('id', document.getElementById('evento-id').value);
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('modalEvento').style.display = 'none';
+            cargarEventos();
+            
+            // Si es creación, mostrar modal con QR
+            if (!modoEdicion && data.datos && data.datos.evento_id) {
+                mostrarModalExitoConQR(data.datos.evento_id, data.mensaje);
+            } else {
+                mostrarMensaje(data.mensaje, 'success');
+            }
+        } else {
+            mostrarMensaje(data.mensaje, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('Error al guardar evento', 'error');
+    })
+    .finally(() => {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Guardar Evento';
+    });
+});
+
+// ================================
+// EDITAR EVENTO
+// ================================
+
 function editarEvento(id) {
     modoEdicion = true;
     eventoEditandoId = id;
     
-    // Buscar el evento en la lista actual
     fetch('../Back-End-PHP/obtenerEventos.php')
         .then(response => response.json())
         .then(data => {
@@ -144,18 +328,28 @@ function editarEvento(id) {
                 document.getElementById('tituloModal').textContent = 'Editar Evento';
                 document.getElementById('evento-id').value = evento.id;
                 document.getElementById('evento-nombre').value = evento.nombre;
-                document.getElementById('evento-descripcion').value = evento.descripcion;
-                document.getElementById('evento-fecha').value = evento.fecha;
+                document.getElementById('evento-descripcion').value = evento.descripcion || '';
+                document.getElementById('evento-fecha-inicio').value = evento.fecha_inicio;
+                document.getElementById('evento-fecha-termino').value = evento.fecha_termino;
                 document.getElementById('evento-lugar').value = evento.lugar;
-                document.getElementById('evento-actividad').value = evento.actividad;
+                document.getElementById('evento-campus').value = evento.campus_id || '';
+                document.getElementById('evento-ubicacion-tipo').value = evento.ubicacion_tipo || '';
+                document.getElementById('evento-tipo-registro').value = evento.tipo_registro || 'Individual';
+                document.getElementById('evento-categoria').value = evento.categoria_deporte || '';
+                document.getElementById('evento-tipo-actividad').value = evento.tipo_actividad || '';
+                document.getElementById('evento-actividad').value = evento.id_actividad || '';
+                document.getElementById('evento-cupo-maximo').value = evento.cupo_maximo || '';
                 
-                document.getElementById('modalEvento').style.display = 'flex';
+                document.getElementById('modalEvento').style.display = 'block';
             }
         })
         .catch(error => console.error('Error:', error));
 }
 
-// Eliminar evento
+// ================================
+// ELIMINAR EVENTO
+// ================================
+
 function eliminarEvento(id, nombre) {
     if (!confirm(`¿Estás seguro de eliminar el evento "${nombre}"?`)) {
         return;
@@ -182,10 +376,13 @@ function eliminarEvento(id, nombre) {
     });
 }
 
+// ================================
+// GENERAR QR
+// ================================
+
 function generarQR(id_evento) {
     const enlaceEvento = `http://localhost/Proyecto-Deportes/Front-End-Usuario/eventos.html?id_evento=${id_evento}`;
     
-    // Crear modal con estilos inline (igual que modalEvento)
     const modalQR = document.createElement('div');
     modalQR.id = 'modal-qr';
     modalQR.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
@@ -196,12 +393,10 @@ function generarQR(id_evento) {
             
             <p style="margin: 0 0 25px 0; color: #666; text-align: center; font-size: 15px;">Escanea este código para registrarte al evento</p>
             
-            <!-- Contenedor del QR -->
             <div style="display: flex; justify-content: center; margin: 25px 0; padding: 25px; background: #f9f9f9; border-radius: 8px; border: 2px dashed #ddd;">
                 <div id="codigoQR"></div>
             </div>
             
-            <!-- Enlace directo -->
             <div style="margin: 20px 0; padding: 15px; background: #e8f5e9; border-radius: 5px; border-left: 4px solid #28a745;">
                 <p style="margin: 0; font-size: 13px; color: #555; word-break: break-all; line-height: 1.6;">
                     <strong style="display: block; margin-bottom: 8px; color: #003366; font-size: 14px;">Enlace directo:</strong>
@@ -209,15 +404,14 @@ function generarQR(id_evento) {
                 </p>
             </div>
             
-            <!-- Botones -->
             <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button id="btnDescargarQR" style="flex: 1; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: all 0.3s;">
+                <button id="btnDescargarQR" style="flex: 1; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px;">
                     Descargar QR
                 </button>
-                <button id="btnCopiarURL" style="padding: 12px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s;">
+                <button id="btnCopiarURL" style="padding: 12px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
                     Copiar URL
                 </button>
-                <button id="btnCerrarQR" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: all 0.3s;">
+                <button id="btnCerrarQR" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px;">
                     Cerrar
                 </button>
             </div>
@@ -237,150 +431,69 @@ function generarQR(id_evento) {
         correctLevel: QRCode.CorrectLevel.H
     });
     
-    // Efectos hover en botones
-    const btnDescargar = document.getElementById('btnDescargarQR');
-    const btnCopiar = document.getElementById('btnCopiarURL');
-    const btnCerrar = document.getElementById('btnCerrarQR');
-
-    // hover descargar
-    btnDescargar.addEventListener('mouseenter', () => {
-        btnDescargar.style.background = '#0056b3';
-        btnDescargar.style.transform = 'translateY(-2px)';
-        btnDescargar.style.boxShadow = '0 4px 8px rgba(0,123,255,0.3)';
-    });
-    btnDescargar.addEventListener('mouseleave', () => {
-        btnDescargar.style.background = '#007bff';
-        btnDescargar.style.transform = 'translateY(0)';
-        btnDescargar.style.boxShadow = 'none';
-    });
-
-    // Hover copiar
-    btnCopiar.addEventListener('mouseenter', () => {
-        btnCopiar.style.background = '#138496';
-        btnCopiar.style.transform = 'translateY(-2px)';
-        btnCopiar.style.boxShadow = '0 4px 8px rgba(23,162,184,0.3)';
-    });
-
-    
-    // Hover Cerrar
-    btnCerrar.addEventListener('mouseenter', () => {
-        btnCerrar.style.background = '#5a6268';
-        btnCerrar.style.transform = 'translateY(-2px)';
-        btnCerrar.style.boxShadow = '0 4px 8px rgba(108,117,125,0.3)';
-    });
-    btnCerrar.addEventListener('mouseleave', () => {
-        btnCerrar.style.background = '#6c757d';
-        btnCerrar.style.transform = 'translateY(0)';
-        btnCerrar.style.boxShadow = 'none';
-    });
-    
-    // Funcionalidad botón descargar
-    btnDescargar.addEventListener('click', () => {
+    // Eventos de botones
+    document.getElementById('btnDescargarQR').addEventListener('click', () => {
         const img = divQR.querySelector("img");
         if (img) {
             const enlace = document.createElement("a");
             enlace.href = img.src;
             enlace.download = `QR_evento_${id_evento}.png`;
             enlace.click();
-            
-            // Feedback visual
-            btnDescargar.textContent = 'Descargado';
-            setTimeout(() => {
-                btnDescargar.innerHTML = 'Descargar QR';
-            }, 2000);
         }
     });
 
-    // Funcionalidad botón copiar URL
-    btnCopiar.addEventListener('click', () => {
+    document.getElementById('btnCopiarURL').addEventListener('click', () => {
         navigator.clipboard.writeText(enlaceEvento).then(() => {
-            btnCopiar.textContent = 'Copiado';
-            btnCopiar.style.background = '#28a745';
-            setTimeout(() => {
-                btnCopiar.innerHTML = 'Copiar URL';
-                btnCopiar.style.background = '#17a2b8';
-            }, 2000);
+            const btn = document.getElementById('btnCopiarURL');
+            btn.textContent = 'Copiado';
+            setTimeout(() => btn.textContent = 'Copiar URL', 2000);
         });
     });
     
-    // Funcionalidad botón cerrar
-    btnCerrar.addEventListener('click', () => {
+    document.getElementById('btnCerrarQR').addEventListener('click', () => {
         modalQR.remove();
     });
     
-    // Cerrar con click fuera del modal
     modalQR.addEventListener('click', (e) => {
-        if (e.target === modalQR) {
-            modalQR.remove();
-        }
+        if (e.target === modalQR) modalQR.remove();
     });
-    
-    // Cerrar con tecla ESC
-    const cerrarConEsc = (e) => {
-        if (e.key === 'Escape') {
-            modalQR.remove();
-            document.removeEventListener('keydown', cerrarConEsc);
-        }
-    };
-    document.addEventListener('keydown', cerrarConEsc);
 }
 
-// Modal de éxito con QR después de crear evento
+// Modal de éxito con QR
 function mostrarModalExitoConQR(id_evento, mensaje) {
     const enlaceEvento = `http://localhost/Proyecto-Deportes/Front-End-Usuario/eventos.html?id_evento=${id_evento}`;
     
     const modalExito = document.createElement('div');
-    modalExito.id = 'modal-exito-qr';
     modalExito.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
     
     modalExito.innerHTML = `
         <div style="max-width: 650px; background: white; padding: 35px; border-radius: 10px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-            
-            <!-- Ícono de éxito -->
             <div style="text-align: center; margin-bottom: 20px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                        <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                </div>
-                <h2 style="margin: 0 0 8px 0; color: #28a745; font-size: 26px; font-weight: bold;">¡Evento Creado Exitosamente!</h2>
-                <p style="margin: 0; color: #666; font-size: 15px;">${mensaje}</p>
+                <h2 style="margin: 0 0 8px 0; color: #28a745; font-size: 26px;">Evento Creado Exitosamente</h2>
+                <p style="margin: 0; color: #666;">${mensaje}</p>
             </div>
             
-            <!-- Separador -->
-            <div style="height: 1px; background: linear-gradient(90deg, transparent, #ddd, transparent); margin: 25px 0;"></div>
+            <h3 style="margin: 20px 0 15px 0; color: #003366; text-align: center;">Código QR del Evento</h3>
             
-            <!-- Título del QR -->
-            <h3 style="margin: 0 0 15px 0; color: #003366; font-size: 20px; text-align: center;">
-                Código QR del Evento
-            </h3>
-            <p style="margin: 0 0 20px 0; color: #666; text-align: center; font-size: 14px;">
-                Comparte este QR para que los participantes se registren
-            </p>
-            
-            <!-- Contenedor del QR -->
-            <div style="display: flex; justify-content: center; margin: 20px 0; padding: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 3px dashed #28a745;">
+            <div style="display: flex; justify-content: center; margin: 20px 0; padding: 30px; background: #f8f9fa; border-radius: 12px; border: 3px dashed #28a745;">
                 <div id="codigoQRExito"></div>
             </div>
             
-            <!-- Enlace directo -->
-            <div style="margin: 20px 0; padding: 15px; background: #d4edda; border-radius: 8px; border-left: 4px solid #28a745;">
-                <p style="margin: 0; font-size: 13px; color: #155724; word-break: break-all; line-height: 1.6;">
-                    <strong style="display: block; margin-bottom: 8px; font-size: 14px;">🔗 Enlace de registro:</strong>
-                    <span style="color: #28a745; font-family: 'Courier New', monospace; font-size: 12px; background: white; padding: 8px; border-radius: 4px; display: inline-block; width: 100%; box-sizing: border-box;">${enlaceEvento}</span>
+            <div style="margin: 20px 0; padding: 15px; background: #d4edda; border-radius: 8px;">
+                <p style="margin: 0; font-size: 13px; color: #155724; word-break: break-all;">
+                    <strong style="display: block; margin-bottom: 8px;">Enlace de registro:</strong>
+                    <span style="color: #28a745; font-family: monospace;">${enlaceEvento}</span>
                 </p>
             </div>
             
-            <!-- Botones -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 25px;">
-                <button id="btnDescargarQRExito" style="padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <button id="btnDescargarQRExito" style="padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
                     Descargar
                 </button>
-                <button id="btnCopiarEnlace" style="padding: 12px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s;">
+                <button id="btnCopiarEnlace" style="padding: 12px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
                     Copiar Link
                 </button>
-                <button id="btnCerrarExito" style="padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s;">
+                <button id="btnCerrarExito" style="padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
                     Finalizar
                 </button>
             </div>
@@ -389,7 +502,6 @@ function mostrarModalExitoConQR(id_evento, mensaje) {
     
     document.body.appendChild(modalExito);
     
-    // Generar el QR
     const divQR = document.getElementById("codigoQRExito");
     new QRCode(divQR, {
         text: enlaceEvento,
@@ -400,7 +512,6 @@ function mostrarModalExitoConQR(id_evento, mensaje) {
         correctLevel: QRCode.CorrectLevel.H
     });
     
-    // Botón descargar
     document.getElementById('btnDescargarQRExito').addEventListener('click', () => {
         const img = divQR.querySelector("img");
         if (img) {
@@ -408,98 +519,22 @@ function mostrarModalExitoConQR(id_evento, mensaje) {
             enlace.href = img.src;
             enlace.download = `QR_evento_${id_evento}.png`;
             enlace.click();
-            
-            const btn = document.getElementById('btnDescargarQRExito');
-            btn.textContent = '✅ Descargado';
-            btn.style.background = '#28a745';
-            setTimeout(() => {
-                btn.innerHTML = '📥 Descargar';
-                btn.style.background = '#007bff';
-            }, 2000);
         }
     });
     
-    // Botón copiar enlace
     document.getElementById('btnCopiarEnlace').addEventListener('click', () => {
-        navigator.clipboard.writeText(enlaceEvento).then(() => {
-            const btn = document.getElementById('btnCopiarEnlace');
-            btn.textContent = ' Copiado';
-            btn.style.background = '#28a745';
-            setTimeout(() => {
-                btn.innerHTML = ' Copiar Link';
-                btn.style.background = '#17a2b8';
-            }, 2000);
-        });
+        navigator.clipboard.writeText(enlaceEvento);
     });
     
-    // Botón cerrar
     document.getElementById('btnCerrarExito').addEventListener('click', () => {
         modalExito.remove();
     });
-    
-    // Cerrar con ESC
-    const cerrarConEsc = (e) => {
-        if (e.key === 'Escape') {
-            modalExito.remove();
-            document.removeEventListener('keydown', cerrarConEsc);
-        }
-    };
-    document.addEventListener('keydown', cerrarConEsc);
 }
 
+// ================================
+// UTILIDADES
+// ================================
 
-// Guardar evento (crear o editar)
-document.getElementById('formEvento').addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const fechaInput = document.getElementById('evento-fecha').value;
-    if (fechaInput) {
-        formData.set('fecha', fechaInput);
-    }
-    const btnSubmit = e.target.querySelector('button[type="submit"]');
-    
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = 'Guardando...';
-    
-    const url = modoEdicion ? 
-        '../Back-End-Admin/editarEvento.php' : 
-        '../Back-End-Admin/crearEvento.php';
-    
-    fetch(url, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Cerrar modal de formulario
-            document.getElementById('modalEvento').style.display = 'none';
-            
-            // Recargar eventos
-            cargarEventos();
-            
-            // Si es creación (no edición), mostrar modal de éxito con QR
-            if (!modoEdicion && data.id) {
-                mostrarModalExitoConQR(data.id, data.mensaje);
-            } else {
-                mostrarMensaje(data.mensaje, 'success');
-            }
-        } else {
-            mostrarMensaje(data.mensaje, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        mostrarMensaje('Error al guardar evento', 'error');
-    })
-    .finally(() => {
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = 'Guardar';
-    });
-});
-
-// Mostrar mensaje de respuesta
 function mostrarMensaje(texto, tipo) {
     const mensajeDiv = document.getElementById('mensaje-respuesta');
     mensajeDiv.textContent = texto;
@@ -515,21 +550,16 @@ function mostrarMensaje(texto, tipo) {
         mensajeDiv.style.border = '1px solid #f5c6cb';
     }
     
-    setTimeout(() => {
-        mensajeDiv.style.display = 'none';
-    }, 5000);
+    setTimeout(() => mensajeDiv.style.display = 'none', 5000);
 }
 
 // Cerrar sesión
 document.getElementById('btnCerrarSesion').addEventListener('click', () => {
     if (confirm('¿Cerrar sesión?')) {
         fetch('../Back-End-Admin/cerrarSesion.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    localStorage.removeItem('usuarioLogeado'); // Limpiar localStorage
-                    window.location.href = '../Front-End-Usuario/login.html'; // ✅ CORREGIDO
-                }
+            .then(() => {
+                localStorage.removeItem('usuarioLogeado');
+                window.location.href = '../Front-End-Usuario/login.html';
             });
     }
 });

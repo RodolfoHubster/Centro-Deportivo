@@ -8,30 +8,7 @@
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="main-header">
-    <div class="logo">
-      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
-    </div>
-    <div class="title">
-      <h1>Universidad Autónoma de Baja California</h1>
-      <p>Gestión de Eventos</p>
-    </div>
-    <div class="logout" style="cursor: pointer;" id="btnCerrarSesion" title="Cerrar sesión">
-      <i>⎋</i>
-    </div>
-  </header>
-
-  <!-- NAV -->
-  <nav class="main-nav">
-    <ul>
-      <li><a href="admin.html">Dashboard</a></li>
-      <li><a href="gestionar-eventos.html">Gestionar Eventos</a></li>
-      <li><a href="ver-inscripciones.html">Inscripciones</a></li>
-      <li><a href="ver-mensajes.html">Mensajes</a></li>
-      <li><a href="../index.html">Ver Sitio Público</a></li>
-    </ul>
-  </nav>
+  <div id="header-placeholder"></div>
 
   <!-- CONTENIDO -->
   <main class="page-content">
@@ -45,57 +22,161 @@
     <!-- Mensaje de respuesta -->
     <div id="mensaje-respuesta" style="display: none; padding: 15px; margin: 15px 0; border-radius: 5px; text-align: center; font-weight: bold;"></div>
 
-    <!-- Lista de eventos -->
+  <!-- Lista de eventos -->
     <div id="lista-eventos" style="margin-top: 20px;">
       <p style="text-align: center;">Cargando eventos...</p>
     </div>
   </main>
-
-  <!-- Modal Crear/Editar Evento -->
-  <div id="modalEvento" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto;">
-    <div style="max-width: 600px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px;">
-      <h2 id="tituloModal">Crear Nuevo Evento</h2>
+  <div id="footer-placeholder"></div>
+  <!-- Modal Crear/Editar Evento - ACTUALIZADO -->
+  <div id="modalEvento" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; padding: 20px;">
+    <div style="max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+      <h2 id="tituloModal" style="color: #006633; margin-bottom: 25px;">Crear Nuevo Evento</h2>
       
       <form id="formEvento">
         <input type="hidden" id="evento-id" name="id">
-        
-        <div style="margin: 15px 0;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Nombre del evento:</label>
-          <input type="text" id="evento-nombre" name="nombre" required 
-                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
+        <div class="form-section">
+          <h3>Información Básica</h3>
+          
+          <div class="form-group">
+            <label>Nombre del Evento <span class="required">*</span></label>
+            <input type="text" id="evento-nombre" name="nombre" required 
+                   placeholder="Ej: Torneo de Fútbol Interfacultades 2025">
+          </div>
+
+          <div class="form-group">
+            <label>Descripción <span class="required">*</span></label>
+            <textarea id="evento-descripcion" name="descripcion" rows="4" required 
+                      placeholder="Describe el evento, objetivos, premios, etc."></textarea>
+          </div>
         </div>
 
-        <div style="margin: 15px 0;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Descripción:</label>
-          <textarea id="evento-descripcion" name="descripcion" rows="4" required 
-                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+        <!-- SECCIÓN 2: FECHAS Y UBICACIÓN -->
+        <div class="form-section">
+          <h3>Fechas y Ubicación</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Fecha de Inicio <span class="required">*</span></label>
+              <input type="date" id="evento-fecha-inicio" name="fecha_inicio" required>
+            </div>
+
+            <div class="form-group">
+              <label>Fecha de Término <span class="required">*</span></label>
+              <input type="date" id="evento-fecha-termino" name="fecha_termino" required>
+              <p class="help-text">Puede ser el mismo día que el inicio</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Campus <span class="required">*</span></label>
+              <select id="evento-campus" name="campus_id" required>
+                <option value="">Cargando campus...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de Ubicación <span class="required">*</span></label>
+              <select id="evento-ubicacion-tipo" name="ubicacion_tipo" required>
+                <option value="">Selecciona...</option>
+                <option value="Gimnasio">Gimnasio</option>
+                <option value="Canchas internas">Canchas internas</option>
+                <option value="Edificio facultad">Edificio de facultad</option>
+                <option value="Externo">Externo (fuera del campus)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Lugar Específico <span class="required">*</span></label>
+            <input type="text" id="evento-lugar" name="lugar" required 
+                   placeholder="Ej: Cancha de fútbol principal, Gimnasio FCF, etc.">
+          </div>
         </div>
 
-        <div style="margin: 15px 0;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Fecha:</label>
-          <input type="date" id="evento-fecha" name="fecha" required 
-                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <!-- SECCIÓN 3: CATEGORIZACIÓN -->
+        <div class="form-section">
+          <h3>Categorización del Evento</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tipo de Actividad <span class="required">*</span></label>
+              <select id="evento-tipo-actividad" name="tipo_actividad" required>
+                <option value="">Selecciona...</option>
+                <option value="Torneo">Torneo</option>
+                <option value="Carrera">Carrera</option>
+                <option value="Exhibición">Exhibición</option>
+                <option value="Taller">Taller</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Categoría Deportiva <span class="required">*</span></label>
+              <select id="evento-categoria" name="categoria_deporte" required>
+                <option value="">Selecciona...</option>
+                <option value="Fútbol">Fútbol</option>
+                <option value="Básquetbol">Básquetbol</option>
+                <option value="Voleibol">Voleibol</option>
+                <option value="Natación">Natación</option>
+                <option value="Atletismo">Atletismo</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Registro <span class="required">*</span></label>
+            <select id="evento-tipo-registro" name="tipo_registro" required>
+              <option value="">Selecciona...</option>
+              <option value="Individual">Individual (cada persona se inscribe sola)</option>
+              <option value="Por equipos">Por equipos (se forman equipos)</option>
+            </select>
+            <p class="help-text">Si es "Por equipos", los participantes podrán formar equipos de 8-15 personas</p>
+          </div>
         </div>
 
-        <div style="margin: 15px 0;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Lugar:</label>
-          <input type="text" id="evento-lugar" name="lugar" required 
-                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <!-- SECCIÓN 4: CONFIGURACIÓN ADICIONAL -->
+        <div class="form-section">
+          <h3>Configuración Adicional</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Actividad Deportiva (Opcional)</label>
+              <select id="evento-actividad" name="actividad">
+                <option value="">Ninguna específica</option>
+              </select>
+              <p class="help-text">Relacionar con una actividad deportiva existente</p>
+            </div>
+
+            <div class="form-group">
+              <label>Cupo Máximo (Opcional)</label>
+              <input type="number" id="evento-cupo-maximo" name="cupo_maximo" min="1" 
+                     placeholder="Ej: 100">
+              <p class="help-text">Dejar vacío para sin límite</p>
+            </div>
+          </div>
         </div>
 
-        <div style="margin: 15px 0;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de actividad:</label>
-          <select id="evento-actividad" name="actividad" required 
-                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-            <option value="">Selecciona una actividad</option>
-          </select>
+        <!-- SECCIÓN 5: FACULTADES PARTICIPANTES -->
+        <div class="form-section">
+          <h3>Facultades Participantes</h3>
+          <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+            Selecciona las facultades que pueden participar en este evento. Si no seleccionas ninguna, se asignarán todas automáticamente.
+          </p>
+          
+          <div id="facultades-checkbox" class="facultades-grid">
+            <p style="text-align: center; padding: 20px;">Cargando facultades...</p>
+          </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" style="flex: 1; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-            Guardar
+        <!-- BOTONES -->
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+          <button type="submit" style="flex: 1; padding: 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px;">
+            Guardar Evento
           </button>
-          <button type="button" id="btnCancelar" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+          <button type="button" id="btnCancelar" style="flex: 1; padding: 15px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px;">
             Cancelar
           </button>
         </div>
@@ -103,10 +184,12 @@
     </div>
   </div>
   
+
   <!-- Librería de QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Tu archivo JS -->
   <script src="../Back-End-Admin/gestionar-eventos.js"></script>
+  <script src="../Back-End-Usuario/headFooter.js"></script>
 </body>
 </html>

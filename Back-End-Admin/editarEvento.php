@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $lugar = mysqli_real_escape_string($conexion, $_POST['lugar']);
     $actividad_nombre = mysqli_real_escape_string($conexion, $_POST['actividad']);
     
-    // ✅ FIX: Asegurar que la fecha se guarde correctamente
+    // FIX: Asegurar que la fecha se guarde correctamente
     // Ya que el campo es DATE en MySQL, no necesitamos agregar hora
     
     // Verificar que el evento exista

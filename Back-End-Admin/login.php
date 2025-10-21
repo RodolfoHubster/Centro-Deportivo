@@ -10,21 +10,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $correo = mysqli_real_escape_string($conexion, $_POST['correo']);
     $password = $_POST['password'];
     
-    // Buscar admin en la base de datos
-    $sql = "SELECT * FROM usuario WHERE correo = '$correo' AND rol = 'Administrador'";
+    // ✅ Permitir tanto Administrador como Promotor
+    $sql = "SELECT * FROM usuario WHERE correo = '$correo' AND rol IN ('Administrador', 'Promotor') AND activo = 1";
     $resultado = mysqli_query($conexion, $sql);
     
     if ($fila = mysqli_fetch_assoc($resultado)) {
-        // Verificar contraseña con password_verify (tu BD usa hash)
+        // Verificar la contraseña (usa hash en tu BD)
         if (password_verify($password, $fila['contrasena'])) {
-            $_SESSION['admin_id'] = $fila['id'];
-            $_SESSION['admin_nombre'] = $fila['nombre'];
-            $_SESSION['admin_correo'] = $fila['correo'];
-            $_SESSION['admin_logged'] = true;
-            
+            // Guardar sesión común para ambos roles
+            $_SESSION['user_logged'] = true;
+            $_SESSION['user_id'] = $fila['id'];
+            $_SESSION['user_nombre'] = $fila['nombre'];
+            $_SESSION['user_correo'] = $fila['correo'];
+            $_SESSION['user_rol'] = $fila['rol'];
+
             echo json_encode([
                 'success' => true,
                 'mensaje' => 'Bienvenido ' . $fila['nombre'],
+                'rol' => $fila['rol'],
                 'nombre' => $fila['nombre']
             ]);
         } else {
@@ -36,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         echo json_encode([
             'success' => false,
-            'mensaje' => 'Usuario no encontrado o no tiene permisos de administrador'
+            'mensaje' => 'Usuario no encontrado o no tiene permisos'
         ]);
     }
 } else {
