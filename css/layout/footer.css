@@ -1,0 +1,139 @@
+/* css/layout/footer.css */
+
+.main-footer {
+    background-color: #4a4a4a;
+    color: #f0f0f0;
+    padding-top: 40px;
+    font-family: Arial, sans-serif;
+}
+
+.footer-content-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* APARTADO REDES SOCIALES */
+
+.footer-social {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.footer-social h3 {
+    font-size: 1.1rem;
+    font-weight: normal;
+    margin-bottom: 15px;
+}
+
+.social-icons a {
+    display: inline-block;
+    margin: 0 5px;
+    transition: background-color 0.2s ease;
+}
+
+.social-icons a img {
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    border-radius: 5px;
+}
+
+.social-icons a:hover img {
+    transform: scale(1.1);
+}
+
+.footer-column h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #6a6a6a;
+    padding-bottom: 10px;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 10px;
+}
+
+.footer-column ul a {
+    color: #f0f0f0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-column ul a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.footer-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.footer-copyright {
+    background-color: #1c1c1c;
+    color: #aaa;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.footer-copyright p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.back-to-top {
+    position: absolute;
+    right: 30px;
+    bottom: 15px;
+    background-color: var(--color-dorado-uabc);
+    color: #1c1c1c;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+}
+
+.back-to-top:hover {
+    background-color: var(--color-dorado-hover);
+}
+
+@media (max-width: 768px) {
+    .footer-links {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .footer-column {
+        text-align: center;
+    }
+
+    .footer-column h3 {
+        border-bottom: none;
+        padding-bottom: 5px;
+    }
+
+    .back-to-top {
+        position: static;
+        display: block;
+        margin: 20px auto 0;
+        width: fit-content;
+    }
+
+    .footer-content-wrapper {
+        padding: 0 15px;
+    }
+}

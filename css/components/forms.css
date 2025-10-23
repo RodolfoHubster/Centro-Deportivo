@@ -1,0 +1,44 @@
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.contact-form label {
+    font-weight: bold;
+    color: var(--color-verde-uabc);
+}
+
+.contact-form input,
+.contact-form textarea {
+    padding: 10px;
+    border: 1px solid var(--color-gris-claro);
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100%;
+    resize: none;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: var(--color-dorado-uabc);
+    box-shadow: 0 0 5px rgba(249, 178, 51, 0.5);
+}
+
+.contact-form button {
+    background-color: var(--color-dorado-uabc);
+    color: var(--color-blanco);
+    font-weight: bold;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.contact-form button:hover {
+    background-color: var(--color-dorado-hover);
+}
+

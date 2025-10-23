@@ -1,0 +1,144 @@
+/* ===== CONFIGURACIÓN GENERAL ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+
+/* ===== HEADER ===== */
+.main-header {
+  background-color: #006633; /* Verde UABC */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 30px;
+  border-bottom: 5px solid #f9b233; /* Franja dorada */
+}
+
+.main-header .logo img {
+  height: 60px;
+}
+
+.main-header .title {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.main-header .title h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.main-header .title p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.main-header .logout i {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* LOGIN */ 
+.login-container { 
+  display: flex;
+  justify-content: center; 
+  align-items: center; height: 
+  calc(100vh - 100px);/* altura menos header */ 
+} 
+
+.login-card { 
+  background: white; 
+  padding: 30px; border-radius: 12px; 
+  text-align: center; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+} 
+
+.login-card img {
+  width: 200px; 
+  margin-bottom: 20px;
+  }  
+
+.login-card form input { 
+  display: block; 
+  width: 100%; 
+  padding: 10px; 
+  margin: 10px 0; 
+  border-radius: 6px; 
+  border: 1px solid #ccc; 
+} 
+
+.login-card form button { 
+  background: #f9b233; 
+  border: none; 
+  padding: 12px; 
+  width: 100%; 
+  border-radius: 6px; 
+  font-size: 1rem; 
+  cursor: pointer; 
+  transition: 0.3s;
+  }
+
+.login-card form button:hover { 
+  background: #e5a322; 
+}
+
+/* ===== NAV BAR ===== */
+.main-nav {
+  background-color: #006633;
+  border-bottom: 1px solid #f9b233;
+}
+
+.main-nav ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 10px 0;
+  margin: 0;
+}
+
+.main-nav ul li {
+  margin: 0 20px;
+}
+
+.main-nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: color 0.3s;
+}
+
+.main-nav ul li a:hover {
+  color: #f9b233;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+.page-content {
+  max-width: 1100px;
+  margin: 40px auto;
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.page-content h1 {
+  color: #006633;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.page-content p {
+  font-size: 1.1rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* ===== ICONO DE LOGOUT ===== */
+.logout i:hover {
+  color: #f9b233;
+  transition: 0.3s;
+}
