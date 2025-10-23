@@ -1,30 +1,27 @@
 /* css/main.css */
 
-/* * 1. BASE
- * Variables y estilos globales.
- */
+/* public/css/main.css */
 
- @import url('base/general.css'); /* _variables.css ya importado dentro de general.css */
+/* 1. BASE */
+@import url('base/variables.css'); /* Primero las variables */
+@import url('base/general.css');
 
- /* * 2. LAYOUT
-  * Estructura principal del sitio.
-  */
+/* 2. LAYOUT */
+@import url('layout/header.css');
+@import url('layout/navigation.css');
+@import url('layout/layout.css'); /* Estilos generales de .page-content */
+@import url('layout/footer.css');
 
- @import url('layout/header.css');    /* La parte de la cabeza, el logo, titulo y el logout*/
- @import url('layout/navigation.css'); /* La parte del main nav, como lo es el inicio, eventos, torneos, actividades, contactos y el registro */
- @import url('layout/layout.css'); /* El contenido de la pagin, como lo es la bienvenida, el concepto de la pagina, el apartado de eventos, torneos y actividades al igual que si hay dudas y el contacto */
- @import url('layout/footer.css');
- /* * 3. COMPONENTS
-  * Piezas reutilizables.
-  */
+/* 3. COMPONENTS */
+@import url('components/buttons.css');
+@import url('components/cards.css');
+@import url('components/forms.css');
 
- @import url('components/buttons.css'); /* (No hay nada, pero es buena practica) */
- @import url('components/cards.css');
- @import url('components/forms.css');
- 
- /* * 4. PAGES
-  * Estilos específicos de páginas.
-  */
+/* 4. PAGES */
+@import url('pages/login.css');
+@import url('pages/home.css');
+@import url(pages/contacto.css);
 
- @import url('pages/login.css');
- @import url('pages/home.css'); /* Pagina principal donde se editaran los eventos torneos actividades etc. */
+/* Puedes añadir más imports de páginas aquí si es necesario */
+/* @import url('pages/eventos.css'); */
+/* @import url('pages/admin-dashboard.css'); */

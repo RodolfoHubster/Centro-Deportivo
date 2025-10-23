@@ -106,53 +106,68 @@
     color: var(--color-blanco);
     text-decoration: none;
     font-weight: bold;
-    background: rgba(255,255,255,0.2);
+    background: rgba(0, 0, 0, 0.3);
     padding: 10px 20px;
     border-radius: 5px;
     display: inline-block;
     transition: background 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
 }
         /* _LINK:HOVER */
 
 .welcome-card__link:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.5);
     text-decoration: none;
 }   
 
 
 /* Contacto */
 
+    
+    
+
+    /* -PROMO */
 .contact-promo {
     margin-top: 40px;
     text-align: center;
     padding: 30px;
     background: #f9f9f9;
     border-radius: var(--borde-redondeado);
+    border: 1px solid #eee;
 }
+
+        /* H3 */
 
 .contact-promo h3 {
     color: var(--color-verde-uabc);
+    margin-bottom: 10px;
 }
 
+        /* P */
+
 .contact-promo p {
-    color: #666;
-    margin: 15px 0;
+    color: var(--color-gris-claro);
+    margin: 0 0 20px 0;
     font-size: 1rem;
     line-height: 1.5;
 }
 
+/* BTN-CONTACT */
+
 .btn-contact {
     display: inline-block;
     padding: 12px 30px;
-    background: #28a745;
-    color: white;
+    background: var(--color-exito);
+    color: var(--color-blanco);
     text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
-    margin-top: 10px;
-    transition: background 0.3s ease;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .btn-contact:hover {
     background: #218838;
+    text-decoration: none;
+    transform: scale(1.05);
 }
