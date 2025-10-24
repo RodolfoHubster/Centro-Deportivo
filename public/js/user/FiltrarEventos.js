@@ -10,7 +10,7 @@ function cargarTiposActividad() {
         return;
     }
     
-    fetch("../Back-End-PHP/obtenerActividades.php")
+    fetch("../php/public/obtenerActividades.php")
         .then(response => response.json())
         .then(data => {
             if (data.success && data.actividades.length > 0) {

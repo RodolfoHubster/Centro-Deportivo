@@ -27,7 +27,7 @@ function cargarEventos(filtros = {}) {
     main.innerHTML = '<p style="text-align: center;">Cargando eventos...</p>';
     
     // Construir URL con filtros
-    let url = "../Back-End-PHP/obtenerEventos.php";
+    let url = "../php/public/obtenerEventos.php";
     const params = new URLSearchParams();
     
     // Aplicar filtros si existen

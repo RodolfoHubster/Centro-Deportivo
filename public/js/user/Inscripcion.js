@@ -400,7 +400,7 @@ function cargarFacultades() {
     const selectFacultad = document.getElementById('select-facultad');
     selectFacultad.innerHTML = '<option value="">Cargando facultades...</option>';
     
-    fetch('../Back-End-PHP/obtenerFacultades.php')
+    fetch('../php/public/obtenerFacultades.php')
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -435,7 +435,7 @@ function cargarCarreras(facultadId) {
         return;
     }
     
-    fetch(`../Back-End-PHP/obtenerCarreras.php?facultad_id=${facultadId}`)
+    fetch(`../php/public/obtenerCarreras.php?facultad_id=${facultadId}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -519,7 +519,7 @@ function enviarInscripcion(form, modal) {
         document.head.appendChild(spinStyle);
     }
     
-    fetch('../Back-End-PHP/inscribirEvento.php', {
+    fetch('../php/public/inscribirEvento.php', {
         method: 'POST',
         body: datosEnvio
     })

@@ -4,34 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Admin - Centro Deportivo UABC</title>
-  <link rel="stylesheet" href="../css/style.css?v=1">
+  <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="main-header">
-    <div class="logo">
-      <img src="../image/pngaaa.com-3770431.png" alt="Logo UABC">
-    </div>
-    <div class="title">
-      <h1>Universidad Autónoma de Baja California</h1>
-      <p>Panel Administrativo</p>
-    </div>
-    <div class="logout" style="cursor: pointer;" id="btnCerrarSesion" title="Cerrar sesión">
-      <i>⎋</i>
-    </div>
-  </header>
+  <div id="header-placeholder"></div>
 
-  <!-- NAV -->
-  <nav class="main-nav">
-    <ul>
-      <li><a href="admin.html">Dashboard</a></li>
-      <li><a href="gestionar-eventos.html">Gestionar Eventos</a></li>
-      <li><a href="ver-inscripciones.html">Inscripciones</a></li>
-      <li><a href="ver-mensajes.html">Mensajes</a></li>
-      <li><a href="../index.html">Ver Sitio Público</a></li>
-    </ul>
-  </nav>
+
 
   <!-- CONTENIDO -->
   <main class="page-content">
@@ -89,12 +68,12 @@
     });
 
     function verificarSesion() {
-      fetch('../Back-End-Admin/verificarSesion.php')
+      fetch('../../php/admin/verificarSesion.php')
         .then(response => response.json())
         .then(data => {
           if (!data.loggedin) {
             // No hay sesión válida, redirigir al login
-            window.location.href = '../Front-End-Usuario/login.html';
+            window.location.href = '../login.html';
           } else {
             // Sesión válida, mostrar mensaje de bienvenida
             document.getElementById('mensaje-bienvenida').textContent = 
@@ -103,13 +82,13 @@
         })
         .catch(error => {
           console.error('Error:', error);
-          window.location.href = '../Front-End-Usuario/login.html';
+          window.location.href = '../login.html';
         });
     }
 
     function cargarEstadisticas() {
       // Cargar total de eventos
-      fetch('../Back-End-PHP/obtenerEventos.php')
+      fetch('../../php/public/obtenerEventos.php')
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -119,7 +98,7 @@
         .catch(error => console.error('Error al cargar eventos:', error));
 
       // Cargar total de inscripciones
-      fetch('../Back-End-Admin/verInscripciones.php')
+      fetch('../../php/public/obtenerEventos.php')
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -129,7 +108,7 @@
         .catch(error => console.error('Error al cargar inscripciones:', error));
 
       // Cargar total de mensajes
-      fetch('../Back-End-Admin/verMensajes.php')
+      fetch('../../php/admin/verMensajes.php')
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -140,27 +119,7 @@
     }
 
     // Cerrar sesión
-    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
-      if (confirm('¿Estás seguro de cerrar sesión?')) {
-        fetch('../Back-End-Admin/cerrarSesion.php')
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              // Limpiar localStorage por si acaso
-              localStorage.removeItem('usuarioLogeado');
-              // Redirigir al login
-              window.location.href = '../Front-End-Usuario/login.html';
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            // Forzar redirección aunque haya error
-            localStorage.removeItem('usuarioLogeado');
-            window.location.href = '../Front-End-Usuario/login.html';
-          });
-      }
-    });
   </script>
-
+  <script src="../js/headFooter.js"></script>
 </body>
 </html>

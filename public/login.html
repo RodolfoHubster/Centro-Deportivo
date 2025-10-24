@@ -55,7 +55,7 @@
       mensajeError.style.display = 'none';
 
       // Enviar petición al servidor
-      fetch('../Back-End-Admin/login.php', {
+      fetch('../php/admin/login.php', {
         method: 'POST',
         body: formData
       })
@@ -63,7 +63,7 @@
       .then(data => {
         if (data.success) {
           // Login exitoso - redirigir al dashboard admin
-          window.location.href = '../Front-End-Admin/admin.html';
+          window.location.href = 'admin/admin.html';
         } else {
           // Mostrar error
           mensajeError.textContent = data.mensaje;
