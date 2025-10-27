@@ -24,21 +24,23 @@ Se adoptó un enfoque modular utilizando **Módulos ES6** (`import`/`export`), s
 
 ### Nueva Estructura de Archivos (`public/js/`)
 
+```
 js/
 ├── admin/
-│ ├── gestEventos.js # Orquestador principal (ahora más limpio)
-│ └── ... # Otros scripts de admin
+│   ├── gestEventos.js       # Orquestador principal (ahora más limpio)
+│   └── ...                  # Otros scripts de admin
 ├── components/
-│ └── qrModal.js # Lógica específica para modales de QR
+│   └── qrModal.js           # Lógica específica para modales de QR
 ├── services/
-│ └── apiEventos.js # Comunicación con el backend (fetch a PHP)
+│   └── apiEventos.js        # Comunicación con el backend (fetch a PHP)
 ├── ui/
-│ └── uiEventos.js # Manipulación del DOM (actualizar HTML)
+│   └── uiEventos.js         # Manipulación del DOM (actualizar HTML)
 ├── utils/
-│ └── utilidades.js # Funciones genéricas (formatearFecha, mostrarMensaje)
+│   └── utilidades.js        # Funciones genéricas (formatearFecha, mostrarMensaje)
 ├── user/
-│ └── ... # Scripts para la parte pública
-└── headFooter.js # Script global para header/footer
+│   └── ...                  # Scripts para la parte pública
+└── headFooter.js            # Script global para header/footer
+```
 
 ### Descripción de los Módulos Principales
 
@@ -80,3 +82,4 @@ js/
 * **Escalabilidad:** Añadir nuevas funciones relacionadas con eventos será más sencillo.
 
 ----------------
+
