@@ -1,8 +1,8 @@
-﻿# databasePHP
 
--- Version 27/10/2025 01:04am
+
+
 # Refactorización del JavaScript - Gestión de Eventos (Admin)
-
+## Version 27/10/2025 01:04am
 Este documento resume los cambios realizados en la estructura del código JavaScript para la sección de administración de eventos (`gestionar-eventos.html`). El objetivo principal fue mejorar la organización, mantenibilidad y escalabilidad del código.
 
 ## Motivación
@@ -82,4 +82,5 @@ js/
 * **Escalabilidad:** Añadir nuevas funciones relacionadas con eventos será más sencillo.
 
 ----------------
+
 
