@@ -35,7 +35,8 @@ try {
         'categoria_deporte' => 'Categoría deportiva',
         'tipo_actividad' => 'Tipo de actividad',
         'ubicacion_tipo' => 'Tipo de ubicación',
-        'campus_id' => 'Campus'
+        'campus_id' => 'Campus',
+        'id_promotor' => 'ID de Promotor'
     ];
     
     foreach ($camposRequeridos as $campo => $nombreCampo) {
@@ -58,7 +59,7 @@ try {
     $tipo_actividad = mysqli_real_escape_string($conexion, $_POST['tipo_actividad']);
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
     $campus_id = intval($_POST['campus_id']);
-    $id_promotor = $_SESSION['user_id'] ?? 0;
+    $id_promotor = intval($_POST['id_promotor']);
     $id_actividad = isset($_POST['id_actividad']) && !empty($_POST['id_actividad']) ? intval($_POST['id_actividad']) : NULL;
     
     // Campos opcionales

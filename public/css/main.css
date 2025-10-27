@@ -20,8 +20,9 @@
 /* 4. PAGES */
 @import url('pages/login.css');
 @import url('pages/home.css');
-@import url(pages/contacto.css);
-
+@import url('pages/contacto.css');
+@import url('pages/adminDashboard.css');
+@import url('pages/adminGestEventos.css');
 /* Puedes añadir más imports de páginas aquí si es necesario */
 /* @import url('pages/eventos.css'); */
-/* @import url('pages/admin-dashboard.css'); */
+/*  */
