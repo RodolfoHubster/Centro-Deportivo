@@ -4,6 +4,13 @@
     background: var(--color-verde-uabc);
     padding: 10px 0;
     border-bottom: 1px solid var(--color-dorado-uabc);
+
+    /* --- Añadido para que se pegue DEBAJO del header --- */
+    position: sticky;
+    top: 85px;
+    z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* LISTA (UL) */
