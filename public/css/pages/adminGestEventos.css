@@ -1,104 +1,117 @@
-/* Centro-Deportivo/public/css/pages/adminGestEventos.css - VERSIÓN ACOPLADA Y CORREGIDA */
+/* =========================================================
+   Centro-Deportivo/public/css/pages/adminGestEventos.css
+   VERSIÓN RESPONSIVA Y ACOPLADA AL PANEL ADMIN
+========================================================= */
 
-/* --- Estilos generales para elementos FUERA del modal (Botón Nuevo, Lista) --- */
+/* --- Estilos generales para el contenedor principal --- */
+body {
+    font-family: "Poppins", Arial, sans-serif;
+    background-color: #f5f6fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
 
+/* --- Botón Nuevo Evento --- */
 #btnNuevoEvento {
     padding: 12px 25px;
-    background: #28a745; /* Verde */
-    color: var(--color-blanco); /* Variable de tu archivo variables.css */
+    background: var(--color-verde-uabc);
+    color: var(--color-blanco);
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    margin-bottom: 20px;
-    transition: background-color 0.3s;
+    font-size: 1rem;
+    margin: 25px 0;
+    transition: all 0.3s ease;
+    display: inline-block;
 }
 
 #btnNuevoEvento:hover {
-    background: #218838; /* Verde más oscuro */
+    background: #218838;
+    transform: scale(1.03);
 }
 
-#lista-eventos > p { /* Mensaje "Cargando..." o "No hay eventos" */
+/* --- Lista de eventos --- */
+#lista-eventos > p {
     text-align: center;
     color: #666;
     padding: 20px;
+    font-size: 1rem;
 }
 
-/* --- Estilo base del modal (el fondo oscuro y contenedor principal) --- */
+/* --- Fondo oscuro del modal --- */
 #modalEvento {
-    display: none; /* JS lo cambia a 'block' para mostrarlo */
+    display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
     z-index: 9999;
-    overflow-y: auto; /* Permite scroll si el modal es muy alto */
-    padding: 20px; /* Espacio para que no pegue a los bordes */
+    overflow-y: auto;
+    padding: 20px;
 }
 
-/* --- Contenido del modal (el cuadro blanco) --- */
+/* --- Contenido del modal --- */
 .admin-modal-contenido {
-    font-family: Arial, sans-serif; /* Asegura la fuente */
     max-width: 800px;
-    margin: 40px auto; /* Centrado horizontal y margen arriba/abajo */
-    background: #f9f9f9; /* Fondo ligeramente gris */
-    padding: 30px 40px;
-    border-radius: 12px; /* Más redondeado */
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+    margin: 40px auto;
+    background: #fff;
+    padding: 35px 45px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
     border: 1px solid #eee;
+    animation: fadeIn 0.3s ease;
 }
 
-/* --- Título del modal (H2) --- */
+/* --- Animación al abrir el modal --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Título del modal --- */
 .admin-modal-contenido h2#tituloModal {
-    color: var(--color-verde-uabc); /* Variable verde */
-    margin-bottom: 30px; /* Más espacio abajo */
+    color: var(--color-verde-uabc);
+    margin-bottom: 25px;
     text-align: center;
-    font-size: 26px;
+    font-size: 1.6rem;
     font-weight: bold;
-    margin-top: 0; /* Asegura que no tenga margen arriba */
 }
-
-/* --- FIN DE LA REGLA QUE SÍ FUNCIONABA --- */
-/* A partir de aquí revisamos la sintaxis cuidadosamente */
 
 /* --- Secciones dentro del formulario --- */
 #formEvento .form-section h3 {
     font-size: 18px;
     color: #333;
-    border-bottom: 2px solid var(--color-verde-uabc); /* Línea verde */
+    border-bottom: 2px solid var(--color-verde-uabc);
     padding-bottom: 8px;
     margin-top: 30px;
     margin-bottom: 20px;
 }
-/* Quitar margen extra a la primera sección */
 #formEvento .form-section:first-of-type h3 {
     margin-top: 0;
 }
 
-/* --- Grupos de label + input --- */
+/* --- Grupos de campo --- */
 #formEvento .form-group {
     margin-bottom: 18px;
 }
 
-/* --- Etiquetas (Labels) --- */
+/* --- Etiquetas --- */
 #formEvento .form-group label {
     display: block;
     font-weight: 600;
     color: #444;
     margin-bottom: 6px;
-    font-size: 14px;
+    font-size: 0.95rem;
 }
 
-/* Estrella roja de requerido */
 #formEvento .form-group label .required {
-    color: #dc3545; /* Rojo */
+    color: #dc3545;
     margin-left: 4px;
     font-weight: bold;
 }
 
-/* --- Estilo para TODOS los campos del formulario --- */
+/* --- Campos del formulario --- */
 #formEvento .form-group input[type="text"],
 #formEvento .form-group input[type="date"],
 #formEvento .form-group input[type="number"],
@@ -108,48 +121,43 @@
     padding: 12px 15px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    box-sizing: border-box;
     font-size: 15px;
-    background-color: #fff; /* Fondo blanco explícito */
+    background-color: #fff;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
 }
 
-/* Efecto al seleccionar (focus) */
-#formEvento .form-group input[type="text"]:focus,
-#formEvento .form-group input[type="date"]:focus,
-#formEvento .form-group input[type="number"]:focus,
+/* --- Enfoque (focus) --- */
+#formEvento .form-group input:focus,
 #formEvento .form-group select:focus,
 #formEvento .form-group textarea:focus {
     outline: none;
     border-color: var(--color-verde-uabc);
-    box-shadow: 0 0 0 3px rgba(0, 102, 51, 0.1); /* Sombra verde sutil */
+    box-shadow: 0 0 0 3px rgba(0, 102, 51, 0.15);
 }
 
-/* --- Textarea específico (Descripción) --- */
-/* Hereda estilos base, solo ajustamos lo necesario */
-#formEvento textarea#evento-descripcion { /* Selector más específico */
+/* --- Textarea descripción --- */
+#formEvento textarea#evento-descripcion {
     min-height: 100px;
-     /* Para que funcione el script JS de auto-crecimiento */
     resize: none;
     overflow-y: hidden;
 }
 
-/* --- Texto de ayuda debajo de campos --- */
+/* --- Texto de ayuda --- */
 #formEvento .help-text {
     font-size: 13px;
     color: #666;
     margin-top: 5px;
-    margin-bottom: 0;
 }
 
-/* --- Grid para poner campos lado a lado --- */
+/* --- Grid para campos lado a lado --- */
 #formEvento .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-/* --- Checkboxes de Facultades --- */
+/* --- Checkboxes Facultades --- */
 #facultades-checkbox {
     max-height: 200px;
     overflow-y: auto;
@@ -158,33 +166,34 @@
     border-radius: 6px;
     background-color: #fff;
 }
-#facultades-checkbox p { /* Mensaje "Cargando..." */
-     text-align: center;
-     padding: 20px;
-     margin: 0;
-     color: #666;
+
+#facultades-checkbox p {
+    text-align: center;
+    padding: 20px;
+    color: #666;
 }
+
 #facultades-checkbox label {
     display: flex;
     align-items: center;
     padding: 8px 5px;
     cursor: pointer;
-    margin-bottom: 0;
     border-radius: 4px;
-    /* Estilos base de label ya aplicados arriba */
+    transition: background-color 0.2s ease;
 }
+
 #facultades-checkbox label:hover {
     background-color: #f0f0f0;
 }
+
 #facultades-checkbox input[type="checkbox"] {
     margin-right: 12px;
     width: 16px;
     height: 16px;
-    cursor: pointer;
-    accent-color: var(--color-verde-uabc); /* Color verde al marcar */
+    accent-color: var(--color-verde-uabc);
 }
 
-/* --- Botones Guardar y Cancelar --- */
+/* --- Botones Guardar / Cancelar --- */
 .admin-modal-botones {
     display: flex;
     gap: 15px;
@@ -197,46 +206,67 @@
     flex: 1;
     padding: 14px;
     border: none;
-    border-radius: 8px; /* Más redondeado */
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 16px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    font-size: 1rem;
+    transition: all 0.2s ease;
 }
+
 .admin-modal-botones button:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
 .admin-modal-btn-guardar {
-    background: #28a745; /* Verde éxito */
+    background: var(--color-verde-uabc);
     color: var(--color-blanco);
 }
 .admin-modal-btn-guardar:hover {
-    background: #218838; /* Verde más oscuro */
+    background: #218838;
 }
 
 .admin-modal-btn-cancelar {
-    background: #6c757d; /* Gris */
+    background: #6c757d;
     color: var(--color-blanco);
 }
 .admin-modal-btn-cancelar:hover {
-    background: #5a6268; /* Gris más oscuro */
+    background: #5a6268;
 }
 
+/* =========================================================
+   🔹 RESPONSIVIDAD
+========================================================= */
 
-/* --- Media Query para Móviles --- */
-@media (max-width: 600px) {
+@media (max-width: 900px) {
     .admin-modal-contenido {
-        padding: 20px;
+        max-width: 95%;
+        padding: 25px;
     }
     #formEvento .form-grid {
-        grid-template-columns: 1fr; /* Una columna */
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    #btnNuevoEvento {
+        width: 100%;
+        font-size: 0.95rem;
+    }
+    .admin-modal-contenido {
+        padding: 20px;
+        margin: 20px auto;
+    }
+    #formEvento .form-grid {
+        grid-template-columns: 1fr;
         gap: 0;
     }
-    #formEvento .form-grid .form-group:nth-child(2) {
-        margin-top: 18px; /* Espacio entre campos que estaban en grid */
-    }
     .admin-modal-botones {
-        flex-direction: column; /* Botones apilados */
+        flex-direction: column;
+    }
+    .admin-modal-botones button {
+        width: 100%;
     }
 }

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-g">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscripción a Evento</title>
+    <link rel="stylesheet" href="inscripcion.css">
+</head>
+<body>
+
+    <div id="modal-inscripcion">
+        <div class="modal-contenido">
+            
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                </div>
+                <h2>Formulario de Registro</h2>
+                <p>Completa todos los campos requeridos para registrarte</p>
+            </div>
+            
+            <form id="formInscripcion">
+                
+                <div class="form-section">
+                    <label class="form-label-section">
+                        Tipo de Participante <span class="required">*</span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="tipo_participante" value="Estudiante" checked>
+                            <span>Estudiante</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipo_participante" value="Docente">
+                            <span>Docente / Personal Académico</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipo_participante" value="Externo">
+                            <span>Externo</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group-grid">
+                    <div>
+                        <label for="apellido_paterno" class="form-label">Apellido Paterno <span class="required">*</span></label>
+                        <input type="text" id="apellido_paterno" name="apellido_paterno" required class="form-input">
+                    </div>
+                    <div>
+                        <label for="apellido_materno" class="form-label">Apellido Materno <span class="required">*</span></label>
+                        <input type="text" id="apellido_materno" name="apellido_materno" required class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="nombres" class="form-label">Nombre(s) <span class="required">*</span></label>
+                    <input type="text" id="nombres" name="nombres" required class="form-input">
+                </div>
+
+                <div class="form-group-grid">
+                    <div id="matricula-container">
+                        <label for="input-matricula" class="form-label">
+                            <span id="label-matricula">Matrícula</span> <span class="required" id="required-matricula">*</span>
+                        </label>
+                        <input type="text" name="matricula" id="input-matricula" placeholder="12345678" required class="form-input" pattern="[0-9]{6,10}">
+                        <small id="help-matricula">Solo números (6-10 dígitos)</small>
+                    </div>
+                    
+                    <div>
+                        <label for="genero" class="form-label">Género <span class="required">*</span></label>
+                        <select name="genero" id="genero" required class="form-input">
+                            <option value="">Selecciona</option>
+                            <option value="Hombre">Hombre</option>
+                            <option value="Mujer">Mujer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="correo" class="form-label">Correo Electrónico UABC <span class="required">*</span></label>
+                    <input type="email" id="correo" name="correo" required placeholder="ejemplo@uabc.edu.mx" class="form-input" pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx">
+                    <small>Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
+                </div>
+
+                <div class="form-group" id="facultad-container">
+                    <label for="select-facultad" class="form-label">
+                        <span id="label-facultad">Unidad Académica</span> <span class="required" id="required-facultad">*</span>
+                    </label>
+                    <select name="facultad" id="select-facultad" required class="form-input">
+                        <option value="">Cargando facultades...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="carrera-container">
+                    <label for="select-carrera" class="form-label">
+                        <span id="label-carrera">Carrera</span> <span class="required" id="required-carrera">*</span>
+                    </label>
+                    <select name="carrera" id="select-carrera" required class="form-input">
+                        <option value="">Selecciona primero una facultad</option>
+                    </select>
+                    <small id="help-carrera">
+                        Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área
+                    </small>
+                </div>
+
+                <input type="hidden" name="evento_id" id="evento_id_hidden">
+
+                <div class="form-buttons">
+                    <button type="button" id="btnCerrarModal" class="btn-cancelar">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btnSubmit" class="btn-submit">
+                        <span class="btn-text">Registrarse</span>
+                        <span class="btn-icon-svg">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                                <line x1="20" y1="8" x2="20" y2="14"/>
+                                <line x1="23" y1="11" x2="17" y2="11"/>
+                            </svg>
+                        </span>
+                        <span class="btn-icon-spinner">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-exito">
+        <div class="modal-contenido modal-exito-contenido">
+            <div class="modal-icon-exito">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h2>¡Registro Exitoso!</h2>
+            <p id="modal-exito-mensaje">Tu registro se ha completado correctamente.</p>
+            <button id="btnAceptarExito" class="btn-aceptar">
+                Aceptar
+            </button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+
+    <script src="inscripcion.js"></script>
+</body>
+</html>

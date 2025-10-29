@@ -1,105 +1,146 @@
-/* Centro-Deportivo/public/css/pages/admin-dashboard.css */
+/* DASHBOARD ADMIN - UABC */
 
-/* Estilos para las tarjetas de estadísticas */
+:root {
+  --color-verde-uabc: #006633;
+  --color-verde-claro: #00b56a;
+  --color-gris-oscuro: #1e1e1e;
+  --color-gris-medio: #2c2c2c;
+  --color-gris-claro: #444;
+  --color-blanco: #ffffff;
+  --borde-redondeado: 12px;
+}
 
+/* FONDO GENERAL */
+body {
+  background: linear-gradient(180deg, #1b1b1b, #2b2b2b);
+  color: var(--color-blanco);
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+/* ESTADISTICAS (TARJETAS) */
 .admin-stats-grid {
-    display:  grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
 }
 
-/* Tarjeta para la estadistica */
-
+/* Tarjeta individual */
 .admin-stat-card {
-    color: var(--color-blanco);
-    padding: 30px;
-    border-radius: var(--borde-redondeado);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background: var(--color-gris-medio);
+  color: var(--color-blanco);
+  padding: 25px 30px;
+  border-radius: var(--borde-redondeado);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-left: 6px solid var(--color-verde-uabc);
 }
 
-    /* H3 */
+.admin-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
 
+/* Título */
 .admin-stat-card h3 {
-    margin: 0 0 10px 0;
-    font-size: 18px;
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: var(--color-verde-claro);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-    /* Stat Number. Numero de la estadistica */
-
+/* Número */
 .admin-stat-card .stat-number {
-    font-size: 48px;
-    font-weight: bold;
-    margin: 10px 0;
+  font-size: 48px;
+  font-weight: bold;
+  margin: 10px 0;
+  color: var(--color-blanco);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-    /* LINK DEL STAT Y HOVER */
-
+/* Enlace */
 .admin-stat-card .stat-link {
-    color: var(--color-blanco);
-    text-decoration: none;
-    font-size: 14px;
-    opacity: 0.9;
-    transition: opacity 0.3s;
+  color: var(--color-verde-claro);
+  text-decoration: none;
+  font-size: 14px;
+  opacity: 0.9;
+  transition: 0.3s;
 }
 
 .admin-stat-card .stat-link:hover {
-    opacity: 1;
+  opacity: 1;
+  text-decoration: underline;
 }
 
-/* COLORES PARA CADA TARJETA */
-
-    /* TARJETA EVENTOS */
+/* COLORES DE TARJETAS DIFERENTES */
 .admin-stat-card.eventos {
-    background: linear-gradient(135deg, #006633 0%, #00cc66 100%);
+  background: linear-gradient(145deg, var(--color-gris-medio), #333);
+  border-left-color: var(--color-verde-claro);
 }
-    /* TARJETA INSCRIPCIONES */
+
 .admin-stat-card.inscripciones {
-    background: linear-gradient(135deg, #008844 0%, #33cc77 100%);
-    }
+  background: linear-gradient(145deg, #2f2f2f, #3b3b3b);
+  border-left-color: #00cc66;
+}
 
-/* ACCESOS RAPIDOS */
-
+/* ACCESOS RÁPIDOS */
 .admin-quick-links {
-    margin-top: 40px;
+  margin-top: 50px;
+}
+
+.admin-quick-links h2 {
+  color: var(--color-verde-claro);
+  font-size: 20px;
+  margin-bottom: 15px;
+  border-left: 5px solid var(--color-verde-claro);
+  padding-left: 10px;
+  text-transform: uppercase;
 }
 
 .admin-quick-links-container {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-top: 20px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 20px;
 }
 
+/* Botones */
 .admin-quick-link-btn {
-    padding: 15px 30px;
-    color: var(--color-blanco);
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.admin-quick-link-btn {
-    padding: 15px 30px;
-    color: var(--color-blanco);
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--color-gris-claro);
+  padding: 15px 30px;
+  color: var(--color-blanco);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
 .admin-quick-link-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
 }
 
-/* COLORES DE LOS BOTONES */
-
+/* Colores personalizados */
 .admin-quick-link-btn.eventos {
-    background: var(--color-verde-uabc);
+  background: linear-gradient(135deg, var(--color-verde-uabc), var(--color-verde-claro));
 }
 
 .admin-quick-link-btn.inscripciones {
-    background: #008844;
+  background: linear-gradient(135deg, #008844, #33cc77);
+}
+
+.admin-quick-link-btn.reportes {
+  background: linear-gradient(135deg, #555, #777);
+}
+
+.admin-quick-link-btn.eventos:hover,
+.admin-quick-link-btn.inscripciones:hover,
+.admin-quick-link-btn.reportes:hover {
+  filter: brightness(1.15);
 }
