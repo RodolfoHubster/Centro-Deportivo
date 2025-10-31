@@ -1,0 +1,125 @@
+/* css/pages/login.css */
+
+/* LOGIN CONTAINER */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 100px); /* altura menos header */
+    padding: 20px;
+}
+
+/* LOGIN CARD */
+
+.login-card {
+    background: var(--color-blanco);
+    padding: 30px 40px;
+    border-radius: var(--borde-redondeado-grande);
+    text-align: center;
+    box-shadow: var(--sombra-profunda);
+    max-width: 400px;
+    width: 100%;
+}
+
+    /* IMG LOGIN */
+
+.login-card img.login-logo {
+    width: 180px;
+    margin: 0 auto 20px auto;
+}
+
+    /* H2 */
+
+.login-card h2 {
+    color: var(--color-verde-uabc);
+    margin-bottom: 10px;
+}
+
+    /* P */
+
+.login-card p {
+    color: var(--color-verde-uabc);
+    margin-bottom: 10px;
+}
+
+    /* FORM */
+
+.login-card form {
+    margin-bottom: 25px
+}
+
+    /* FORM INPUT */
+
+.login-card form input {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--color-gris-claro);
+    font-size: 1rem;
+}
+
+    /* FORM BUTTON */
+
+.login-card form button {
+    background: var(--color-dorado-uabc);
+    color: var(--color-blanco);
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    /* FORM BUTTON:hover */
+
+.login-card form button:hover {
+    background: var(--color-dorado-hover);
+}
+
+    /* #mensajeError */
+
+.login-card #mensajeError {
+    color: var(--color-error);
+    display: none;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+    /* LOGIN FOOTER */
+
+.login-card .login-footer {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+        /* P */
+
+.login-card .login-footer p {
+    font-size: 13px;
+    color: var(--color-gris-oscuro);
+    margin-bottom: 0;
+}
+
+        /* a */
+
+.login-card .login-footer a {
+    color: var(--color-verde-uabc);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+        /* a:hover */
+
+.login-card .login-footer a:hover {
+    text-decoration: underline;
+}
+

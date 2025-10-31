@@ -1,0 +1,168 @@
+/* ===== PALETA DE COLORES ===== */
+:root {
+  --verde-uabc: #00a65a;        /* Verde más brillante */
+  --verde-oscuro: #006633;
+  --gris-oscuro: #1b1b1b;
+  --gris-claro: #2c2c2c;
+  --dorado-uabc: #f9b233;
+  --blanco: #ffffff;
+  --texto-gris: #dddddd;
+  --borde-redondeado: 12px;
+}
+
+/* ===== LAYOUT GENERAL ===== */
+body {
+  background-color: var(--gris-oscuro);
+  color: var(--texto-gris);
+  font-family: "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+/* ===== GRID DE ESTADÍSTICAS ===== */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
+}
+
+/* ===== TARJETAS DE ESTADÍSTICAS ===== */
+.admin-stat-card {
+  position: relative;
+  color: var(--blanco);
+  padding: 35px 30px;
+  border-radius: var(--borde-redondeado);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  background: var(--gris-claro);
+  border-left: 6px solid var(--dorado-uabc);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== TÍTULO ===== */
+.admin-stat-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--dorado-uabc);
+  letter-spacing: 0.5px;
+}
+
+/* ===== NÚMERO DE ESTADÍSTICA ===== */
+.admin-stat-card .stat-number {
+  font-size: 2.8rem;
+  font-weight: bold;
+  margin: 10px 0;
+  color: var(--blanco);
+}
+
+/* ===== LINK DE ACCESO ===== */
+.admin-stat-card .stat-link {
+  color: var(--blanco);
+  text-decoration: none;
+  font-size: 0.95rem;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+.admin-stat-card .stat-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* ===== COLORES DE TARJETAS ===== */
+.admin-stat-card.eventos {
+  background: linear-gradient(135deg, var(--verde-uabc), #007a3d);
+}
+
+.admin-stat-card.inscripciones {
+  background: linear-gradient(135deg, #00994d, #33cc77);
+}
+
+/* ===== ACCESOS RÁPIDOS ===== */
+.admin-quick-links {
+  margin-top: 50px;
+}
+
+.admin-quick-links h2 {
+  color: var(--dorado-uabc);
+  font-size: 1.4rem;
+  border-bottom: 2px solid var(--verde-uabc);
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* ===== CONTENEDOR DE BOTONES ===== */
+.admin-quick-links-container {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 25px;
+}
+
+/* ===== BOTONES DE ACCESOS ===== */
+.admin-quick-link-btn {
+  padding: 15px 35px;
+  color: var(--blanco);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.admin-quick-link-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== COLORES DE BOTONES ===== */
+.admin-quick-link-btn.eventos {
+  background: linear-gradient(90deg, var(--verde-uabc), #00994d);
+}
+
+.admin-quick-link-btn.inscripciones {
+  background: linear-gradient(90deg, #007a3d, #33cc77);
+}
+
+/* ===== EFECTO BRILLO DORADO (detalles visuales) ===== */
+.admin-stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(249, 178, 51, 0.3), transparent);
+  transition: all 0.8s ease;
+}
+
+.admin-stat-card:hover::before {
+  left: 100%;
+}
+
+/* ===== RESPONSIVIDAD ===== */
+@media (max-width: 768px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-quick-links-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .admin-quick-link-btn {
+    text-align: center;
+    padding: 12px 20px;
+  }
+}

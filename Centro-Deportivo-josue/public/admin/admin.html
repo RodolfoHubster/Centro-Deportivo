@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin - Centro Deportivo UABC</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+  <!-- CONTENIDO -->
+  <main class="page-content">
+    <h1>Bienvenido al Panel Administrativo</h1>
+    <p id="mensaje-bienvenida">Cargando información...</p>
+
+    <div class="admin-stats-grid">
+
+      <div class="admin-stat-card eventos">
+        <h3>Total Eventos</h3>
+        <p class="stat-number" id="total-eventos">-</p>
+        <a href="gestionar-eventos.html" class="stat-link">Ver todos →</a>
+      </div>
+
+      <div class="admin-stat-card inscripciones">
+        <h3>Inscripciones</h3>
+        <p class="stat-number" id="total-inscripciones">-</p>
+        <a href="ver-inscripciones.html" class="stat-link">Ver todos →</a>
+      </div>
+
+    </div>
+
+    <div class="admin-quick-links">
+      <h2>Accesos Rápidos</h2>
+      <div class="admin-quick-links-container">
+        <a href="gestionar-eventos.html" class="admin-quick-link-btn eventos">
+          Crear Nuevo Evento
+        </a>
+        <a href="ver-inscripciones.html" class="admin-quick-link-btn inscripciones">
+          Ver Inscripciones
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/headFooter.js"></script>
+  <script src="../js/admin/adminDashboard.js"></script>
+</body>
+</html>

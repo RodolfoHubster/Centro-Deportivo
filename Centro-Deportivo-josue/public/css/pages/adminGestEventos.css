@@ -1,0 +1,289 @@
+/* Centro-Deportivo/public/css/pages/adminGestEventos.css - VERSIÓN ACOPLADA Y CORREGIDA */
+
+/* --- Estilos generales para elementos FUERA del modal (Botón Nuevo, Lista) --- */
+
+#btnNuevoEvento {
+    padding: 12px 25px;
+    background: #28a745; /* Verde */
+    color: var(--color-blanco); /* Variable de tu archivo variables.css */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+}
+
+#btnNuevoEvento:hover {
+    background: #218838; /* Verde más oscuro */
+}
+
+#lista-eventos > p { /* Mensaje "Cargando..." o "No hay eventos" */
+    text-align: center;
+    color: #666;
+    padding: 20px;
+}
+
+/* --- Estilo base del modal (el fondo oscuro y contenedor principal) --- */
+#modalEvento {
+    display: none; /* JS lo cambia a 'block' para mostrarlo */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
+    z-index: 9999;
+    overflow-y: auto; /* Permite scroll si el modal es muy alto */
+    padding: 20px; /* Espacio para que no pegue a los bordes */
+}
+
+/* --- Contenido del modal (el cuadro blanco) --- */
+.admin-modal-contenido {
+    font-family: Arial, sans-serif; /* Asegura la fuente */
+    max-width: 800px;
+    margin: 40px auto; /* Centrado horizontal y margen arriba/abajo */
+    background: #f9f9f9; /* Fondo ligeramente gris */
+    padding: 30px 40px;
+    border-radius: 12px; /* Más redondeado */
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+    border: 1px solid #eee;
+}
+
+/* --- Título del modal (H2) --- */
+.admin-modal-contenido h2#tituloModal {
+    color: var(--color-verde-uabc); /* Variable verde */
+    margin-bottom: 30px; /* Más espacio abajo */
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    margin-top: 0; /* Asegura que no tenga margen arriba */
+}
+
+/* --- FIN DE LA REGLA QUE SÍ FUNCIONABA --- */
+/* A partir de aquí revisamos la sintaxis cuidadosamente */
+
+/* --- Secciones dentro del formulario --- */
+#formEvento .form-section h3 {
+    font-size: 18px;
+    color: #333;
+    border-bottom: 2px solid var(--color-verde-uabc); /* Línea verde */
+    padding-bottom: 8px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+/* Quitar margen extra a la primera sección */
+#formEvento .form-section:first-of-type h3 {
+    margin-top: 0;
+}
+
+/* --- Grupos de label + input --- */
+#formEvento .form-group {
+    margin-bottom: 18px;
+}
+
+/* --- Etiquetas (Labels) --- */
+#formEvento .form-group label {
+    display: block;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+/* Estrella roja de requerido */
+#formEvento .form-group label .required {
+    color: #dc3545; /* Rojo */
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+/* --- Estilo para TODOS los campos del formulario --- */
+#formEvento .form-group input[type="text"],
+#formEvento .form-group input[type="date"],
+#formEvento .form-group input[type="number"],
+#formEvento .form-group select,
+#formEvento .form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 15px;
+    background-color: #fff; /* Fondo blanco explícito */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto al seleccionar (focus) */
+#formEvento .form-group input[type="text"]:focus,
+#formEvento .form-group input[type="date"]:focus,
+#formEvento .form-group input[type="number"]:focus,
+#formEvento .form-group select:focus,
+#formEvento .form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-verde-uabc);
+    box-shadow: 0 0 0 3px rgba(0, 102, 51, 0.1); /* Sombra verde sutil */
+}
+
+/* --- Textarea específico (Descripción) --- */
+/* Hereda estilos base, solo ajustamos lo necesario */
+#formEvento textarea#evento-descripcion { /* Selector más específico */
+    min-height: 100px;
+     /* Para que funcione el script JS de auto-crecimiento */
+    resize: none;
+    overflow-y: hidden;
+}
+
+/* --- Texto de ayuda debajo de campos --- */
+#formEvento .help-text {
+    font-size: 13px;
+    color: #666;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+/* --- Grid para poner campos lado a lado --- */
+#formEvento .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    gap: 20px;
+}
+
+/* --- Checkboxes de Facultades --- */
+#facultades-checkbox {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 6px;
+    background-color: #fff;
+}
+#facultades-checkbox p { /* Mensaje "Cargando..." */
+     text-align: center;
+     padding: 20px;
+     margin: 0;
+     color: #666;
+}
+#facultades-checkbox label {
+    display: flex;
+    align-items: center;
+    padding: 8px 5px;
+    cursor: pointer;
+    margin-bottom: 0;
+    border-radius: 4px;
+    /* Estilos base de label ya aplicados arriba */
+}
+#facultades-checkbox label:hover {
+    background-color: #f0f0f0;
+}
+#facultades-checkbox input[type="checkbox"] {
+    margin-right: 12px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-verde-uabc); /* Color verde al marcar */
+}
+
+/* --- Botones Guardar y Cancelar --- */
+.admin-modal-botones {
+    display: flex;
+    gap: 15px;
+    margin-top: 35px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.admin-modal-botones button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 8px; /* Más redondeado */
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.admin-modal-botones button:active {
+    transform: scale(0.98);
+}
+
+.admin-modal-btn-guardar {
+    background: #28a745; /* Verde éxito */
+    color: var(--color-blanco);
+}
+.admin-modal-btn-guardar:hover {
+    background: #218838; /* Verde más oscuro */
+}
+
+.admin-modal-btn-cancelar {
+    background: #6c757d; /* Gris */
+    color: var(--color-blanco);
+}
+.admin-modal-btn-cancelar:hover {
+    background: #5a6268; /* Gris más oscuro */
+}
+
+
+/* --- Media Query para Móviles --- */
+@media (max-width: 600px) {
+    .admin-modal-contenido {
+        padding: 20px;
+    }
+    #formEvento .form-grid {
+        grid-template-columns: 1fr; /* Una columna */
+        gap: 0;
+    }
+    #formEvento .form-grid .form-group:nth-child(2) {
+        margin-top: 18px; /* Espacio entre campos que estaban en grid */
+    }
+    .admin-modal-botones {
+        flex-direction: column; /* Botones apilados */
+    }
+}
+
+/* --- Botones de reporte (Excel y PDF) --- */
+.btn-reporte {
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reporte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-reporte:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reporte svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-excel {
+    background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
+}
+
+.btn-excel:hover {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+.btn-pdf {
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+}
+
+.btn-pdf:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
