@@ -240,3 +240,50 @@
         flex-direction: column; /* Botones apilados */
     }
 }
+
+/* --- Botones de reporte (Excel y PDF) --- */
+.btn-reporte {
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reporte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-reporte:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reporte svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-excel {
+    background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
+}
+
+.btn-excel:hover {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+.btn-pdf {
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+}
+
+.btn-pdf:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}

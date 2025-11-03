@@ -1,8 +1,12 @@
 <?php
 /**
- * Inscribir Evento - VERSIÓN NORMALIZADA
- * Ahora usa la tabla 'usuario' como tabla maestra
+ * Inscribir Evento - VERSIÓN ADAPTADA A TU BASE DE DATOS
  */
+
+error_reporting(0);
+ini_set('display_errors', 0);
+ob_start();
+ob_clean();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -11,6 +15,7 @@ header('Access-Control-Allow-Methods: POST');
 include '../includes/conexion.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    ob_end_clean();
     http_response_code(405);
     echo json_encode([
         'success' => false,
@@ -79,8 +84,8 @@ try {
         throw new Exception('Tipo de participante inválido');
     }
     
-    if (!preg_match('/^\d{6,10}$/', $matricula)) {
-        throw new Exception('La matrícula debe contener entre 6 y 10 dígitos');
+    if (!preg_match('/^\d{4,10}$/', $matricula)) {
+        throw new Exception('La matrícula debe contener entre 4 y 10 dígitos');
     }
     
     // ===================================
@@ -108,30 +113,39 @@ try {
     }
     
     // ===================================
-    // 5. CREAR/ACTUALIZAR PARTICIPANTE (AHORA EN TABLA 'usuario')
+    // 5. CREAR/ACTUALIZAR PARTICIPANTE
     // ===================================
     
-    $usuario_id = 0;
-    $usuario_nuevo = false;
+    $participante_id = 0;
+    $participante_nuevo = false;
 
-    // Verificar si el usuario ya existe por su MATRICULA (que es única)
-    $sqlCheckUsuario = "SELECT id FROM usuario WHERE matricula = ?";
-    $stmt = mysqli_prepare($conexion, $sqlCheckUsuario);
+    // Verificar si el participante ya existe por MATRICULA
+    $sqlCheckParticipante = "SELECT id FROM participante WHERE matricula = ?";
+    $stmt = mysqli_prepare($conexion, $sqlCheckParticipante);
     mysqli_stmt_bind_param($stmt, 's', $matricula);
     mysqli_stmt_execute($stmt);
-    $resultadoUsuario = mysqli_stmt_get_result($stmt);
+    $resultadoParticipante = mysqli_stmt_get_result($stmt);
     
-    if ($row = mysqli_fetch_assoc($resultadoUsuario)) {
-        // === USUARIO EXISTE ===
-        $usuario_id = $row['id'];
+    if ($row = mysqli_fetch_assoc($resultadoParticipante)) {
+        // === PARTICIPANTE EXISTE - ACTUALIZAR ===
+        $participante_id = $row['id'];
         mysqli_stmt_close($stmt);
         
-        // Actualizar sus datos por si cambiaron
-        $sqlUpdateUsuario = "UPDATE usuario 
-                                 SET nombre = ?, apellido_paterno = ?, apellido_materno = ?,
-                                     correo = ?, genero = ?, carrera_id = ?, rol = ?
-                                 WHERE id = ?";
-        $stmt = mysqli_prepare($conexion, $sqlUpdateUsuario);
+        $sqlUpdateParticipante = "UPDATE participante 
+                                  SET nombres = ?, 
+                                      apellido_paterno = ?, 
+                                      apellido_materno = ?,
+                                      correo_institucional = ?, 
+                                      genero = ?, 
+                                      carrera_id = ?, 
+                                      tipo = ?
+                                  WHERE id = ?";
+        $stmt = mysqli_prepare($conexion, $sqlUpdateParticipante);
+        
+        if (!$stmt) {
+            throw new Exception('Error al preparar actualización: ' . mysqli_error($conexion));
+        }
+        
         mysqli_stmt_bind_param(
             $stmt,
             'sssssisi',
@@ -142,32 +156,36 @@ try {
             $genero,
             $carrera_id,
             $tipo_participante,
-            $usuario_id
+            $participante_id
         );
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
         
     } else {
-        // === USUARIO NO EXISTE ===
+        // === PARTICIPANTE NO EXISTE - CREAR ===
         mysqli_stmt_close($stmt);
-        $usuario_nuevo = true;
+        $participante_nuevo = true;
         
-        // Crear nuevo usuario (sin contraseña, rol de participante)
-        $sqlUsuario = "INSERT INTO usuario 
-                           (matricula, nombre, apellido_paterno, apellido_materno, 
-                            correo, genero, carrera_id, rol, activo, contrasena) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
-        $stmt = mysqli_prepare($conexion, $sqlUsuario);
+        $sqlParticipante = "INSERT INTO participante 
+                            (matricula, apellido_paterno, apellido_materno, nombres,
+                             correo_institucional, genero, carrera_id, tipo, estatus) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Activo')";
+        $stmt = mysqli_prepare($conexion, $sqlParticipante);
+        
+        if (!$stmt) {
+            throw new Exception('Error al preparar inserción de participante: ' . mysqli_error($conexion));
+        }
+        
         mysqli_stmt_bind_param(
             $stmt, 
             'ssssssis', 
-            $matricula, 
-            $nombres, 
-            $apellido_paterno, 
-            $apellido_materno, 
-            $correo, 
-            $genero, 
-            $carrera_id, 
+            $matricula,
+            $apellido_paterno,
+            $apellido_materno,
+            $nombres,
+            $correo,
+            $genero,
+            $carrera_id,
             $tipo_participante
         );
         
@@ -175,18 +193,18 @@ try {
             throw new Exception('Error al registrar al participante: ' . mysqli_stmt_error($stmt));
         }
         
-        $usuario_id = mysqli_insert_id($conexion);
+        $participante_id = mysqli_insert_id($conexion);
         mysqli_stmt_close($stmt);
     }
     
     // ===================================
-    // 6. VERIFICAR SI YA EST├ü INSCRITO
+    // 6. VERIFICAR SI YA ESTÁ INSCRITO
     // ===================================
     
     $sqlVerificar = "SELECT id FROM inscripcion 
-                     WHERE evento_id = ? AND usuario_id = ?";
+                     WHERE evento_id = ? AND participante_id = ?";
     $stmt = mysqli_prepare($conexion, $sqlVerificar);
-    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $usuario_id);
+    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $participante_id);
     mysqli_stmt_execute($stmt);
     $resultadoVerificar = mysqli_stmt_get_result($stmt);
     
@@ -196,14 +214,14 @@ try {
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 7. CREAR INSCRIPCI├ôN
+    // 7. CREAR INSCRIPCIÓN
     // ===================================
     
     $sqlInscripcion = "INSERT INTO inscripcion 
-                      (evento_id, usuario_id, metodo_registro, fecha_inscripcion) 
+                      (evento_id, participante_id, metodo_registro, fecha_inscripcion) 
                       VALUES (?, ?, 'Web', NOW())";
     $stmt = mysqli_prepare($conexion, $sqlInscripcion);
-    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $usuario_id);
+    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $participante_id);
     
     if (!mysqli_stmt_execute($stmt)) {
         throw new Exception('Error al procesar inscripción: ' . mysqli_stmt_error($stmt));
@@ -213,7 +231,7 @@ try {
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 8. ACTUALIZAR CONTADOR DE REGISTROS
+    // 8. ACTUALIZAR CONTADOR
     // ===================================
     
     $sqlUpdateContador = "UPDATE evento 
@@ -225,7 +243,7 @@ try {
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 9. CONFIRMAR TRANSACCI├ôN
+    // 9. CONFIRMAR TRANSACCIÓN
     // ===================================
     
     mysqli_commit($conexion);
@@ -234,6 +252,7 @@ try {
     // 10. RESPUESTA EXITOSA
     // ===================================
     
+    ob_end_clean();
     echo json_encode([
         'success' => true,
         'mensaje' => "¡Registro exitoso! Te has inscrito al evento '{$evento['nombre']}'",
@@ -243,14 +262,14 @@ try {
             'matricula' => $matricula,
             'nombre_completo' => "$apellido_paterno $apellido_materno $nombres",
             'correo' => $correo,
-            'participante_nuevo' => $usuario_nuevo
+            'participante_nuevo' => $participante_nuevo
         ]
     ], JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
-    // Revertir transacción en caso de error
     mysqli_rollback($conexion);
     
+    ob_end_clean();
     http_response_code(400);
     echo json_encode([
         'success' => false,
@@ -258,6 +277,6 @@ try {
     ], JSON_UNESCAPED_UNICODE);
 }
 
-// Cerrar conexión
 mysqli_close($conexion);
+exit;
 ?>
