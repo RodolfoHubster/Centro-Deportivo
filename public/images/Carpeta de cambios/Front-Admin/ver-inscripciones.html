@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ver Inscripciones - Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+  <!-- CONTENIDO -->
+  <main class="page-content">
+    <h1>Inscripciones a Eventos</h1>
+    <p>Lista completa de personas inscritas a los eventos deportivos.</p>
+
+    <!-- Filtro de búsqueda -->
+    <div style="margin: 20px 0;">
+      <input type="text" id="buscarInscripcion" placeholder="Buscar por nombre, correo o evento..." 
+             style="width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+
+    <!-- Contador -->
+    <p style="margin: 15px 0; font-weight: bold; color: #666;">
+      Total de inscripciones: <span id="total-inscripciones">0</span>
+    </p>
+
+    <!-- Tabla de inscripciones -->
+    <div style="overflow-x: auto;">
+      <table id="tabla-inscripciones" style="width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <thead>
+          <tr style="background: #003366; color: white;">
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">ID</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Nombre</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Correo</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Evento</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Lugar</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Fecha Evento</th>
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Fecha Inscripción</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-inscripciones">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 30px; color: #666;">
+              Cargando inscripciones...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+  
+  <script>
+    let todasInscripciones = [];
+
+    // Verificar sesión y cargar datos
+    window.addEventListener('DOMContentLoaded', () => {
+      verificarSesion();
+      cargarInscripciones();
+    });
+
+    function verificarSesion() {
+      fetch('../Back-End-Admin/verificarSesion.php')
+        .then(response => response.json())
+        .then(data => {
+          if (!data.loggedin) {
+            window.location.href = '../Front-End-Usuario/login.html';
+          }
+        });
+    }
+
+    function cargarInscripciones() {
+      fetch('../Back-End-Admin/verInscripciones.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            todasInscripciones = data.inscripciones;
+            mostrarInscripciones(todasInscripciones);
+            document.getElementById('total-inscripciones').textContent = data.total;
+          } else {
+            document.getElementById('tbody-inscripciones').innerHTML = 
+              '<tr><td colspan="7" style="text-align: center; padding: 30px; color: red;">Error al cargar inscripciones</td></tr>';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('tbody-inscripciones').innerHTML = 
+            '<tr><td colspan="7" style="text-align: center; padding: 30px; color: red;">Error de conexión</td></tr>';
+        });
+    }
+
+    function mostrarInscripciones(inscripciones) {
+      const tbody = document.getElementById('tbody-inscripciones');
+      
+      if (inscripciones.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: #666;">No hay inscripciones registradas</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      
+      inscripciones.forEach(insc => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #ddd';
+        tr.innerHTML = `
+          <td style="padding: 12px; border: 1px solid #ddd;">${insc.id}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${insc.nombre}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${insc.correo}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;"><strong>${insc.nombre_evento}</strong></td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${insc.lugar}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${formatearFecha(insc.fecha_evento)}</td>
+          <td style="padding: 12px; border: 1px solid #ddd;">${formatearFecha(insc.fecha_inscripcion)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function formatearFecha(fecha) {
+    // FIX: Evitar conversión de zona horaria
+    const fechaLocal = new Date(fecha + 'T00:00:00');
+    const opciones = { year: 'numeric', month: 'short', day: 'numeric' };
+    return fechaLocal.toLocaleDateString('es-MX', opciones);
+    }
+
+    // Búsqueda en tiempo real
+    document.getElementById('buscarInscripcion').addEventListener('input', (e) => {
+      const termino = e.target.value.toLowerCase();
+      const filtradas = todasInscripciones.filter(insc => 
+        insc.nombre.toLowerCase().includes(termino) ||
+        insc.correo.toLowerCase().includes(termino) ||
+        insc.nombre_evento.toLowerCase().includes(termino)
+      );
+      mostrarInscripciones(filtradas);
+    });
+
+    // Cerrar sesión
+    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
+      if (confirm('¿Cerrar sesión?')) {
+        fetch('../Back-End-Admin/cerrarSesion.php')
+          .then(() => {
+            localStorage.removeItem('usuarioLogeado');
+            window.location.href = '../Front-End-Usuario/login.html';
+          });
+      }
+    });
+  </script>
+
+  <script src="../Back-End-Usuario/headFooter.js"></script>
+</body>
+</html>

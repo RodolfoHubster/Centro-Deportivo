@@ -1,0 +1,144 @@
+/* public/css/layout/header.css - CORREGIDO Y STICKY */
+
+
+.main-header {
+  background-color: var(--color-verde-uabc);
+  border-bottom: 5px solid var(--color-dorado-uabc);
+  min-height: 80px; /* Altura mínima */
+  box-sizing: border-box; /* Incluye padding en el width */
+
+    /* --- Para que se quede pegado arriba --- */
+  position: sticky; 
+  top: 0;          
+  width: 100%;        
+  z-index: 1001;
+}
+
+.header-content-wrapper {
+  color: var(--color-blanco);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 30px;
+  width: 100%;
+  max-width: 1920px;
+  margin: 0 auto;    
+  position: relative; 
+  box-sizing: border-box;
+}
+
+
+
+/* --- Logo --- */
+.main-header .logo img {
+  height: 60px;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* --- Título Centrado Absoluto --- */
+.main-header .title {
+  text-align: center;
+  padding: 0 15px; /* Espacio por si acaso */
+  
+  /* Centrado absoluto */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto; /* Ancho automático */
+  /* Evita que tape logo/logout si es muy largo */
+  max-width: calc(100% - 180px); 
+}
+
+.main-header .title h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  white-space: nowrap; /* Evita que el título se parta en dos líneas */
+} 
+.main-header .title p {
+  margin: 0;
+  font-size: 0.9rem;
+  white-space: nowrap; 
+} 
+
+/* --- Logout / Admin Link --- */
+.main-header .logout { /* Cambié este selector por si no es solo un ícono */
+  min-width: 60px; /* Dale un poco de espacio */
+  text-align: right;
+  flex-shrink: 0;
+}
+/* Si usas un link <a> en lugar de <i> */
+.main-header .logout a { 
+  color: var(--color-blanco);
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+.main-header .logout a:hover {
+  color: var(--color-dorado-uabc);
+}
+/* Si sigues usando el ícono <i> */
+.main-header .logout i {
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: inline-block;
+  transition: color 0.3s;
+} 
+.main-header .logout i:hover {
+  color: var(--color-dorado-uabc);
+}
+
+/* --- Responsividad SIMPLIFICADA --- */
+@media (max-width: 845px) {
+  .main-header {
+      position: static !important; /* Quitar sticky, !important para asegurar */
+      min-height: auto; /* Altura automática */
+  }
+
+  .header-content-wrapper { /* Si estás usando el wrapper */
+      flex-direction: column !important; /* Forzar columna */
+      padding: 15px !important; /* Asegurar padding */
+      position: static !important; /* Quitar relative */
+      gap: 10px; /* Espacio simple entre elementos apilados */
+  }
+  
+  /* Resetear estilos problemáticos de los hijos */
+  .main-header .title,
+  .main-header .logo,
+  .main-header .logout {
+      position: static !important; /* Asegurar posición normal */
+      transform: none !important; /* Quitar transformaciones */
+      margin: 0 !important; /* Quitar márgenes previos */
+      padding: 0 !important; /* Quitar paddings previos */
+      width: auto !important; /* Ancho automático */
+      max-width: 100% !important; /* Ancho máximo */
+      order: initial !important; /* Quitar orden específico */
+      text-align: center !important; /* Centrar todo */
+      flex-grow: 0 !important; /* No crecer */
+      flex-shrink: 1 !important; /* Permitir encoger si es necesario */
+  }
+
+  /* Ajustar tamaño del logo específicamente */
+  .main-header .logo img { 
+      height: 45px !important; 
+      width: auto !important; 
+      max-width: 100% !important; 
+      display: inline-block !important; /* Centrar con text-align del padre */
+  }
+
+   /* Ajustar tamaño texto título */
+  .main-header .title h1 { font-size: 1.2rem !important; }
+  .main-header .title p { font-size: 0.9rem !important; }
+}
+
+
+
+/* @media (max-width: 480px) {
+  .main-header .title h1 { font-size: 1rem; }
+  .main-header .title p { font-size: 0.8rem; }
+  .main-header .logo img { 
+    height: 40px;
+  width: auto;
+max-width: 100%; 
+}
+} */
