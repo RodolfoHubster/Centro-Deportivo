@@ -15,6 +15,53 @@
   <main class="page-content">
     <h1>Gestionar Eventos</h1>
     
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Buscar:</label>
+          <input type="text" id="filtro-buscar-admin" placeholder="Nombre, lugar..." 
+                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Campus:</label>
+          <select id="filtro-campus-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todos los campus</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Categoría:</label>
+          <select id="filtro-categoria-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todas las categorías</option>
+            <option value="Fútbol">Fútbol</option>
+            <option value="Fútbol Rápido">Fútbol Rápido</option>
+            <option value="Voleibol">Voleibol</option>
+            <option value="Básquetbol">Básquetbol</option>
+            <option value="Handball">Handball</option>
+            <option value="Carrera">Carrera</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Tipo:</label>
+          <select id="filtro-tipo-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todos los tipos</option>
+            <option value="Torneo">Torneo</option>
+            <option value="Carrera">Evento (Carrera)</option>
+            <option value="Exhibición">Evento (Exhibición)</option>
+            <option value="Taller">Evento (Taller)</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="btnLimpiarFiltrosAdmin" style="margin-top: 15px; padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Limpiar Filtros
+      </button>
+    </div>
+
     <!-- Botón crear nuevo -->
     <button id="btnNuevoEvento">
       Crear Nuevo Evento
@@ -39,7 +86,7 @@
           <h3>Información Básica</h3>
           <div class="form-group">
             <label for="evento-nombre">Nombre del Evento <span class="required">*</span></label>
-            <input type="text" id="evento-nombre"  name="Nombre" required
+            <input type="text" id="evento-nombre"  name="nombre" required
             placeholder="Ej: Torneo de Fútbol 2025">
         
           </div>
@@ -73,7 +120,7 @@
                 <option value="">Cargando Campus...</option>
               </select>
             </div>
-            <div class="form-group">
+              <div class="form-group">
               <label for="evento-ubicacion-tipo">Tipo de Ubicación <span class="required">*</span></label>
               <select name="ubicacion_tipo" id="evento-ubicacion-tipo" required>
                 <option value="">Selecciona...</option>
@@ -88,7 +135,7 @@
           <div class="form-group">
             <label for="evento-lugar">Lugar Específico <span class="required">*</span></label>
             <input type="text" name="lugar" id="evento-lugar" required
-                   placeholder="Ej: Cancha de futbol 2, Gimnasio UABC, etc.">
+                  placeholder="Ej: Cancha de futbol 2, Gimnasio UABC, etc.">
           </div>
         </div>
 
@@ -100,9 +147,7 @@
               <select name="tipo_actividad" id="evento-tipo-actividad" required>
                 <option value="">Selecciona...</option>
                 <option value="Torneo">Torneo</option>
-                <option value="Carrera">Carrera</option>
-                <option value="Exhibición">Exhibición</option>
-                <option value="Taller">Taller</option>
+                <option value="Carrera">Evento</option>
               </select>
             </div>
             <div class="form-group">

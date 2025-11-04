@@ -102,14 +102,21 @@ export async function obtenerEventoParaEditar(id) {
 
 export async function guardarEvento(formData, modoEdicion) {
     const url = modoEdicion
-        ? '../../php/admin/editarEvento.php/'
-        : '../../php/admin/crearEvento.php/';
+        ? '../../php/admin/editarEvento.php'
+        : '../../php/admin/crearEvento.php';
 
     const response = await fetch(url, {
         method: 'POST',
         body: formData
     });
-    return await response.json();
+    const data = await response.json();
+    
+    if (!response.ok) {
+       
+        throw new Error(data.mensaje || 'Error desconocido desde la API');
+    }
+
+    return data;
 }
 
 /**

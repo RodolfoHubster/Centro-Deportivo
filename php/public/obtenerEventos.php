@@ -52,6 +52,19 @@ try {
         $tipos_params .= 's';
         $valores_params[] = $_GET['tipo_registro'];
     }
+
+    // ******************************************************
+    // ***** AÑADÍ ESTE BLOQUE PARA EL FILTRO DE EXCLUSIÓN *****
+    // ******************************************************
+    // Filtro para EXCLUIR un tipo de actividad
+    if (isset($_GET['excluir_tipo_actividad']) && !empty($_GET['excluir_tipo_actividad'])) {
+        $filtros[] = "e.tipo_actividad != ?"; // Usamos != (No es igual a)
+        $tipos_params .= 's';
+        $valores_params[] = $_GET['excluir_tipo_actividad'];
+    }
+    // ******************************************************
+    // ******************************************************
+
     
     // Filtro por rango de fechas
     if (isset($_GET['fecha_desde']) && !empty($_GET['fecha_desde'])) {
@@ -183,6 +196,7 @@ try {
             'campus_id' => $_GET['campus_id'] ?? null,
             'categoria_deporte' => $_GET['categoria_deporte'] ?? null,
             'tipo_actividad' => $_GET['tipo_actividad'] ?? null,
+            'excluir_tipo_actividad' => $_GET['excluir_tipo_actividad'] ?? null, // Añadido para depuración
             'fecha_desde' => $_GET['fecha_desde'] ?? null,
             'fecha_hasta' => $_GET['fecha_hasta'] ?? null
         ]

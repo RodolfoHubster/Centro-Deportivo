@@ -43,15 +43,5 @@
             }
           })
           .catch(error => console.error('Error al cargar inscripciones:', error));
-  
-        // Cargar total de mensajes
-        fetch('../../php/admin/verMensajes.php')
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              document.getElementById('total-mensajes').textContent = data.total || 0;
-            }
-          })
-          .catch(error => console.error('Error al cargar mensajes:', error));
       }
   

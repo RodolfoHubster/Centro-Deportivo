@@ -25,7 +25,7 @@
         <div>
           <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Buscar:</label>
           <input type="text" id="buscarInscripcion" placeholder="Nombre, matrícula, correo..." 
-                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
         </div>
 
         <!-- Filtro por Evento -->
@@ -68,19 +68,19 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
       <div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 20px; border-radius: 8px; text-align: center;">
         <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-inscripciones">0</h3>
-        <p style="margin: 0; font-size: 14px;">Total Inscripciones</p>
+        <p style="margin: 0; font-size: 14px; color: white;"><strong>Total Inscripciones</strong></p>
       </div>
       <div style="background: linear-gradient(135deg, #28a745, #1e7e34); color: white; padding: 20px; border-radius: 8px; text-align: center;">
         <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-hombres">0</h3>
-        <p style="margin: 0; font-size: 14px;">Hombres</p>
+        <p style="margin: 0; font-size: 14px; color: white;"><strong>Hombres</strong></p>
       </div>
       <div style="background: linear-gradient(135deg, #dc3545, #bd2130); color: white; padding: 20px; border-radius: 8px; text-align: center;">
         <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-mujeres">0</h3>
-        <p style="margin: 0; font-size: 14px;">Mujeres</p>
+        <p style="margin: 0; font-size: 14px; color: white;"><strong>Mujeres</strong></p>
       </div>
       <div style="background: linear-gradient(135deg, #ffc107, #e0a800); color: white; padding: 20px; border-radius: 8px; text-align: center;">
         <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="mostrando">0</h3>
-        <p style="margin: 0; font-size: 14px;">Mostrando</p>
+        <p style="margin: 0; font-size: 14px; color: white;"><strong>Mostrando</strong></p>
       </div>
     </div>
 
@@ -88,7 +88,7 @@
     <div style="overflow-x: auto;">
       <table id="tabla-inscripciones" style="width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <thead>
-          <tr style="background: #003366; color: white;">
+          <tr style="background: #008F39; color: white;">
             <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Matrícula</th>
             <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Nombre Completo</th>
             <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Correo</th>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Inscribir Evento - VERSIÓN ADAPTADA A TU BASE DE DATOS
+ * Inscribir Evento - VERSIÓN CORREGIDA PARA USAR TABLA 'usuario'
  */
 
 error_reporting(0);
@@ -32,18 +32,30 @@ try {
     // 1. VALIDAR CAMPOS OBLIGATORIOS
     // ===================================
     
+    // El tipo 'Externo' no requiere matrícula
+    $tipo_participante_temp = $_POST['tipo_participante'] ?? 'Estudiante';
+    $es_externo = ($tipo_participante_temp === 'Externo');
+
     $camposRequeridos = [
         'evento_id' => 'ID del evento',
-        'matricula' => 'Matrícula',
         'apellido_paterno' => 'Apellido paterno',
         'apellido_materno' => 'Apellido materno',
         'nombres' => 'Nombre(s)',
         'correo' => 'Correo electrónico',
         'genero' => 'Género'
     ];
+
+    // La matrícula solo es obligatoria si NO es externo
+    if (!$es_externo) {
+        $camposRequeridos['matricula'] = 'Matrícula';
+    }
     
     foreach ($camposRequeridos as $campo => $nombreCampo) {
         if (!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
+            // Permitir matrícula vacía si es externo
+            if ($campo === 'matricula' && $es_externo) {
+                continue;
+            }
             throw new Exception("El campo '{$nombreCampo}' es obligatorio");
         }
     }
@@ -63,6 +75,12 @@ try {
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : 'Estudiante';
     
+    // Si es externo y la matrícula está vacía, usar NULL o un valor único
+    if ($es_externo && empty($matricula)) {
+        // Usar correo para unicidad si la matrícula es nula
+        $matricula = $correo; 
+    }
+
     // ===================================
     // 3. VALIDACIONES
     // ===================================
@@ -70,7 +88,9 @@ try {
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         throw new Exception('Formato de correo electrónico inválido');
     }
-    if (strpos($correo, '@uabc.mx') === false && strpos($correo, '@uabc.edu.mx') === false) {
+    
+    // Permitir correos no UABC solo si es Externo
+    if (!$es_externo && strpos($correo, '@uabc.mx') === false && strpos($correo, '@uabc.edu.mx') === false) {
         throw new Exception('Debes usar tu correo institucional de UABC (@uabc.mx o @uabc.edu.mx)');
     }
     
@@ -84,7 +104,7 @@ try {
         throw new Exception('Tipo de participante inválido');
     }
     
-    if (!preg_match('/^\d{4,10}$/', $matricula)) {
+    if (!$es_externo && !preg_match('/^\d{4,10}$/', $matricula)) {
         throw new Exception('La matrícula debe contener entre 4 y 10 dígitos');
     }
     
@@ -113,34 +133,35 @@ try {
     }
     
     // ===================================
-    // 5. CREAR/ACTUALIZAR PARTICIPANTE
+    // 5. CREAR/ACTUALIZAR USUARIO
     // ===================================
     
-    $participante_id = 0;
-    $participante_nuevo = false;
+    $usuario_id = 0;
+    $usuario_nuevo = false;
 
-    // Verificar si el participante ya existe por MATRICULA
-    $sqlCheckParticipante = "SELECT id FROM participante WHERE matricula = ?";
-    $stmt = mysqli_prepare($conexion, $sqlCheckParticipante);
+    // Verificar si el usuario ya existe por MATRICULA (o correo si es externo)
+    $sqlCheckUsuario = "SELECT id FROM usuario WHERE matricula = ?";
+    $stmt = mysqli_prepare($conexion, $sqlCheckUsuario);
     mysqli_stmt_bind_param($stmt, 's', $matricula);
     mysqli_stmt_execute($stmt);
-    $resultadoParticipante = mysqli_stmt_get_result($stmt);
+    $resultadoUsuario = mysqli_stmt_get_result($stmt);
     
-    if ($row = mysqli_fetch_assoc($resultadoParticipante)) {
-        // === PARTICIPANTE EXISTE - ACTUALIZAR ===
-        $participante_id = $row['id'];
+    if ($row = mysqli_fetch_assoc($resultadoUsuario)) {
+        // === USUARIO EXISTE - ACTUALIZAR ===
+        $usuario_id = $row['id'];
         mysqli_stmt_close($stmt);
         
-        $sqlUpdateParticipante = "UPDATE participante 
-                                  SET nombres = ?, 
-                                      apellido_paterno = ?, 
-                                      apellido_materno = ?,
-                                      correo_institucional = ?, 
-                                      genero = ?, 
-                                      carrera_id = ?, 
-                                      tipo = ?
-                                  WHERE id = ?";
-        $stmt = mysqli_prepare($conexion, $sqlUpdateParticipante);
+        $sqlUpdateUsuario = "UPDATE usuario 
+                             SET nombre = ?, 
+                                 apellido_paterno = ?, 
+                                 apellido_materno = ?,
+                                 correo = ?, 
+                                 genero = ?, 
+                                 carrera_id = ?, 
+                                 rol = ?,
+                                 activo = 1
+                             WHERE id = ?";
+        $stmt = mysqli_prepare($conexion, $sqlUpdateUsuario);
         
         if (!$stmt) {
             throw new Exception('Error al preparar actualización: ' . mysqli_error($conexion));
@@ -156,24 +177,24 @@ try {
             $genero,
             $carrera_id,
             $tipo_participante,
-            $participante_id
+            $usuario_id
         );
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
         
     } else {
-        // === PARTICIPANTE NO EXISTE - CREAR ===
+        // === USUARIO NO EXISTE - CREAR ===
         mysqli_stmt_close($stmt);
-        $participante_nuevo = true;
+        $usuario_nuevo = true;
         
-        $sqlParticipante = "INSERT INTO participante 
-                            (matricula, apellido_paterno, apellido_materno, nombres,
-                             correo_institucional, genero, carrera_id, tipo, estatus) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Activo')";
-        $stmt = mysqli_prepare($conexion, $sqlParticipante);
+        $sqlUsuario = "INSERT INTO usuario 
+                       (matricula, apellido_paterno, apellido_materno, nombre,
+                        correo, genero, carrera_id, rol, activo, contrasena) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
+        $stmt = mysqli_prepare($conexion, $sqlUsuario);
         
         if (!$stmt) {
-            throw new Exception('Error al preparar inserción de participante: ' . mysqli_error($conexion));
+            throw new Exception('Error al preparar inserción de usuario: ' . mysqli_error($conexion));
         }
         
         mysqli_stmt_bind_param(
@@ -190,10 +211,14 @@ try {
         );
         
         if (!mysqli_stmt_execute($stmt)) {
-            throw new Exception('Error al registrar al participante: ' . mysqli_stmt_error($stmt));
+            // Si falla, podría ser por correo duplicado (si la matrícula era única)
+            if (strpos(mysqli_stmt_error($stmt), 'correo') !== false) {
+                 throw new Exception('Error al registrar: El correo electrónico ya está en uso por otro usuario.');
+            }
+            throw new Exception('Error al registrar al usuario: ' . mysqli_stmt_error($stmt));
         }
         
-        $participante_id = mysqli_insert_id($conexion);
+        $usuario_id = mysqli_insert_id($conexion);
         mysqli_stmt_close($stmt);
     }
     
@@ -202,9 +227,9 @@ try {
     // ===================================
     
     $sqlVerificar = "SELECT id FROM inscripcion 
-                     WHERE evento_id = ? AND participante_id = ?";
+                     WHERE evento_id = ? AND usuario_id = ?";
     $stmt = mysqli_prepare($conexion, $sqlVerificar);
-    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $participante_id);
+    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $usuario_id);
     mysqli_stmt_execute($stmt);
     $resultadoVerificar = mysqli_stmt_get_result($stmt);
     
@@ -218,10 +243,10 @@ try {
     // ===================================
     
     $sqlInscripcion = "INSERT INTO inscripcion 
-                      (evento_id, participante_id, metodo_registro, fecha_inscripcion) 
+                      (evento_id, usuario_id, metodo_registro, fecha_inscripcion) 
                       VALUES (?, ?, 'Web', NOW())";
     $stmt = mysqli_prepare($conexion, $sqlInscripcion);
-    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $participante_id);
+    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $usuario_id);
     
     if (!mysqli_stmt_execute($stmt)) {
         throw new Exception('Error al procesar inscripción: ' . mysqli_stmt_error($stmt));
@@ -262,7 +287,7 @@ try {
             'matricula' => $matricula,
             'nombre_completo' => "$apellido_paterno $apellido_materno $nombres",
             'correo' => $correo,
-            'participante_nuevo' => $participante_nuevo
+            'usuario_nuevo' => $usuario_nuevo
         ]
     ], JSON_UNESCAPED_UNICODE);
     

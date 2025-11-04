@@ -13,6 +13,7 @@ import { mostrarMensaje } from '../utils/utilidades.js'; // Importa específicam
 let modoEdicion = false;
 let eventoEditandoId = null;
 let usuarioId = null; // Guardará el ID del admin/promotor logueado
+let todosLosEventos = []; // <--- VARIABLE PARA GUARDAR EVENTOS Y FILTRAR
 
 // 3. --- INICIALIZACIÓN DE LA PÁGINA ---
 // Se ejecuta cuando el HTML está listo.
@@ -43,11 +44,20 @@ async function inicializarPaginaGestionEventos() {
             api.cargarEventos()
         ]);
 
+        // Guardar todos los eventos en la variable global
+        todosLosEventos = eventos;
+
         // Una vez cargados, usa las funciones de UI para mostrarlos
+        // Poblar selects del MODAL
         ui.poblarSelectCampus(campus);
         ui.poblarSelectActividades(actividades);
         ui.poblarCheckboxesFacultades(facultades);
-        ui.mostrarEventos(eventos);
+        
+        // Poblar el NUEVO filtro de campus en el admin
+        ui.poblarFiltroCampus(campus);
+
+        // Mostrar los eventos
+        ui.mostrarEventos(todosLosEventos);
         
         // Ocultar el mensaje de carga si aún está visible
         const mensajeDiv = document.getElementById('mensaje-respuesta');
@@ -80,14 +90,24 @@ function configurarListenersEventos() {
     document.getElementById('formEvento').addEventListener('submit', handleFormSubmit);
 
     // --- Delegación de eventos para la lista ---
-    // En lugar de añadir 'onclick' a cada botón (Editar, Eliminar, QR),
-    // escuchamos clics en el contenedor (#lista-eventos) y vemos si
-    // el clic fue en un botón con 'data-action'. Es más eficiente.
     document.getElementById('lista-eventos').addEventListener('click', handleListaEventosClick);
+
+    // --- LISTENERS PARA LOS NUEVOS FILTROS ---
+    document.getElementById('filtro-buscar-admin').addEventListener('input', aplicarFiltrosAdmin);
+    document.getElementById('filtro-campus-admin').addEventListener('change', aplicarFiltrosAdmin);
+    document.getElementById('filtro-categoria-admin').addEventListener('change', aplicarFiltrosAdmin);
+    document.getElementById('filtro-tipo-admin').addEventListener('change', aplicarFiltrosAdmin);
+    
+    document.getElementById('btnLimpiarFiltrosAdmin').addEventListener('click', () => {
+        document.getElementById('filtro-buscar-admin').value = '';
+        document.getElementById('filtro-campus-admin').value = '';
+        document.getElementById('filtro-categoria-admin').value = '';
+        document.getElementById('filtro-tipo-admin').value = '';
+        aplicarFiltrosAdmin(); // Vuelve a mostrar todos los eventos
+    });
 }
 
 // 5. --- MANEJADORES DE EVENTOS (HANDLERS) ---
-// Funciones que se ejecutan cuando ocurren los eventos (clics, submit).
 
 /**
  * Se ejecuta al hacer clic en "Crear Nuevo Evento".
@@ -115,15 +135,24 @@ async function handleListaEventosClick(e) {
     if (accion === 'editar') {
         try {
             mostrarMensaje('Cargando datos del evento...', 'success');
-            const evento = await api.obtenerEventoParaEditar(id); // Llama al API
+            // Busca el evento en la lista local en lugar de llamar a la API
+            const evento = todosLosEventos.find(e => e.id == id);
+            if (!evento) {
+                throw new Error('No se encontró el evento para editar. Recargando...');
+            }
+            
             modoEdicion = true; // Cambia el estado global
             eventoEditandoId = id;
             ui.poblarFormularioParaEditar(evento); // Llama a la UI para llenar el form
             document.getElementById('modalEvento').style.display = 'block'; // Muestra el modal
             document.getElementById('mensaje-respuesta').style.display = 'none'; // Oculta mensaje
         } catch (error) {
-            mostrarMensaje(`Error al cargar evento para editar: ${error.message}`, 'error');
-            console.error(error);
+            mostrarMensaje(`Error al cargar evento: ${error.message}`, 'error');
+            if (error.message.includes('Recargando')) {
+                // Si falla la búsqueda local, recarga todo
+                todosLosEventos = await api.cargarEventos();
+                aplicarFiltrosAdmin();
+            }
         }
     }
 
@@ -139,9 +168,9 @@ async function handleListaEventosClick(e) {
             const data = await api.eliminarEvento(id); // Llama al API para eliminar
             mostrarMensaje(data.mensaje, data.success ? 'success' : 'error'); // Muestra respuesta
             if (data.success) {
-                // Si se eliminó bien, recarga la lista de eventos
-                const eventos = await api.cargarEventos();
-                ui.mostrarEventos(eventos);
+                // Si se eliminó bien, recarga la lista de eventos desde la API
+                todosLosEventos = await api.cargarEventos();
+                aplicarFiltrosAdmin(); // Vuelve a aplicar filtros
             }
         } catch (error) {
             mostrarMensaje('Error de conexión al eliminar el evento.', 'error');
@@ -167,8 +196,8 @@ async function handleFormSubmit(e) {
     
     // Asegurarse de que el ID del promotor (usuario logueado) esté presente
     if (!usuarioId) {
-         mostrarMensaje('Error: No se pudo identificar al usuario. Refresca la página.', 'error');
-         return;
+        mostrarMensaje('Error: No se pudo identificar al usuario. Refresca la página.', 'error');
+        return;
     }
     formData.append('id_promotor', usuarioId);
 
@@ -191,13 +220,13 @@ async function handleFormSubmit(e) {
             ui.cerrarModal(); // Cierra el modal si todo salió bien
             mostrarMensaje(data.mensaje, 'success'); // Muestra mensaje de éxito
 
-            // Recargar la lista de eventos para ver los cambios
-            const eventos = await api.cargarEventos();
-            ui.mostrarEventos(eventos);
+            // Recargar la lista de eventos desde la API para ver los cambios
+            todosLosEventos = await api.cargarEventos();
+            aplicarFiltrosAdmin(); // Vuelve a aplicar los filtros
 
             // Si fue una CREACIÓN exitosa, muestra el modal con el QR
             if (!modoEdicion && data.datos && data.datos.evento_id) {
-               modalQR.mostrarModalExitoConQR(data.datos.evento_id, data.mensaje);
+                modalQR.mostrarModalExitoConQR(data.datos.evento_id, data.mensaje);
             }
         } else {
             // Si el API devolvió success: false, muestra el mensaje de error del PHP
@@ -205,11 +234,47 @@ async function handleFormSubmit(e) {
         }
     } catch (error) {
         // Error de red o al procesar la respuesta
-        console.error('Error al guardar evento:', error);
-        mostrarMensaje('Error de conexión al guardar el evento. Intenta de nuevo.', 'error');
+        console.error('Error al guardar evento:', error.message); 
+        
+        // Muestra el error específico al usuario
+        mostrarMensaje(error.message, 'error'); 
     } finally {
         // Siempre rehabilitar el botón al final
         btnSubmit.disabled = false;
         btnSubmit.textContent = textoOriginalBtn;
     }
+}
+
+/**
+ * Filtra la lista de eventos en el lado del cliente (frontend)
+ */
+function aplicarFiltrosAdmin() {
+    // 1. Leer valores de los filtros
+    const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
+    const campus = document.getElementById('filtro-campus-admin').value;
+    const categoria = document.getElementById('filtro-categoria-admin').value;
+    const tipo = document.getElementById('filtro-tipo-admin').value;
+
+    // 2. Filtrar el array global 'todosLosEventos'
+    const eventosFiltrados = todosLosEventos.filter(evento => {
+        // Filtro de búsqueda (nombre o lugar)
+        const coincideBusqueda = !busqueda || 
+            evento.nombre.toLowerCase().includes(busqueda) ||
+            (evento.lugar && evento.lugar.toLowerCase().includes(busqueda)); // Prevenir error si lugar es null
+        
+        // Filtro de campus
+        const coincideCampus = !campus || evento.campus_id == campus;
+        
+        // Filtro de categoría
+        const coincideCategoria = !categoria || evento.categoria_deporte === categoria;
+        
+        // Filtro de tipo
+        const coincideTipo = !tipo || evento.tipo_actividad === tipo;
+        
+        // Devolver true solo si CUMPLE TODOS los filtros
+        return coincideBusqueda && coincideCampus && coincideCategoria && coincideTipo;
+    });
+
+    // 3. Mostrar los eventos filtrados en la UI
+    ui.mostrarEventos(eventosFiltrados);
 }

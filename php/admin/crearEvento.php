@@ -9,6 +9,16 @@ header('Access-Control-Allow-Credentials: true');
 session_start();
 include '../includes/conexion.php';
 
+// CORRECCIÓN DE SESIÓN: Tu login usa 'user_logged'
+if (!isset($_SESSION['user_logged']) || $_SESSION['user_logged'] !== true) {
+    http_response_code(401);
+    echo json_encode([
+        'success' => false,
+        'mensaje' => 'No autorizado'
+    ]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
@@ -27,7 +37,7 @@ try {
     // ===================================
     
     $camposRequeridos = [
-        'nombre' => 'Nombre del evento',
+        'nombre' => 'Nombre del evento', // CORREGIDO: 'nombre' en minúscula
         'fecha_inicio' => 'Fecha de inicio',
         'fecha_termino' => 'Fecha de término',
         'lugar' => 'Lugar',
@@ -49,7 +59,7 @@ try {
     // 2. OBTENER Y VALIDAR DATOS
     // ===================================
     
-    $nombre = mysqli_real_escape_string($conexion, trim($_POST['nombre']));
+    $nombre = mysqli_real_escape_string($conexion, trim($_POST['nombre'])); // CORREGIDO: 'nombre' en minúscula
     $descripcion = isset($_POST['descripcion']) ? mysqli_real_escape_string($conexion, trim($_POST['descripcion'])) : '';
     $fecha_inicio = mysqli_real_escape_string($conexion, $_POST['fecha_inicio']);
     $fecha_termino = mysqli_real_escape_string($conexion, $_POST['fecha_termino']);
@@ -60,7 +70,9 @@ try {
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
     $campus_id = intval($_POST['campus_id']);
     $id_promotor = intval($_POST['id_promotor']);
-    $id_actividad = isset($_POST['id_actividad']) && !empty($_POST['id_actividad']) ? intval($_POST['id_actividad']) : NULL;
+    
+    // 'actividad' es el ID de la actividad opcional, no el 'tipo_actividad'
+    $id_actividad = isset($_POST['actividad']) && !empty($_POST['actividad']) ? intval($_POST['actividad']) : NULL;
     
     // Campos opcionales
     $cupo_maximo = isset($_POST['cupo_maximo']) && !empty($_POST['cupo_maximo']) ? intval($_POST['cupo_maximo']) : NULL;
@@ -83,27 +95,28 @@ try {
     }
     
     // Validar tipo_registro
-    $tipos_registro_validos = ['Individual', 'Por equipos'];
+    $tipos_registro_validos = ['Individual', 'Por equipos']; // Coincide con tu HTML
     if (!in_array($tipo_registro, $tipos_registro_validos)) {
         throw new Exception('Tipo de registro inválido');
     }
     
-    // Validar categoria_deporte
-    $categorias_validas = ['Fútbol', 'Básquetbol', 'Voleibol', 'Natación', 'Atletismo', 'Otro'];
+    // CORRECCIÓN: Validar categoria_deporte (según tu HTML)
+    $categorias_validas = ['Fútbol', 'Fútbol Rápido', 'Voleibol', 'Básquetbol', 'Handball', 'Carrera', 'Otro'];
     if (!in_array($categoria_deporte, $categorias_validas)) {
-        throw new Exception('Categoría deportiva inválida');
+        throw new Exception('Categoría deportiva inválida: ' . $categoria_deporte);
     }
     
-    // Validar tipo_actividad
+    // CORRECCIÓN: Validar tipo_actividad (según tu HTML)
+    // Tu HTML envía 'Torneo' o 'Carrera'. Ambos son válidos.
     $tipos_actividad_validos = ['Torneo', 'Carrera', 'Exhibición', 'Taller'];
     if (!in_array($tipo_actividad, $tipos_actividad_validos)) {
-        throw new Exception('Tipo de actividad inválido');
+        throw new Exception('Tipo de actividad inválido: ' . $tipo_actividad);
     }
     
-    // Validar ubicacion_tipo
+    // CORRECCIÓN: Validar ubicacion_tipo (con espacios, según tu HTML)
     $ubicaciones_validas = ['Gimnasio', 'Canchas internas', 'Edificio facultad', 'Externo'];
     if (!in_array($ubicacion_tipo, $ubicaciones_validas)) {
-        throw new Exception('Tipo de ubicación inválido');
+        throw new Exception('Tipo de ubicación inválido: ' . $ubicacion_tipo);
     }
     
     // Validar campus
@@ -127,7 +140,7 @@ try {
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 4. GENERAR C├ôDIGO QR Y TOKEN
+    // 4. GENERAR CÓDIGO QR Y TOKEN
     // ===================================
     
     $codigo_qr = 'QR_EVT_' . time() . '_' . rand(1000000000, 9999999999);
@@ -212,7 +225,7 @@ try {
     }
     
     // ===================================
-    // 7. CONFIRMAR TRANSACCI├ôN
+    // 7. CONFIRMAR TRANSACCIÓN
     // ===================================
     
     mysqli_commit($conexion);

@@ -8,10 +8,9 @@
 import { formatearFecha } from '../utils/utilidades.js';
 
 /**
- * Rellena los select de campus en el formulario
+ * Rellena los select de campus en el formulario (MODAL)
  * @param {Array} campus - Lista campus
- * 
- */
+ * */
 
 export function poblarSelectCampus(campus) {
     const select = document.getElementById('evento-campus');
@@ -62,7 +61,8 @@ export function mostrarEventos(eventos) {
     const container = document.getElementById('lista-eventos');
 
     if (!eventos || eventos.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #666;">No hay eventos registrados</p>';
+        // Mensaje más específico si no hay eventos que coincidan con el filtro
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px 0;">No se encontraron eventos que coincidan con los filtros.</p>';
         return;
     }
 
@@ -163,4 +163,34 @@ export function inicializarTextareaAutoGrow() {
     } else {
         console.error("No se pudo encontrar el textarea #evento-descripcion");
     }
+}
+
+// ==========================================================
+// ***** NUEVA FUNCIÓN AÑADIDA PARA LOS FILTROS DE ADMIN *****
+// ==========================================================
+
+/**
+ * Rellena el select de campus en el FILTRO del admin.
+ * @param {Array} campus - Lista campus
+ */
+export function poblarFiltroCampus(campus) {
+    const select = document.getElementById('filtro-campus-admin');
+    if (!select) {
+        console.warn("No se encontró el filtro de campus 'filtro-campus-admin'");
+        return; 
+    }
+
+    // Guardar la opción "Todos" que ya está en el HTML
+    const opcionDefault = select.querySelector('option[value=""]');
+    select.innerHTML = ''; // Limpiar el select
+
+    // Volver a poner la opción "Todos" al inicio
+    if (opcionDefault) {
+        select.appendChild(opcionDefault);
+    }
+
+    // Añadir los campus de la base de datos
+    campus.forEach(c => {
+        select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
 }

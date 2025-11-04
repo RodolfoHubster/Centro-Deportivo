@@ -3,7 +3,7 @@ session_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-if (!isset($_SESSION['admin_logged']) || $_SESSION['admin_logged'] !== true) {
+if (!isset($_SESSION['user_logged']) || $_SESSION['user_logged'] !== true) {
     echo json_encode([
         'success' => false,
         'mensaje' => 'No autorizado'
