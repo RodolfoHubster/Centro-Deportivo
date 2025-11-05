@@ -1,13 +1,11 @@
 <?php
 /**
  * Generar Reporte PDF de Inscripciones
+ * Versión personalizada con logo y nuevos colores
  */
 
-// ESTA ES LA LÍNEA CORRECTA
 require_once('../../vendor/tecnickcom/tcpdf/tcpdf.php');
-
 include '../includes/conexion.php';
-
 
 try {
     // Capturar modo de salida
@@ -34,16 +32,13 @@ try {
     $params = [];
     $types = '';
     
-        // Filtro por evento (puede venir como ID o como nombre)
+    // Filtro por evento
     if (isset($_GET['evento_id']) && !empty($_GET['evento_id']) && $_GET['evento_id'] !== 'todos') {
-        // Si es numérico, buscar por ID
         if (is_numeric($_GET['evento_id'])) {
             $whereConditions[] = "evento_id = ?";
             $params[] = intval($_GET['evento_id']);
             $types .= 'i';
-        } 
-        // Si no es numérico, buscar por nombre
-        else {
+        } else {
             $whereConditions[] = "evento_nombre = ?";
             $params[] = mysqli_real_escape_string($conexion, $_GET['evento_id']);
             $types .= 's';
@@ -107,7 +102,6 @@ try {
     $total_mujeres = 0;
     
     while ($row = mysqli_fetch_assoc($resultado)) {
-        // Formatear carrera
         if ($row['es_tronco_comun']) {
             $row['carrera_display'] = "TC - " . $row['area_tronco_comun'];
         } else {
@@ -124,31 +118,90 @@ try {
     }
     
     // ===================================
-    // CREAR PDF
+    // DEFINIR COLORES PERSONALIZADOS
+    // ===================================
+    $color_principal   = [0, 150, 0];      // Verde fuerte (#009600)
+    $color_secundario  = [76, 175, 80];    // Verde material suave (#4CAF50)
+    $color_encabezado  = [56, 142, 60];    // Verde oscuro elegante (#388E3C)
+    $color_fondo_claro = [232, 245, 233];  // Verde muy claro pastel (#E8F5E9)
+
+    
+    // ===================================
+    // CREAR PDF CON ENCABEZADO PERSONALIZADO
     // ===================================
     
-    $pdf = new TCPDF('L', PDF_UNIT, 'LETTER', true, 'UTF-8', false);
+    class PDF_Deportivo extends TCPDF {
+        private $color_principal;
+        private $color_secundario;
+        
+        public function __construct($colores) {
+            parent::__construct('L', PDF_UNIT, 'LETTER', true, 'UTF-8', false);
+            $this->color_principal = $colores['principal'];
+            $this->color_secundario = $colores['secundario'];
+        }
+        
+        public function Header() {
+            // Ruta del logo - ajusta según tu estructura de carpetas
+            $logo = '../../public/images/centroDeportivo.png';
+            
+            // Verificar si existe el logo
+            if (file_exists($logo)) {
+                // Logo en la esquina superior izquierda
+                $this->Image($logo, 15, 10, 30, 0, '', '', 'T', false, 300, '', false, false, 0, false, false, false);
+            }
+            
+            // Configurar colores del encabezado
+            $this->SetFillColor($this->color_principal[0], $this->color_principal[1], $this->color_principal[2]);
+            $this->SetTextColor(255, 255, 255);
+            
+            // Título principal
+            $this->SetFont('helvetica', 'B', 18);
+            $this->SetY(12);
+            $this->Cell(0, 10, 'CENTRO DEPORTIVO', 0, 1, 'C', false);
+            
+            // Subtítulo
+            $this->SetFont('helvetica', 'B', 14);
+            $this->SetTextColor($this->color_secundario[0], $this->color_secundario[1], $this->color_secundario[2]);
+            $this->Cell(0, 8, 'Reporte de Inscripciones a Eventos', 0, 1, 'C', false);
+            
+            // Línea decorativa
+            $this->SetDrawColor($this->color_secundario[0], $this->color_secundario[1], $this->color_secundario[2]);
+            $this->SetLineWidth(0.8);
+            $left = $this->getMargins()['left'];
+            $right = $this->getPageWidth() - $this->getMargins()['right'];
+            $this->Line($left, 35, $right, 35);
+
+            $this->Ln(5);
+        }
+        
+        public function Footer() {
+            $this->SetY(-15);
+            $this->SetFont('helvetica', 'I', 8);
+            $this->SetTextColor(100, 100, 100);
+            $this->Cell(0, 10, 'Página ' . $this->getAliasNumPage() . ' de ' . $this->getAliasNbPages(), 0, 0, 'C');
+        }
+    }
+    
+    $pdf = new PDF_Deportivo([
+        'principal' => $color_principal,
+        'secundario' => $color_secundario
+    ]);
     
     $pdf->SetCreator('Centro Deportivo');
     $pdf->SetAuthor('Sistema de Inscripciones');
     $pdf->SetTitle('Reporte de Inscripciones');
     
-    $pdf->SetMargins(10, 15, 10);
+    $pdf->SetMargins(10, 45, 10);
     $pdf->SetAutoPageBreak(TRUE, 15);
     
     $pdf->AddPage();
     
-    // Título
-    $pdf->SetFont('helvetica', 'B', 16);
-    $pdf->SetFillColor(68, 114, 196);
-    $pdf->SetTextColor(255, 255, 255);
-    $pdf->Cell(0, 10, 'REPORTE DE INSCRIPCIONES A EVENTOS DEPORTIVOS', 0, 1, 'C', true);
-    $pdf->Ln(3);
-    
-    // Filtros
+    // ===================================
+    // FILTROS APLICADOS
+    // ===================================
     $pdf->SetFont('helvetica', 'B', 10);
     $pdf->SetTextColor(0, 0, 0);
-    $pdf->SetFillColor(231, 230, 230);
+    $pdf->SetFillColor($color_fondo_claro[0], $color_fondo_claro[1], $color_fondo_claro[2]);
     $pdf->Cell(0, 7, 'Filtros Aplicados:', 0, 1, 'L', true);
     
     $pdf->SetFont('helvetica', '', 9);
@@ -160,39 +213,68 @@ try {
     $filtrosTexto .= "Tipo: " . (isset($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos' ? $_GET['tipo_participante'] : 'Todos');
     
     $pdf->MultiCell(0, 6, $filtrosTexto, 0, 'L');
-    $pdf->Ln(2);
+    $pdf->Ln(3);
     
-    // Estadísticas
+    // ===================================
+    // CALCULAR ANCHO DISPONIBLE
+    // ===================================
+    $pageWidth = $pdf->getPageWidth() - $pdf->getMargins()['left'] - $pdf->getMargins()['right'];
+    
+    // ===================================
+    // ESTADÍSTICAS
+    // ===================================
     $pdf->SetFont('helvetica', 'B', 10);
-    $pdf->SetFillColor(68, 114, 196);
+    $pdf->SetFillColor($color_principal[0], $color_principal[1], $color_principal[2]);
     $pdf->SetTextColor(255, 255, 255);
-    $colWidth = ($pdf->getPageWidth() - 20) / 4;
-    $pdf->Cell($colWidth, 7, 'Total', 1, 0, 'C', true);
-    $pdf->Cell($colWidth, 7, 'Hombres', 1, 0, 'C', true);
-    $pdf->Cell($colWidth, 7, 'Mujeres', 1, 0, 'C', true);
-    $pdf->Cell($colWidth, 7, 'Mostrando', 1, 1, 'C', true);
-    
-    $pdf->SetFont('helvetica', '', 10);
-    $pdf->SetTextColor(0, 0, 0);
+
+    $colWidth = $pageWidth / 4;
+
+    $pdf->SetX($pdf->getMargins()['left']); 
+
+    // Fila de encabezados de estadísticas
+    $pdf->Cell($colWidth, 8, 'Total Registros', 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, 'Hombres', 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, 'Mujeres', 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, 'Mostrando', 1, 1, 'C', true);
+
+    $pdf->SetFont('helvetica', 'B', 11);
+    $pdf->SetTextColor($color_principal[0], $color_principal[1], $color_principal[2]);
     $pdf->SetFillColor(255, 255, 255);
-    $pdf->Cell($colWidth, 7, count($datos), 1, 0, 'C');
-    $pdf->Cell($colWidth, 7, $total_hombres, 1, 0, 'C');
-    $pdf->Cell($colWidth, 7, $total_mujeres, 1, 0, 'C');
-    $pdf->Cell($colWidth, 7, count($datos), 1, 1, 'C');
-    $pdf->Ln(4);
-    
-    // Tabla
+
+    $pdf->SetX($pdf->getMargins()['left']);
+
+    // Fila de datos de estadísticas
+    $pdf->Cell($colWidth, 8, count($datos), 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, $total_hombres, 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, $total_mujeres, 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, count($datos), 1, 1, 'C', true);
+    $pdf->Ln(5);
+
+    // ===================================
+    // TABLA DE DATOS - CON ANCHO CALCULADO
+    // ===================================
     $pdf->SetFont('helvetica', 'B', 8);
-    $pdf->SetFillColor(68, 70, 106);
+    $pdf->SetFillColor($color_encabezado[0], $color_encabezado[1], $color_encabezado[2]);
     $pdf->SetTextColor(255, 255, 255);
+
+    // Definir anchos de columna (deben sumar el ancho total de la página)
+    $w_matricula = 20;
+    $w_nombre = 50;
+    $w_correo = 55;
+    $w_genero = 18;
+    $w_tipo = 25;
+    $w_carrera = 50;
+    $w_evento = $pageWidth - ($w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo + $w_carrera);
+
+    $pdf->SetX($pdf->getMargins()['left']);
     
-    $pdf->Cell(20, 7, 'Matrícula', 1, 0, 'C', true);
-    $pdf->Cell(50, 7, 'Nombre', 1, 0, 'C', true);
-    $pdf->Cell(55, 7, 'Correo', 1, 0, 'C', true);
-    $pdf->Cell(18, 7, 'Género', 1, 0, 'C', true);
-    $pdf->Cell(25, 7, 'Tipo', 1, 0, 'C', true);
-    $pdf->Cell(50, 7, 'Carrera', 1, 0, 'C', true);
-    $pdf->Cell(33, 7, 'Evento', 1, 1, 'C', true);
+    $pdf->Cell($w_matricula, 7, 'Matrícula', 1, 0, 'C', true);
+    $pdf->Cell($w_nombre, 7, 'Nombre', 1, 0, 'C', true);
+    $pdf->Cell($w_correo, 7, 'Correo', 1, 0, 'C', true);
+    $pdf->Cell($w_genero, 7, 'Género', 1, 0, 'C', true);
+    $pdf->Cell($w_tipo, 7, 'Tipo', 1, 0, 'C', true);
+    $pdf->Cell($w_carrera, 7, 'Carrera', 1, 0, 'C', true);
+    $pdf->Cell($w_evento, 7, 'Evento', 1, 1, 'C', true);
     
     // Datos
     $pdf->SetFont('helvetica', '', 7);
@@ -200,22 +282,30 @@ try {
     $fill = false;
     
     foreach ($datos as $row) {
-        $pdf->SetFillColor($fill ? 242 : 255, $fill ? 242 : 255, $fill ? 242 : 255);
+        $pdf->SetX($pdf->getMargins()['left']);
         
-        $pdf->Cell(20, 6, $row['participante_matricula'], 1, 0, 'C', true);
-        $pdf->Cell(50, 6, substr($row['nombre_completo'], 0, 30), 1, 0, 'L', true);
-        $pdf->Cell(55, 6, substr($row['correo_institucional'], 0, 35), 1, 0, 'L', true);
-        $pdf->Cell(18, 6, substr($row['genero'], 0, 10), 1, 0, 'C', true);
-        $pdf->Cell(25, 6, substr($row['tipo_participante'], 0, 15), 1, 0, 'C', true);
-        $pdf->Cell(50, 6, substr($row['carrera_display'], 0, 30), 1, 0, 'L', true);
-        $pdf->Cell(33, 6, substr($row['evento_nombre'], 0, 20), 1, 1, 'L', true);
+        // Alternar colores de fila
+        if ($fill) {
+            $pdf->SetFillColor(245, 245, 245);
+        } else {
+            $pdf->SetFillColor(255, 255, 255);
+        }
+        
+        $pdf->Cell($w_matricula, 6, $row['participante_matricula'], 1, 0, 'C', true);
+        $pdf->Cell($w_nombre, 6, substr($row['nombre_completo'], 0, 30), 1, 0, 'L', true);
+        $pdf->Cell($w_correo, 6, substr($row['correo_institucional'], 0, 35), 1, 0, 'L', true);
+        $pdf->Cell($w_genero, 6, substr($row['genero'], 0, 10), 1, 0, 'C', true);
+        $pdf->Cell($w_tipo, 6, substr($row['tipo_participante'], 0, 15), 1, 0, 'C', true);
+        $pdf->Cell($w_carrera, 6, substr($row['carrera_display'], 0, 30), 1, 0, 'L', true);
+        $pdf->Cell($w_evento, 6, substr($row['evento_nombre'], 0, 20), 1, 1, 'L', true);
         
         $fill = !$fill;
     }
     
-    // Pie de página
+    // Pie de página con información
     $pdf->Ln(5);
     $pdf->SetFont('helvetica', 'I', 8);
+    $pdf->SetTextColor(100, 100, 100);
     $pdf->Cell(0, 5, 'Generado el: ' . date('d/m/Y H:i:s'), 0, 0, 'C');
     
     // ===================================
@@ -225,9 +315,9 @@ try {
     $filename = 'reporte_inscripciones_' . date('Ymd_His') . '.pdf';
     
     if ($modo === 'descargar') {
-        $pdf->Output($filename, 'D'); // Descarga
+        $pdf->Output($filename, 'D');
     } else {
-        $pdf->Output($filename, 'I'); // Ver en navegador
+        $pdf->Output($filename, 'I');
     }
     
     if (isset($stmt)) {

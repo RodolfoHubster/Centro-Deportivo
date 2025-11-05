@@ -1,14 +1,11 @@
 <?php
 /**
  * Generar Reporte Excel de Inscripciones
+ * Versión con colores verde deportivo
  */
 
-// ESTA ES LA LÍNEA CORRECTA (con vendor/ en la raíz)
 require_once('../../vendor/autoload.php');
-
 include '../includes/conexion.php';
-
-// ... resto del código que te di antes ...
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -41,16 +38,13 @@ try {
     $params = [];
     $types = '';
     
-    // Filtro por evento (puede venir como ID o como nombre)
+    // Filtro por evento
     if (isset($_GET['evento_id']) && !empty($_GET['evento_id']) && $_GET['evento_id'] !== 'todos') {
-        // Si es numérico, buscar por ID
         if (is_numeric($_GET['evento_id'])) {
             $whereConditions[] = "evento_id = ?";
             $params[] = intval($_GET['evento_id']);
             $types .= 'i';
-        } 
-        // Si no es numérico, buscar por nombre
-        else {
+        } else {
             $whereConditions[] = "evento_nombre = ?";
             $params[] = mysqli_real_escape_string($conexion, $_GET['evento_id']);
             $types .= 's';
@@ -131,6 +125,14 @@ try {
     }
     
     // ===================================
+    // COLORES VERDE DEPORTIVO
+    // ===================================
+    $verde_principal = '009600';   // Verde fuerte
+    $verde_secundario = '4CAF50';  // Verde material suave
+    $verde_oscuro = '388E3C';      // Verde oscuro elegante
+    $verde_claro = 'E8F5E9';       // Verde muy claro pastel
+    
+    // ===================================
     // CREAR EXCEL
     // ===================================
     
@@ -139,20 +141,20 @@ try {
     $sheet->setTitle('Inscripciones');
     
     // Título principal
-    $sheet->setCellValue('A1', 'REPORTE DE INSCRIPCIONES A EVENTOS DEPORTIVOS');
+    $sheet->setCellValue('A1', 'CENTRO DEPORTIVO - REPORTE DE INSCRIPCIONES A EVENTOS');
     $sheet->mergeCells('A1:H1');
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
     $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    $sheet->getStyle('A1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4472C4');
+    $sheet->getStyle('A1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_principal);
     $sheet->getStyle('A1')->getFont()->getColor()->setARGB('FFFFFFFF');
-    $sheet->getRowDimension(1)->setRowHeight(25);
+    $sheet->getRowDimension(1)->setRowHeight(30);
     
     // Filtros aplicados
     $filaFiltros = 3;
     $sheet->setCellValue('A' . $filaFiltros, 'FILTROS APLICADOS:');
     $sheet->getStyle('A' . $filaFiltros)->getFont()->setBold(true);
     $sheet->mergeCells('A' . $filaFiltros . ':H' . $filaFiltros);
-    $sheet->getStyle('A' . $filaFiltros)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE7E6E6');
+    $sheet->getStyle('A' . $filaFiltros)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_claro);
     
     $filaFiltros++;
     $filtrosTexto = '';
@@ -175,9 +177,13 @@ try {
     
     $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getFont()->setBold(true);
     $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getFill()
-        ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4472C4');
+        ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_principal);
     $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getFont()->getColor()->setARGB('FFFFFFFF');
     $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    
+    // Bordes estadísticas
+    $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getBorders()->getAllBorders()
+        ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
     
     $filaStats++;
     $sheet->setCellValue('A' . $filaStats, count($datos));
@@ -185,6 +191,13 @@ try {
     $sheet->setCellValue('C' . $filaStats, $total_mujeres);
     $sheet->setCellValue('D' . $filaStats, count($datos));
     $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getFill()
+        ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFFFFF');
+    
+    // Bordes datos estadísticas
+    $sheet->getStyle('A' . $filaStats . ':D' . $filaStats)->getBorders()->getAllBorders()
+        ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
     
     // Encabezados de tabla
     $filaEncabezado = $filaStats + 2;
@@ -196,7 +209,7 @@ try {
         $sheet->setCellValue($celda, $encabezado);
         $sheet->getStyle($celda)->getFont()->setBold(true);
         $sheet->getStyle($celda)->getFill()
-            ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF44546A');
+            ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_oscuro);
         $sheet->getStyle($celda)->getFont()->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle($celda)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
@@ -213,19 +226,19 @@ try {
         $sheet->setCellValue('G' . $filaActual, $row['evento_nombre']);
         $sheet->setCellValue('H' . $filaActual, date('d/m/Y H:i', strtotime($row['fecha_inscripcion'])));
         
-        // Alternar colores
+        // Alternar colores verde claro
         if ($filaActual % 2 == 0) {
             $sheet->getStyle('A' . $filaActual . ':H' . $filaActual)->getFill()
-                ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF2F2F2');
+                ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_claro);
         }
         
         $filaActual++;
     }
     
-    // Bordes
+    // Bordes tabla completa
     $rangoTabla = 'A' . $filaEncabezado . ':H' . ($filaActual - 1);
     $sheet->getStyle($rangoTabla)->getBorders()->getAllBorders()
-        ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF000000');
+        ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
     
     // Ajustar anchos
     $sheet->getColumnDimension('A')->setWidth(15);
@@ -243,6 +256,7 @@ try {
     $sheet->mergeCells('A' . $filaPie . ':H' . $filaPie);
     $sheet->getStyle('A' . $filaPie)->getFont()->setItalic(true)->setSize(9);
     $sheet->getStyle('A' . $filaPie)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('A' . $filaPie)->getFont()->getColor()->setARGB('FF666666');
     
     // ===================================
     // GENERAR ARCHIVO

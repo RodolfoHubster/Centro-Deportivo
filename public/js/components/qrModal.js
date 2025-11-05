@@ -1,5 +1,36 @@
 // js/componentes/qrModal.js
 
+document.addEventListener("DOMContentLoaded", () => {
+    // Verificar si viene desde un QR (parámetro id_evento en URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventoIdDesdeQR = urlParams.get('id_evento');
+    
+    if (eventoIdDesdeQR) {
+        // Obtener datos del evento y mostrar formulario automáticamente
+        obtenerDatosEventoYMostrarFormulario(eventoIdDesdeQR);
+    }
+});
+
+// Nueva función para obtener datos del evento desde el QR
+function obtenerDatosEventoYMostrarFormulario(eventoId) {
+    fetch(`../php/public/obtenerEvento.php?id=${eventoId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.evento) {
+                const nombreEvento = data.evento.titulo || data.evento.nombre || 'Evento';
+                mostrarFormularioInscripcion(eventoId, nombreEvento);
+            } else {
+                // Si no se encuentra el evento, mostrar con nombre genérico
+                mostrarFormularioInscripcion(eventoId, 'Evento');
+                console.warn('No se pudieron obtener los datos del evento');
+            }
+        })
+        .catch(error => {
+            console.error('Error al obtener datos del evento:', error);
+            // Mostrar formulario con nombre genérico si hay error
+            mostrarFormularioInscripcion(eventoId, 'Evento');
+        });
+}
 /**
  * Muestra el modal con el QR de un evento existente.
  */
@@ -11,7 +42,16 @@ export function generarQR(id_evento) {
     modalQR.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
     
     modalQR.innerHTML = `
-        <div style="max-width: 600px; background: white; padding: 30px; border-radius: 10px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div style="max-width: 600px; background: white; padding: 30px; border-radius: 10px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">
+            
+            <!-- Botón cerrar X -->
+            <button type="button" id="btnCerrarModalQRX" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666; z-index: 10;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+
             <h2 style="margin: 0 0 10px 0; color: #003366; font-size: 24px; text-align: center;">Código QR Generado</h2>
             <p style="margin: 0 0 25px 0; color: #666; text-align: center; font-size: 15px;">Escanea este código para registrarte al evento</p>
             <div style="display: flex; justify-content: center; margin: 25px 0; padding: 25px; background: #f9f9f9; border-radius: 8px; border: 2px dashed #ddd;">
@@ -30,6 +70,16 @@ export function generarQR(id_evento) {
             </div>
         </div>
     `;
+    
+    // Agregar estilos para el hover del botón X
+    const style = document.createElement('style');
+    style.textContent = `
+        #btnCerrarModalQRX:hover {
+            background: #f3f4f6 !important;
+            color: #dc3545 !important;
+        }
+    `;
+    document.head.appendChild(style);
     
     document.body.appendChild(modalQR);
     
@@ -54,15 +104,22 @@ export function generarQR(id_evento) {
     document.getElementById('btnCopiarURL').addEventListener('click', () => {
         navigator.clipboard.writeText(enlaceEvento).then(() => {
             const btn = document.getElementById('btnCopiarURL');
-            btn.textContent = 'Copiado';
+            btn.textContent = '✓ Copiado';
             setTimeout(() => btn.textContent = 'Copiar URL', 2000);
         });
     });
     
+    // Botón X para cerrar
+    document.getElementById('btnCerrarModalQRX').addEventListener('click', () => {
+        modalQR.remove();
+    });
+    
+    // Botón Cerrar normal
     document.getElementById('btnCerrarQR').addEventListener('click', () => {
         modalQR.remove();
     });
     
+    // Cerrar al hacer clic fuera
     modalQR.addEventListener('click', (e) => {
         if (e.target === modalQR) modalQR.remove();
     });
@@ -78,7 +135,16 @@ export function mostrarModalExitoConQR(id_evento, mensaje) {
     modalExito.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
     
     modalExito.innerHTML = `
-        <div style="max-width: 650px; background: white; padding: 35px; border-radius: 10px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div style="max-width: 650px; background: white; padding: 35px; border-radius: 10px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">
+            
+            <!-- Botón cerrar X -->
+            <button type="button" id="btnCerrarModalExitoX" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666; z-index: 10;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            
             <div style="text-align: center; margin-bottom: 20px;">
                 <h2 style="margin: 0 0 8px 0; color: #28a745; font-size: 26px;">Evento Creado Exitosamente</h2>
                 <p style="margin: 0; color: #666;">${mensaje}</p>
@@ -101,6 +167,16 @@ export function mostrarModalExitoConQR(id_evento, mensaje) {
         </div>
     `;
     
+    // Agregar estilos para el hover del botón X
+    const style = document.createElement('style');
+    style.textContent = `
+        #btnCerrarModalExitoX:hover {
+            background: #f3f4f6 !important;
+            color: #dc3545 !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
     document.body.appendChild(modalExito);
     
     new QRCode(document.getElementById("codigoQRExito"), {
@@ -120,9 +196,19 @@ export function mostrarModalExitoConQR(id_evento, mensaje) {
     });
     
     document.getElementById('btnCopiarEnlace').addEventListener('click', () => {
-        navigator.clipboard.writeText(enlaceEvento);
+        navigator.clipboard.writeText(enlaceEvento).then(() => {
+            const btn = document.getElementById('btnCopiarEnlace');
+            btn.textContent = '✓ Copiado';
+            setTimeout(() => btn.textContent = 'Copiar Link', 2000);
+        });
     });
     
+    // Botón X para cerrar
+    document.getElementById('btnCerrarModalExitoX').addEventListener('click', () => {
+        modalExito.remove();
+    });
+    
+    // Botón Finalizar normal
     document.getElementById('btnCerrarExito').addEventListener('click', () => {
         modalExito.remove();
     });

@@ -4,20 +4,65 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-        agregarBotonesInscripcion();
-    }, 1000);
+    // Verificar si viene desde un QR (parámetro id_evento en URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventoIdDesdeQR = urlParams.get('id_evento');
+    
+    if (eventoIdDesdeQR) {
+        // Si viene del QR, obtener datos del evento y mostrar formulario automáticamente
+        obtenerDatosEventoYMostrarFormulario(eventoIdDesdeQR);
+    } else {
+        // Si NO viene del QR, comportamiento normal: agregar botones a las tarjetas
+        setTimeout(() => {
+            agregarBotonesInscripcion();
+        }, 1000);
+    }
 });
+
+// Nueva función para obtener datos del evento desde el QR
+function obtenerDatosEventoYMostrarFormulario(eventoId) {
+    // Usar el archivo obtenerEventos.php existente pero sin filtros
+    fetch('../php/public/obtenerEventos.php?activos=false')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.eventos) {
+                // Buscar el evento específico por ID
+                const evento = data.eventos.find(e => e.id == eventoId);
+                
+                if (evento) {
+                    const nombreEvento = evento.nombre || 'Evento';
+                    mostrarFormularioInscripcion(eventoId, nombreEvento);
+                } else {
+                    // Si no se encuentra el evento, mostrar con nombre genérico
+                    mostrarFormularioInscripcion(eventoId, 'Evento');
+                    console.warn('Evento no encontrado en la lista');
+                }
+            } else {
+                // Si hay error, mostrar formulario con nombre genérico
+                mostrarFormularioInscripcion(eventoId, 'Evento');
+                console.warn('No se pudieron obtener los datos de los eventos');
+            }
+        })
+        .catch(error => {
+            console.error('Error al obtener datos del evento:', error);
+            // Mostrar formulario con nombre genérico si hay error
+            mostrarFormularioInscripcion(eventoId, 'Evento');
+        });
+}
 
 function agregarBotonesInscripcion() {
     const tarjetasEvento = document.querySelectorAll('.evento-card, .event-card, .card-evento');
-    
+
     tarjetasEvento.forEach((tarjeta) => {
         if (tarjeta.querySelector('.btn-inscribir')) return;
         
         const eventoId = tarjeta.getAttribute('data-evento-id') || tarjeta.getAttribute('data-id');
         
         if (!eventoId) return;
+
+        const nombreEvento = tarjeta.querySelector('.evento-titulo, .event-title, h3, h2')?.textContent.trim() 
+                            || tarjeta.getAttribute('data-nombre') 
+                            || 'Evento';
         
         const btnInscribir = document.createElement('button');
         btnInscribir.innerHTML = `
@@ -58,8 +103,9 @@ function agregarBotonesInscripcion() {
             btnInscribir.style.boxShadow = '0 4px 12px rgba(0, 132, 61, 0.3)';
         });
         
+        // Modificado para pasar nombre del evento
         btnInscribir.addEventListener('click', () => {
-            mostrarFormularioInscripcion(eventoId);
+            mostrarFormularioInscripcion(eventoId, nombreEvento);
         });
         
         const contenedorBotones = tarjeta.querySelector('.card-actions, .evento-actions, .btn-container');
@@ -71,7 +117,11 @@ function agregarBotonesInscripcion() {
     });
 }
 
-function mostrarFormularioInscripcion(eventoId) {
+function mostrarFormularioInscripcion(eventoId, nombreEvento) {
+    const modalExistente = document.getElementById('modal-inscripcion')
+    if(modalExistente){
+        modalExistente.remove()
+    }
     const modal = document.createElement('div');
     modal.id = 'modal-inscripcion';
     modal.style.cssText = `
@@ -91,8 +141,16 @@ function mostrarFormularioInscripcion(eventoId) {
     `;
     
     modal.innerHTML = `
-        <div style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto;">
+        <div id="overlayModal" style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; position: relative;">
             
+            <!-- Botón cerrar X -->
+            <button type="button" id="btnCerrarX" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+
             <div style="text-align: center; margin-bottom: 30px;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -104,6 +162,8 @@ function mostrarFormularioInscripcion(eventoId) {
                 </div>
                 <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Formulario de Registro</h2>
                 <p style="color: #666; margin: 0; font-size: 15px;">Completa todos los campos requeridos para registrarte</p>
+                <!-- Nombre del Evento -->
+                <h3 style="color: #00843D; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${nombreEvento}</h3>
             </div>
             
             <form id="formInscripcion">
@@ -257,6 +317,12 @@ function mostrarFormularioInscripcion(eventoId) {
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
+        /* Estilo para el boton X */
+        #btnCerrarX:hover {
+            background: #f3f4f6 !important;
+            color: #dc3545 !important;
+        }
         .radio-option input[type="radio"]:checked + span {
             color: #00843D;
             font-weight: 600;
@@ -302,7 +368,7 @@ function mostrarFormularioInscripcion(eventoId) {
     });
     
     // Cerrar modal
-    document.getElementById('btnCerrarModal').addEventListener('click', () => {
+    document.getElementById('btnCerrarModal').addEventListener('click', (e) => {
         modal.remove();
     });
     
@@ -317,6 +383,11 @@ function mostrarFormularioInscripcion(eventoId) {
         e.preventDefault();
         enviarInscripcion(e.target, modal);
     });
+
+    document.getElementById("btnCerrarX").addEventListener("click", function() {
+        modal.remove();
+    });
+
 }
 
 function actualizarCamposSegunTipo(tipo) {

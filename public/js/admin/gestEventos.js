@@ -278,3 +278,36 @@ function aplicarFiltrosAdmin() {
     // 3. Mostrar los eventos filtrados en la UI
     ui.mostrarEventos(eventosFiltrados);
 }
+
+// Funcionalidad para cerrar el modal con la X
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCerrarModalX = document.getElementById('btnCerrarModalX');
+    const modal = document.getElementById('modalEvento');
+    
+    if (btnCerrarModalX) {
+        btnCerrarModalX.addEventListener('click', () => {
+        modal.style.display = 'none';
+        // Opcional: limpiar el formulario
+        document.getElementById('formEvento').reset();
+        });
+    }
+});
+
+// Obtener el modal
+const modal = document.getElementById('modalEvento');
+const modalContenido = document.querySelector('.admin-modal-contenido');
+
+// Cerrar modal al hacer clic fuera del contenido
+modal.addEventListener('click', function(e) {
+    // Si el clic fue directamente en el modal (fondo oscuro) y NO en el contenido
+    if (e.target === modal) {
+        modal.style.display = 'none';
+        // Opcional: limpiar el formulario
+        document.getElementById('formEvento').reset();
+    }
+});
+
+// Prevenir que los clics dentro del contenido cierren el modal
+modalContenido.addEventListener('click', function(e) {
+    e.stopPropagation(); // Esto evita que el clic se propague al modal
+});
