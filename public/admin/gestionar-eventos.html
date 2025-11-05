@@ -77,9 +77,16 @@
   </main>
 
   <div id="modalEvento">
-    <div class="admin-modal-contenido">
+    <div class="admin-modal-contenido" style="position: relative;">
+    <button type="button" id="btnCerrarModalX" onclick="document.getElementById('modalEvento').style.display='none'" 
+      style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666; z-index: 10;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    
       <h2 id="tituloModal">Crear Nuevo Evento</h2>
-
       <form id="formEvento">
         <input type="hidden" id="evento-id" name="id">
         <div class="form-section">

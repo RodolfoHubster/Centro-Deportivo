@@ -287,3 +287,9 @@
 .btn-pdf:hover {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
 }
+
+/* Estilo hover para el botón X del modal de eventos */
+#btnCerrarModalX:hover {
+    background: #f3f4f6 !important;
+    color: #dc3545 !important;
+}
