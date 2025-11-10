@@ -104,6 +104,8 @@ try {
                 e.tipo_actividad,
                 e.ubicacion_tipo,
                 e.cupo_maximo,
+                e.integrantes_min,
+                e.integrantes_max,
                 e.registros_actuales,
                 e.codigo_qr,
                 e.activo,
@@ -133,7 +135,7 @@ try {
             $whereClause
             GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino,
                      e.lugar, e.tipo_registro, e.categoria_deporte, e.tipo_actividad,
-                     e.ubicacion_tipo, e.cupo_maximo, e.registros_actuales, e.codigo_qr,
+                     e.ubicacion_tipo, e.cupo_maximo, e.integrantes_min, e.integrantes_max, e.registros_actuales, e.codigo_qr,
                      e.activo, a.nombre, c.nombre, c.codigo, u.nombre
             ORDER BY e.fecha_inicio DESC";
     
