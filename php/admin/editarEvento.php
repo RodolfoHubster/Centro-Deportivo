@@ -21,7 +21,7 @@ if (!isset($_SESSION['user_logged']) || $_SESSION['user_logged'] !== true) {
     ]);
     exit;
 }
-
+ 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
@@ -81,6 +81,8 @@ try {
     
     // Campos opcionales
     $cupo_maximo = isset($_POST['cupo_maximo']) && !empty($_POST['cupo_maximo']) ? intval($_POST['cupo_maximo']) : NULL;
+    $integrantes_min = isset($_POST['integrantes_min']) && !empty($_POST['integrantes_min']) ? intval($_POST['integrantes_min']) : NULL;
+    $integrantes_max = isset($_POST['integrantes_max']) && !empty($_POST['integrantes_max']) ? intval($_POST['integrantes_max']) : NULL;
     $facultades = isset($_POST['facultades']) && is_array($_POST['facultades']) ? $_POST['facultades'] : [];
     
     // ===================================
@@ -112,7 +114,9 @@ try {
                     ubicacion_tipo = ?,
                     campus_id = ?,
                     id_promotor = ?,
-                    cupo_maximo = ?
+                    cupo_maximo = ?,
+                    integrantes_min = ?,
+                    integrantes_max = ?
                   WHERE id = ?";
                   
     $stmt = mysqli_prepare($conexion, $sqlEvento);
@@ -123,7 +127,7 @@ try {
     
     mysqli_stmt_bind_param(
         $stmt,
-        'sssssisssssiii',
+        'sssssisssssiiiii',
         $nombre,
         $descripcion,
         $fecha_inicio,
@@ -137,6 +141,8 @@ try {
         $campus_id,
         $id_promotor,
         $cupo_maximo,
+        $integrantes_min,  
+        $integrantes_max,
         $evento_id // El ID va al final para el WHERE
     );
     

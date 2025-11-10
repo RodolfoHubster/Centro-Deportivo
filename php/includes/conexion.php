@@ -6,12 +6,12 @@
  */
 
 // Configuracion de la base de datos
-$servidor = "localhost";
-$usuario = "root";
-$password = "";
-$bd = "centro_deportivo_uabc";
+$servidor = "svdm056.serverneubox.com.mx";
+$usuario  = "glevanco_cdeportivo";
+$password = "cdeportivo.25";
+$bd       = "glevanco_cdeportivo";
 
-// Establecer conexion
+// establecer conexión
 $conexion = mysqli_connect($servidor, $usuario, $password, $bd);
 
 // Verificar conexion

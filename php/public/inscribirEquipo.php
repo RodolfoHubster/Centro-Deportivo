@@ -2,6 +2,8 @@
 /**
  * Inscribir Equipo - VERSIÓN NORMALIZADA
  * Permite registrar equipos completos para torneos
+ *
+ * (ARCHIVO CORREGIDO: Ahora lee los límites min/max desde la BD)
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -49,8 +51,11 @@ try {
     // 2. VERIFICAR QUE EL EVENTO EXISTE Y PERMITE EQUIPOS
     // ===================================
     
-    $sqlEvento = "SELECT id, nombre, tipo_registro, cupo_maximo, registros_actuales, activo 
+    // <-- CAMBIO 1: Agregamos 'integrantes_min' e 'integrantes_max' a la consulta
+    $sqlEvento = "SELECT id, nombre, tipo_registro, cupo_maximo, registros_actuales, activo,
+                         integrantes_min, integrantes_max 
                   FROM evento WHERE id = ?";
+    
     $stmt = mysqli_prepare($conexion, $sqlEvento);
     mysqli_stmt_bind_param($stmt, 'i', $evento_id);
     mysqli_stmt_execute($stmt);
@@ -73,13 +78,36 @@ try {
     }
     
     // ===================================
-    // 3. VALIDAR CANTIDAD DE INTEGRANTES Y MATR├ìCULAS
+    // 3. VALIDAR CANTIDAD DE INTEGRANTES Y MATRÍCULAS
     // ===================================
     
     $num_integrantes = count($integrantes);
-    if ($num_integrantes < 8 || $num_integrantes > 15) {
-        throw new Exception("El equipo debe tener entre 8 y 15 integrantes. Actualmente tiene {$num_integrantes}");
+
+    // <-- CAMBIO 2: Reemplazamos la validación "hardcodeada"
+    // Ahora leemos los límites de la variable $evento (que viene de la BD)
+    
+    $min = $evento['integrantes_min'];
+    $max = $evento['integrantes_max'];
+
+    // Si el mínimo es NULO o 0, ponemos 1 por defecto
+    if ($min == 0 || $min == NULL) {
+        $min = 1;
     }
+
+    // Si el máximo es NULO o 0, lo tratamos como "sin límite" (un número muy grande)
+    if ($max == 0 || $max == NULL) {
+        $max = 999; 
+    }
+
+    // ¡LA VALIDACIÓN CORRECTA!
+    // Compara el número de integrantes con las variables $min y $max
+    if ($num_integrantes < $min || $num_integrantes > $max) {
+        // Usamos las variables $min y $max en el mensaje de error
+        // Esto ahora dirá "entre 2 y 8" (o lo que pongas en la BD)
+        throw new Exception("El equipo debe tener entre {$min} y {$max} integrantes. Actualmente tiene {$num_integrantes}");
+    }
+    // <-- FIN DEL CAMBIO 2
+    
     
     $capitan_en_lista = false;
     $matriculas = [];
@@ -106,6 +134,15 @@ try {
     $integrantes_registrados_nombres = []; // Para la respuesta final
 
     foreach ($integrantes as $integrante) {
+        // --- Validar datos de cada integrante ---
+        if (empty(trim($integrante['matricula']))) throw new Exception('Todos los integrantes deben tener matrícula');
+        if (empty(trim($integrante['nombres']))) throw new Exception('Todos los integrantes deben tener nombre');
+        if (empty(trim($integrante['apellido_paterno']))) throw new Exception('Todos los integrantes deben tener apellido paterno');
+        if (empty(trim($integrante['apellido_materno']))) throw new Exception('Todos los integrantes deben tener apellido materno');
+        if (empty(trim($integrante['correo']))) throw new Exception('Todos los integrantes deben tener correo');
+        if (empty(trim($integrante['genero']))) throw new Exception('Todos los integrantes deben tener género');
+        // --- Fin validación ---
+
         $matricula = mysqli_real_escape_string($conexion, trim($integrante['matricula']));
         $nombres = mysqli_real_escape_string($conexion, trim($integrante['nombres']));
         $apellido_paterno = mysqli_real_escape_string($conexion, trim($integrante['apellido_paterno']));
@@ -113,7 +150,9 @@ try {
         $correo = mysqli_real_escape_string($conexion, trim($integrante['correo']));
         $genero = mysqli_real_escape_string($conexion, trim($integrante['genero']));
         $carrera_id = isset($integrante['carrera_id']) && !empty($integrante['carrera_id']) ? intval($integrante['carrera_id']) : NULL;
-        $tipo = isset($integrante['tipo']) ? mysqli_real_escape_string($conexion, $integrante['tipo']) : 'Estudiante';
+        
+        // Corregido: el JS envía 'tipo_participante', no 'tipo'
+        $tipo_participante = isset($integrante['tipo_participante']) ? mysqli_real_escape_string($conexion, $integrante['tipo_participante']) : 'Estudiante';
         
         $current_usuario_id = 0;
         
@@ -136,7 +175,7 @@ try {
             $stmt = mysqli_prepare($conexion, $sqlUpdateUsuario);
             mysqli_stmt_bind_param(
                 $stmt, 'sssssisi',
-                $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $tipo, $current_usuario_id
+                $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $tipo_participante, $current_usuario_id
             );
             mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
@@ -152,7 +191,7 @@ try {
             $stmt = mysqli_prepare($conexion, $sqlUsuario);
             mysqli_stmt_bind_param(
                 $stmt, 'ssssssis', 
-                $matricula, $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $tipo
+                $matricula, $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $tipo_participante
             );
             
             if (!mysqli_stmt_execute($stmt)) {
@@ -173,11 +212,11 @@ try {
     }
 
     if ($capitan_usuario_id === 0) {
-        throw new Exception('No se pudo verificar la ID del capitán');
+        throw new Exception('No se pudo verificar la ID del capitán. La matrícula del capitán no coincide con ninguna de la lista.');
     }
 
     // ===================================
-    // 5. VERIFICAR QUE NING├ÜN INTEGRANTE YA EST├ë INSCRITO
+    // 5. VERIFICAR QUE NINGÚN INTEGRANTE YA ESTÉ INSCRITO
     // ===================================
     
     $lista_ids_usuarios = array_values($usuario_ids);
@@ -189,8 +228,13 @@ try {
                           WHERE i.evento_id = ? AND i.usuario_id IN ($placeholders)";
     
     $stmt = mysqli_prepare($conexion, $sqlCheckInscritos);
-    $types = str_repeat('i', count($lista_ids_usuarios));
-    mysqli_stmt_bind_param($stmt, 'i' . $types, $evento_id, ...$lista_ids_usuarios);
+    
+    // El primer tipo es 'i' para el evento_id
+    $types = 'i' . str_repeat('i', count($lista_ids_usuarios));
+    $params = array_merge([$evento_id], $lista_ids_usuarios);
+
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
+    
     mysqli_stmt_execute($stmt);
     $resultadoInscritos = mysqli_stmt_get_result($stmt);
     
@@ -208,7 +252,7 @@ try {
     // ===================================
     
     $sqlEquipo = "INSERT INTO equipo (nombre, evento_id, capitan_usuario_id, fecha_registro) 
-                  VALUES (?, ?, ?, NOW())";
+                   VALUES (?, ?, ?, NOW())";
     $stmt = mysqli_prepare($conexion, $sqlEquipo);
     mysqli_stmt_bind_param($stmt, 'sii', $nombre_equipo, $evento_id, $capitan_usuario_id);
     
@@ -224,8 +268,8 @@ try {
     // ===================================
     
     $sqlInscripcion = "INSERT INTO inscripcion 
-                      (evento_id, usuario_id, equipo_id, es_capitan, metodo_registro, fecha_inscripcion) 
-                      VALUES (?, ?, ?, ?, 'Web', NOW())";
+                       (evento_id, usuario_id, equipo_id, es_capitan, metodo_registro, fecha_inscripcion) 
+                       VALUES (?, ?, ?, ?, 'Web', NOW())";
     $stmt = mysqli_prepare($conexion, $sqlInscripcion);
     
     foreach ($usuario_ids as $matricula => $usuario_id) {
@@ -243,16 +287,17 @@ try {
     // 8. ACTUALIZAR CONTADOR DE REGISTROS
     // ===================================
     
+    // 'registros_actuales' en 'evento' cuenta equipos, no personas
     $sqlUpdateContador = "UPDATE evento 
-                         SET registros_actuales = registros_actuales + 1 
-                         WHERE id = ?";
+                          SET registros_actuales = registros_actuales + 1 
+                          WHERE id = ?";
     $stmt = mysqli_prepare($conexion, $sqlUpdateContador);
     mysqli_stmt_bind_param($stmt, 'i', $evento_id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 9. CONFIRMAR TRANSACCI├ôN
+    // 9. CONFIRMAR TRANSACCIÓN
     // ===================================
     
     mysqli_commit($conexion);
@@ -263,7 +308,7 @@ try {
     
     echo json_encode([
         'success' => true,
-        'mensaje' => "┬íEquipo '{$nombre_equipo}' registrado exitosamente en el evento '{$evento['nombre']}'!",
+        'mensaje' => "¡Equipo '{$nombre_equipo}' registrado exitosamente en el evento '{$evento['nombre']}'!",
         'datos' => [
             'equipo_id' => $equipo_id,
             'nombre_equipo' => $nombre_equipo,

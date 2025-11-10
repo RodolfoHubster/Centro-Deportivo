@@ -122,6 +122,13 @@ export function poblarFormularioParaEditar(evento) {
     document.getElementById('evento-tipo-actividad').value = evento.tipo_actividad || '';
     document.getElementById('evento-actividad').value = evento.id_actividad || '';
     document.getElementById('evento-cupo-maximo').value = evento.cupo_maximo || '';
+    // --- AÑADE ESTAS LÍNEAS ---
+    document.getElementById('evento-integrantes-min').value = evento.integrantes_min || '';
+    document.getElementById('evento-integrantes-max').value = evento.integrantes_max || '';
+
+    // Muestra u oculta los campos según el tipo de registro del evento
+    mostrarCamposEquipo(evento.tipo_registro);
+    // --- FIN DE LÍNEAS AÑADIDAS ---
 
 }
 
@@ -132,6 +139,7 @@ export function prepararModalParaCrear() {
     document.getElementById('tituloModal').textContent = 'Crear Nuevo Evento';
     document.getElementById('formEvento').reset(); //
     document.getElementById('evento-id').value = '';
+    mostrarCamposEquipo('Individual'); // Oculta los campos por defecto
     document.querySelectorAll('input[name="facultades[]"]').forEach(cb => cb.checked = false);
     document.getElementById('modalEvento').style.display = 'block';
 }
@@ -193,4 +201,28 @@ export function poblarFiltroCampus(campus) {
     campus.forEach(c => {
         select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
     });
+}
+
+/**
+ * Muestra u oculta los campos de min/max integrantes en el modal de admin.
+ * @param {string} tipoRegistro - El valor del select ('Individual' o 'Por equipos')
+ */
+export function mostrarCamposEquipo(tipoRegistro) {
+    const camposEquipo = document.getElementById('campos-equipo-admin');
+    const minInput = document.getElementById('evento-integrantes-min');
+    const maxInput = document.getElementById('evento-integrantes-max');
+    if (!camposEquipo || !minInput || !maxInput) return;
+
+    if (tipoRegistro === 'Por equipos') {
+        camposEquipo.style.display = 'block';
+        minInput.required = true; // Hacerlos obligatorios si se muestran
+        // maxInput puede ser opcional (sin límite)
+    } else {
+        camposEquipo.style.display = 'none';
+        minInput.required = false; // Quitarles el 'required'
+        maxInput.required = false;
+        // Limpiar valores por si acaso
+        minInput.value = '';
+        maxInput.value = '';
+    }
 }

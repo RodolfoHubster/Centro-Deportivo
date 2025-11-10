@@ -9,7 +9,7 @@ header('Access-Control-Allow-Credentials: true');
 session_start();
 include '../includes/conexion.php';
 
-// CORRECCIÓN DE SESIÓN: Tu login usa 'user_logged'
+// Validar sesión
 if (!isset($_SESSION['user_logged']) || $_SESSION['user_logged'] !== true) {
     http_response_code(401);
     echo json_encode([
@@ -37,7 +37,7 @@ try {
     // ===================================
     
     $camposRequeridos = [
-        'nombre' => 'Nombre del evento', // CORREGIDO: 'nombre' en minúscula
+        'nombre' => 'Nombre del evento',
         'fecha_inicio' => 'Fecha de inicio',
         'fecha_termino' => 'Fecha de término',
         'lugar' => 'Lugar',
@@ -59,7 +59,7 @@ try {
     // 2. OBTENER Y VALIDAR DATOS
     // ===================================
     
-    $nombre = mysqli_real_escape_string($conexion, trim($_POST['nombre'])); // CORREGIDO: 'nombre' en minúscula
+    $nombre = mysqli_real_escape_string($conexion, trim($_POST['nombre']));
     $descripcion = isset($_POST['descripcion']) ? mysqli_real_escape_string($conexion, trim($_POST['descripcion'])) : '';
     $fecha_inicio = mysqli_real_escape_string($conexion, $_POST['fecha_inicio']);
     $fecha_termino = mysqli_real_escape_string($conexion, $_POST['fecha_termino']);
@@ -71,11 +71,13 @@ try {
     $campus_id = intval($_POST['campus_id']);
     $id_promotor = intval($_POST['id_promotor']);
     
-    // 'actividad' es el ID de la actividad opcional, no el 'tipo_actividad'
-    $id_actividad = isset($_POST['actividad']) && !empty($_POST['actividad']) ? intval($_POST['actividad']) : NULL;
+    // 'actividad' es el ID de la actividad opcional
+    $id_actividad = isset($_POST['actividad']) && !empty($_POST['actividad']) ? intval($_POST['actividad']) : null;
     
     // Campos opcionales
-    $cupo_maximo = isset($_POST['cupo_maximo']) && !empty($_POST['cupo_maximo']) ? intval($_POST['cupo_maximo']) : NULL;
+    $cupo_maximo = isset($_POST['cupo_maximo']) && $_POST['cupo_maximo'] !== '' ? intval($_POST['cupo_maximo']) : null;
+    $integrantes_min = isset($_POST['integrantes_min']) && $_POST['integrantes_min'] !== '' ? intval($_POST['integrantes_min']) : null;
+    $integrantes_max = isset($_POST['integrantes_max']) && $_POST['integrantes_max'] !== '' ? intval($_POST['integrantes_max']) : null;
     $facultades = isset($_POST['facultades']) && is_array($_POST['facultades']) ? $_POST['facultades'] : [];
     
     // ===================================
@@ -95,25 +97,24 @@ try {
     }
     
     // Validar tipo_registro
-    $tipos_registro_validos = ['Individual', 'Por equipos']; // Coincide con tu HTML
+    $tipos_registro_validos = ['Individual', 'Por equipos'];
     if (!in_array($tipo_registro, $tipos_registro_validos)) {
         throw new Exception('Tipo de registro inválido');
     }
     
-    // CORRECCIÓN: Validar categoria_deporte (según tu HTML)
+    // Validar categoria_deporte
     $categorias_validas = ['Fútbol', 'Fútbol Rápido', 'Voleibol', 'Básquetbol', 'Handball', 'Carrera', 'Otro'];
     if (!in_array($categoria_deporte, $categorias_validas)) {
         throw new Exception('Categoría deportiva inválida: ' . $categoria_deporte);
     }
     
-    // CORRECCIÓN: Validar tipo_actividad (según tu HTML)
-    // Tu HTML envía 'Torneo' o 'Carrera'. Ambos son válidos.
+    // Validar tipo_actividad
     $tipos_actividad_validos = ['Torneo', 'Carrera', 'Exhibición', 'Taller'];
     if (!in_array($tipo_actividad, $tipos_actividad_validos)) {
         throw new Exception('Tipo de actividad inválido: ' . $tipo_actividad);
     }
     
-    // CORRECCIÓN: Validar ubicacion_tipo (con espacios, según tu HTML)
+    // Validar ubicacion_tipo
     $ubicaciones_validas = ['Gimnasio', 'Canchas internas', 'Edificio facultad', 'Externo'];
     if (!in_array($ubicacion_tipo, $ubicaciones_validas)) {
         throw new Exception('Tipo de ubicación inválido: ' . $ubicacion_tipo);
@@ -147,43 +148,87 @@ try {
     $token_registro = 'TKN_' . md5(uniqid($nombre . time(), true));
     
     // ===================================
-    // 5. INSERTAR EVENTO
+    // 5. INSERTAR EVENTO (CORREGIDO)
     // ===================================
     
-    $sqlEvento = "INSERT INTO evento (
-                    nombre, descripcion, fecha_inicio, fecha_termino, lugar,
-                    id_actividad, tipo_registro, categoria_deporte, tipo_actividad,
-                    ubicacion_tipo, campus_id, id_promotor, codigo_qr, token_registro,
-                    cupo_maximo, registros_actuales, activo, fecha_creacion
-                  ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, NOW()
-                  )";
-    
-    $stmt = mysqli_prepare($conexion, $sqlEvento);
-    
-    if (!$stmt) {
-        throw new Exception('Error al preparar consulta: ' . mysqli_error($conexion));
+    // Construir query dinámicamente según si id_actividad es NULL
+    if ($id_actividad !== null) {
+        $sqlEvento = "INSERT INTO evento (
+                        nombre, descripcion, fecha_inicio, fecha_termino, lugar,
+                        id_actividad, tipo_registro, categoria_deporte, tipo_actividad,
+                        ubicacion_tipo, campus_id, id_promotor, codigo_qr, token_registro,
+                        cupo_maximo, integrantes_min, integrantes_max, 
+                        registros_actuales, activo, fecha_creacion
+                      ) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, NOW()
+                      )";
+        
+        $stmt = mysqli_prepare($conexion, $sqlEvento);
+        
+        if (!$stmt) {
+            throw new Exception('Error al preparar consulta: ' . mysqli_error($conexion));
+        }
+        
+        mysqli_stmt_bind_param(
+            $stmt,
+            'ssssssssssiissiii',
+            $nombre,
+            $descripcion,
+            $fecha_inicio,
+            $fecha_termino,
+            $lugar,
+            $id_actividad,
+            $tipo_registro,
+            $categoria_deporte,
+            $tipo_actividad,
+            $ubicacion_tipo,
+            $campus_id,
+            $id_promotor,
+            $codigo_qr,
+            $token_registro,
+            $cupo_maximo,
+            $integrantes_min,
+            $integrantes_max
+        );
+    } else {
+        // Si id_actividad es NULL, no lo incluimos en el INSERT
+        $sqlEvento = "INSERT INTO evento (
+                        nombre, descripcion, fecha_inicio, fecha_termino, lugar,
+                        tipo_registro, categoria_deporte, tipo_actividad,
+                        ubicacion_tipo, campus_id, id_promotor, codigo_qr, token_registro,
+                        cupo_maximo, integrantes_min, integrantes_max, 
+                        registros_actuales, activo, fecha_creacion
+                      ) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, NOW()
+                      )";
+        
+        $stmt = mysqli_prepare($conexion, $sqlEvento);
+        
+        if (!$stmt) {
+            throw new Exception('Error al preparar consulta: ' . mysqli_error($conexion));
+        }
+        
+        mysqli_stmt_bind_param(
+            $stmt,
+            'sssssssssiissiii',
+            $nombre,
+            $descripcion,
+            $fecha_inicio,
+            $fecha_termino,
+            $lugar,
+            $tipo_registro,
+            $categoria_deporte,
+            $tipo_actividad,
+            $ubicacion_tipo,
+            $campus_id,
+            $id_promotor,
+            $codigo_qr,
+            $token_registro,
+            $cupo_maximo,
+            $integrantes_min,
+            $integrantes_max
+        );
     }
-    
-    mysqli_stmt_bind_param(
-        $stmt,
-        'ssssssssssiissi',
-        $nombre,
-        $descripcion,
-        $fecha_inicio,
-        $fecha_termino,
-        $lugar,
-        $id_actividad,
-        $tipo_registro,
-        $categoria_deporte,
-        $tipo_actividad,
-        $ubicacion_tipo,
-        $campus_id,
-        $id_promotor,
-        $codigo_qr,
-        $token_registro,
-        $cupo_maximo
-    );
     
     if (!mysqli_stmt_execute($stmt)) {
         throw new Exception('Error al crear evento: ' . mysqli_stmt_error($stmt));
@@ -248,6 +293,8 @@ try {
             'codigo_qr' => $codigo_qr,
             'token_registro' => $token_registro,
             'cupo_maximo' => $cupo_maximo,
+            'integrantes_min' => $integrantes_min,
+            'integrantes_max' => $integrantes_max,
             'facultades' => $facultades_registradas
         ]
     ], JSON_UNESCAPED_UNICODE);

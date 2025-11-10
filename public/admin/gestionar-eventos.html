@@ -172,14 +172,27 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="evento-tipo-registro">Tipo de Registro <span class="required">*</span></label>
-            <select name="tipo_registro" id="evento-tipo-registro" required>
-            <option value="">Selecciona...</option>  
-            <option value="Individual">Individual (Inscripcion por persona)</option>  
-            <option value="Por equipos">Por equipos (Inscripcion por equipo)</option>  
-            </select>
-            <p class="help-text">Si es "Por equipos", los participantes podrán formar equipos como minimo de 2 personas (Esto dependera del tipo de evento)</p>
-          </div>
+            <label for="evento-tipo-registro">Tipo de Registro <span class="required">*</span></label>
+            <select name="tipo_registro" id="evento-tipo-registro" required>
+              <option value="">Selecciona...</option>  
+              <option value="Individual">Individual (Inscripcion por persona)</option>  
+              <option value="Por equipos">Por equipos (Inscripcion por equipo)</option>  
+            </select>
+                        <div id="campos-equipo-admin" style="display: none; background: #f4f4f4; padding: 15px; border-radius: 6px; margin-top: 15px;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="evento-integrantes-min">Integrantes Mínimos</label>
+                  <input type="number" name="integrantes_min" id="evento-integrantes-min" min="1" placeholder="Ej: 8" class="form-control">
+                  <p class="help-text">Mínimo de jugadores por equipo</p>
+                </div>
+                <div class="form-group">
+                  <label for="evento-integrantes-max">Integrantes Máximos</label>
+                  <input type="number" name="integrantes_max" id="evento-integrantes-max" min="1" placeholder="Ej: 15" class="form-control">
+                  <p class="help-text">Dejar vacío para sin límite</p>
+                </div>
+              </div>
+            </div>
+                      </div>
         </div>
 
         <div class="form-section">

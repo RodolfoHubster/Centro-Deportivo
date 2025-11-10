@@ -88,6 +88,7 @@ function configurarListenersEventos() {
 
     // Envío del formulario (Crear o Editar)
     document.getElementById('formEvento').addEventListener('submit', handleFormSubmit);
+    document.getElementById('evento-tipo-registro').addEventListener('change', handleTipoRegistroChange);
 
     // --- Delegación de eventos para la lista ---
     document.getElementById('lista-eventos').addEventListener('click', handleListaEventosClick);
@@ -243,6 +244,14 @@ async function handleFormSubmit(e) {
         btnSubmit.disabled = false;
         btnSubmit.textContent = textoOriginalBtn;
     }
+}
+
+/**
+ * Se ejecuta cuando el admin cambia el select "Tipo de Registro".
+ */
+function handleTipoRegistroChange(e) {
+    // Llama a la función en uiEventos.js para mostrar/ocultar los campos
+    ui.mostrarCamposEquipo(e.target.value);
 }
 
 /**
