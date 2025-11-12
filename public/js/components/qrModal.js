@@ -35,9 +35,12 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
  * Muestra el modal con el QR de un evento existente.
  */
 export function generarQR(id_evento) {
-    const enlaceEvento = `${window.location.origin}/Centro-Deportivo/public/eventos.html?id_evento=${encodeURIComponent(id_evento)}`;
-    
+   // Construye la URL dinámicamente en lugar de usar una ruta fija
+    const currentURL = window.location.href; // Ej: .../public/admin/gestionar-eventos.html
+    const baseURL = currentURL.split('?')[0].replace('admin/gestionar-eventos.html', 'eventos.html');
+    const enlaceEvento = `${baseURL}?id_evento=${encodeURIComponent(id_evento)}`;
     const modalQR = document.createElement('div');
+    
     modalQR.id = 'modal-qr';
     modalQR.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
     
@@ -129,7 +132,9 @@ export function generarQR(id_evento) {
  * Muestra el modal de éxito (con QR) después de crear un evento.
  */
 export function mostrarModalExitoConQR(id_evento, mensaje) {
-    const enlaceEvento = `${window.location.origin}/Centro-Deportivo/public/eventos.html?id_evento=${encodeURIComponent(id_evento)}`;
+    const currentURL = window.location.href; // Ej: .../public/admin/gestionar-eventos.html
+    const baseURL = currentURL.split('?')[0].replace('admin/gestionar-eventos.html', 'eventos.html');
+    const enlaceEvento = `${baseURL}?id_evento=${encodeURIComponent(id_evento)}`;
     
     const modalExito = document.createElement('div');
     modalExito.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
