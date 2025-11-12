@@ -1,18 +1,19 @@
-document.addEventListener("DOMContentLoaded", function() {
-
-    const baseDir = 'Centro-Deportivo';
-    const baseWebPath = '/Centro-Deportivo/public';
-    const headerURL = `${baseWebPath}/includes/header.html`;
-    const footerURL = `${baseWebPath}/includes/footer.html`;
-    const headerAdminURL = `${baseWebPath}/includes/headerAdmin.html`;
-
-    const cerrarSesionPHP = '/Centro-Deportivo/php/admin/cerrarSesion.php';
-    const loginPageURL = `${baseWebPath}/login.html`;
-
-    const headerPlaceholder = document.getElementById('header-placeholder');
+const headerPlaceholder = document.getElementById('header-placeholder');
     if (headerPlaceholder) {
 
         const isAdminPage = window.location.pathname.includes('/admin/');
+
+        // --- RUTAS CORREGIDAS ---
+        // Estas rutas ahora son relativas al archivo HTML que carga headFooter.js
+        const headerURL = isAdminPage ? '../includes/header.html' : 'includes/header.html';
+        const footerURL = isAdminPage ? '../includes/footer.html' : 'includes/footer.html';
+        const headerAdminURL = isAdminPage ? '../includes/headerAdmin.html' : 'includes/headerAdmin.html';
+        
+        // Asumimos que la lógica de logout solo se llama desde páginas de admin
+        const cerrarSesionPHP = isAdminPage ? '../../php/admin/cerrarSesion.php' : '../php/admin/cerrarSesion.php';
+        const loginPageURL = isAdminPage ? '../login.html' : 'login.html';
+        // --- FIN DE RUTAS CORREGIDAS ---
+
         const urlToFetch = isAdminPage ? headerAdminURL : headerURL;
 
         fetch(urlToFetch)
@@ -102,4 +103,4 @@ document.addEventListener("DOMContentLoaded", function() {
              });
          }
         }
-    });
+    ;
