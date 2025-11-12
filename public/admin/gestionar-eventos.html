@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionar Eventos - Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+
+  <!-- CONTENIDO -->
+  <main class="page-content">
+    <h1>Gestionar Eventos</h1>
+    
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Buscar:</label>
+          <input type="text" id="filtro-buscar-admin" placeholder="Nombre, lugar..." 
+                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Campus:</label>
+          <select id="filtro-campus-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todos los campus</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Categoría:</label>
+          <select id="filtro-categoria-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todas las categorías</option>
+            <option value="Fútbol">Fútbol</option>
+            <option value="Fútbol Rápido">Fútbol Rápido</option>
+            <option value="Voleibol">Voleibol</option>
+            <option value="Básquetbol">Básquetbol</option>
+            <option value="Handball">Handball</option>
+            <option value="Carrera">Carrera</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Tipo:</label>
+          <select id="filtro-tipo-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todos los tipos</option>
+            <option value="Torneo">Torneo</option>
+            <option value="Carrera">Evento (Carrera)</option>
+            <option value="Exhibición">Evento (Exhibición)</option>
+            <option value="Taller">Evento (Taller)</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="btnLimpiarFiltrosAdmin" style="margin-top: 15px; padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Limpiar Filtros
+      </button>
+    </div>
+
+    <!-- Botón crear nuevo -->
+    <button id="btnNuevoEvento">
+      Crear Nuevo Evento
+    </button>
+
+    <div id="mensaje-respuesta" style="display: none;"></div>
+
+
+  <!-- Lista de eventos -->
+    <div id="lista-eventos">
+      <p>Cargando eventos...</p>
+    </div>
+  </main>
+
+  <div id="modalEvento">
+    <div class="admin-modal-contenido" style="position: relative;">
+    <button type="button" id="btnCerrarModalX" onclick="document.getElementById('modalEvento').style.display='none'" 
+      style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666; z-index: 10;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    
+      <h2 id="tituloModal">Crear Nuevo Evento</h2>
+      <form id="formEvento">
+        <input type="hidden" id="evento-id" name="id">
+        <div class="form-section">
+          <h3>Información Básica</h3>
+          <div class="form-group">
+            <label for="evento-nombre">Nombre del Evento <span class="required">*</span></label>
+            <input type="text" id="evento-nombre"  name="nombre" required
+            placeholder="Ej: Torneo de Fútbol 2025">
+        
+          </div>
+        
+          <div class="form-group">
+            <label for="evento-descripcion">Descripción <span class="required">*</span></label>
+            <textarea id="evento-descripcion" name="descripcion" rows="4" required
+                      placeholder="Describe el evento, objetivos, premios, etc."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Fechas y Ubicación</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="evento-fecha-inicio">Fecha de Inicio <span class="required">*</span></label>
+              <input type="date" name="fecha_inicio" id="evento-fecha-inicio" required>
+            </div>
+            <div class="form-group">
+              <label for="evento-fecha-termino">Fecha de Término <span class="required">*</span></label>
+              <input type="date" name="fecha_termino" id="evento-fecha-termino" required>
+              <p class="help-text">Puede ser el mismo día que el inicio</p>
+            </div>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="evento-campus">Campus <span class="required">*</span></label>
+              <select name="campus_id" id="evento-campus" required>
+                <option value="">Cargando Campus...</option>
+              </select>
+            </div>
+              <div class="form-group">
+              <label for="evento-ubicacion-tipo">Tipo de Ubicación <span class="required">*</span></label>
+              <select name="ubicacion_tipo" id="evento-ubicacion-tipo" required>
+                <option value="">Selecciona...</option>
+                <option value="Gimnasio">Gimnasio</option>
+                <option value="Canchas internas">Canchas internas</option>
+                <option value="Edificio facultad">Edificio de la facultad</option>
+                <option value="Externo">Externo (Fuera del campus)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="evento-lugar">Lugar Específico <span class="required">*</span></label>
+            <input type="text" name="lugar" id="evento-lugar" required
+                  placeholder="Ej: Cancha de futbol 2, Gimnasio UABC, etc.">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Categorizacion del Evento</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="evento-tipo-actividad">Tipo de Actividad <span class="required">*</span></label>
+              <select name="tipo_actividad" id="evento-tipo-actividad" required>
+                <option value="">Selecciona...</option>
+                <option value="Torneo">Torneo</option>
+                <option value="Carrera">Evento</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="evento-categoria">Categoria Deportiva <span class="required">*</span></label>
+              <select name="categoria_deporte" id="evento-categoria" required>
+                <option value="">Selecciona...</option>
+                <option value="Fútbol">Fútbol</option>
+                <option value="Fútbol Rápido">Fútbol Rápido</option>
+                <option value="Voleibol">Voleibol</option>
+                <option value="Básquetbol">Básquetbol</option>
+                <option value="Handball">Handball</option>
+                <option value="Carrera">Carrera</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="evento-tipo-registro">Tipo de Registro <span class="required">*</span></label>
+            <select name="tipo_registro" id="evento-tipo-registro" required>
+              <option value="">Selecciona...</option>  
+              <option value="Individual">Individual (Inscripcion por persona)</option>  
+              <option value="Por equipos">Por equipos (Inscripcion por equipo)</option>  
+            </select>
+                        <div id="campos-equipo-admin" style="display: none; background: #f4f4f4; padding: 15px; border-radius: 6px; margin-top: 15px;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="evento-integrantes-min">Integrantes Mínimos</label>
+                  <input type="number" name="integrantes_min" id="evento-integrantes-min" min="1" placeholder="Ej: 8" class="form-control">
+                  <p class="help-text">Mínimo de jugadores por equipo</p>
+                </div>
+                <div class="form-group">
+                  <label for="evento-integrantes-max">Integrantes Máximos</label>
+                  <input type="number" name="integrantes_max" id="evento-integrantes-max" min="1" placeholder="Ej: 15" class="form-control">
+                  <p class="help-text">Dejar vacío para sin límite</p>
+                </div>
+              </div>
+            </div>
+                      </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Configuracion Adicional</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="evento-actividad">Actividad Deportiva (Opcional)</label>
+              <select name="actividad" id="evento-actividad">
+                <option value="">Ninguna específica</option>
+              </select>
+              <p class="help-text">Relacionar con una actividad deportiva existente</p>
+            </div>
+            <div class="form-group">
+              <label for="evento-cupo-maximo">Cupo Máximo (Opcional)</label>
+              <input type="number" name="cupo_maximo" id="evento-cupo-maximo" min="1"
+              placeholder="Ej: 50">
+              <p class="help-text">Dejar vacío para sin límite</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Facultades Participantes</h3>
+          <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+            Selecciona las facultades que pueden participar en este evento. Si no seleccionas ninguna, se asignarán todas automáticamente.
+          </p>
+          <div id="facultades-checkbox" class="facultadres-grid">
+            <p>Cargando facultades...</p>
+          </div>
+        </div>
+
+        <div class="admin-modal-botones">
+          <button type="submit" class="admin-modal-btn-guardar">
+            Guardar Evento
+          </button>
+          <button type="button" id="btnCancelar" class="admin-modal-btn-cancelar">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Librería de QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Tu archivo JS -->
+  <script src="../js/admin/gestEventos.js" type="module"></script>
+  <script src="../js/headFooter.js"></script>
+</body>
+</html>

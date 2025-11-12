@@ -1,0 +1,30 @@
+/* css/components/buttons.css */
+
+/* .btn { */
+    /* Estilos base para todos los botones */
+    /* padding: 10px 20px; */
+    /* border: none; */
+    /* border-radius: 5px; */
+    /* cursor: pointer; */
+    /* font-weight: bold; */
+    /* transition: background-color 0.3s ease; */
+/* } */
+
+/* .btn-primary { */
+    /* background-color: var(--color-verde-uabc); */
+    /* color: var(--color-blanco); */
+/* } */
+
+/* .btn-primary:hover { */
+    /* background-color: #004d26; */ /* Verde más oscuro */
+/* } */
+
+/* .btn-secondary { */
+    /* background-color: var(--color-dorado-uabc); */
+    /* color: var(--color-texto); */
+/* } */
+
+/* .btn-secondary:hover { */
+    /* background-color: var(--color-dorado-hover); */
+/* } */
+

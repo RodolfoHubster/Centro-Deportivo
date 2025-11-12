@@ -1,0 +1,105 @@
+/* Centro-Deportivo/public/css/pages/admin-dashboard.css */
+
+/* Estilos para las tarjetas de estadísticas */
+
+.admin-stats-grid {
+    display:  grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+/* Tarjeta para la estadistica */
+
+.admin-stat-card {
+    color: var(--color-blanco);
+    padding: 30px;
+    border-radius: var(--borde-redondeado);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+    /* H3 */
+
+.admin-stat-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+    /* Stat Number. Numero de la estadistica */
+
+.admin-stat-card .stat-number {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+    /* LINK DEL STAT Y HOVER */
+
+.admin-stat-card .stat-link {
+    color: var(--color-blanco);
+    text-decoration: none;
+    font-size: 14px;
+    opacity: 0.9;
+    transition: opacity 0.3s;
+}
+
+.admin-stat-card .stat-link:hover {
+    opacity: 1;
+}
+
+/* COLORES PARA CADA TARJETA */
+
+    /* TARJETA EVENTOS */
+.admin-stat-card.eventos {
+    background: linear-gradient(135deg, #006633 0%, #00cc66 100%);
+}
+    /* TARJETA INSCRIPCIONES */
+.admin-stat-card.inscripciones {
+    background: linear-gradient(135deg, #008844 0%, #33cc77 100%);
+    }
+
+/* ACCESOS RAPIDOS */
+
+.admin-quick-links {
+    margin-top: 40px;
+}
+
+.admin-quick-links-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.admin-quick-link-btn {
+    padding: 15px 30px;
+    color: var(--color-blanco);
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-quick-link-btn {
+    padding: 15px 30px;
+    color: var(--color-blanco);
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-quick-link-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* COLORES DE LOS BOTONES */
+
+.admin-quick-link-btn.eventos {
+    background: var(--color-verde-uabc);
+}
+
+.admin-quick-link-btn.inscripciones {
+    background: #008844;
+}

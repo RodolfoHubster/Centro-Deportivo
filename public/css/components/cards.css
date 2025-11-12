@@ -1,0 +1,58 @@
+/* css/components/cards.css */
+
+/* EVENTOS-CONTAINER */
+
+.eventos-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+/* EVENTOS-CARD */
+
+.evento-card {
+    background-color: #F9F9F9;
+    padding: 20px;
+    border-radius: var(--borde-redondeado);
+    box-shadow: var(--sombra-general);
+    border: 1px solid #eee;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2 ease-in-out;
+    cursor: default;
+}
+    /* CARD:HOVER */
+
+.evento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1)
+}
+
+    /* H2 */
+
+.evento-card h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.4rem;
+    color: var(--color-gris-oscuro);
+}
+
+    /* P */
+
+.evento-card p {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--color-gris-oscuro);
+}
+
+        /* P STRONG */
+
+.evento-card p strong {
+    color: var(--color-texto);
+}
+
+.card-actions, .evento-actions, .btn-container {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
