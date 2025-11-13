@@ -1,17 +1,14 @@
 // js/ui/uiEventos.js
 
-
 // Este JS solo usa el HTML, solo recibe los datos y los acomoda en la pantalla
 
 // IMPORTS
-
 import { formatearFecha } from '../utils/utilidades.js';
 
 /**
  * Rellena los select de campus en el formulario (MODAL)
  * @param {Array} campus - Lista campus
  * */
-
 export function poblarSelectCampus(campus) {
     const select = document.getElementById('evento-campus');
     select.innerHTML = '<option value="">Seleccionar campus...</option>'
@@ -24,7 +21,6 @@ export function poblarSelectCampus(campus) {
  * Rellena los select de actividades en el formulario
  * @param {Array} actividades - Lista de actividades
  */
-
 export function poblarSelectActividades(actividades) {
     const select = document.getElementById('evento-actividad');
     select.innerHTML = '<option value="">Ninguna (crear nueva)</option>';
@@ -37,7 +33,6 @@ export function poblarSelectActividades(actividades) {
  * Rellena el div de checkboxes de las facultades
  * @param {Array} facultades - Lista facultades
  */
-
 export function poblarCheckboxesFacultades(facultades) {
     const container = document.getElementById('facultades-checkbox');
     container.innerHTML = '';
@@ -56,7 +51,6 @@ export function poblarCheckboxesFacultades(facultades) {
  * Muestra la lista de los eventos en el DOM
  * @param {Array} eventos - Lista de eventos
  */
-
 export function mostrarEventos(eventos) {
     const container = document.getElementById('lista-eventos');
 
@@ -95,7 +89,17 @@ export function mostrarEventos(eventos) {
                         <button data-action="editar" data-id="${evento.id}" style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Editar</button>
                         <button data-action="eliminar" data-id="${evento.id}" data-nombre="${evento.nombre.replace(/"/g, '&quot;')}" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Eliminar</button>
                         <button data-action="qr" data-id="${evento.id}" style="padding: 8px 15px; background: #777272ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Ver QR</button>
-                    </div>
+                        
+                        <a href="ver-participantes.html?evento_id=${evento.id}" class="btn-participantes" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-size: 13.3333px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; font-family: Arial;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            Participantes
+                        </a>
+                        </div>
                 </div>
             </div>
         `;
@@ -106,7 +110,6 @@ export function mostrarEventos(eventos) {
  * Rellena el formulario del modal con los datos de un evento
  * @param {object} evento - Datos del evento
  */
-
 export function poblarFormularioParaEditar(evento) {
     document.getElementById('tituloModal').textContent = 'Editar Evento';
     document.getElementById('evento-id').value = evento.id;
@@ -122,14 +125,12 @@ export function poblarFormularioParaEditar(evento) {
     document.getElementById('evento-tipo-actividad').value = evento.tipo_actividad || '';
     document.getElementById('evento-actividad').value = evento.id_actividad || '';
     document.getElementById('evento-cupo-maximo').value = evento.cupo_maximo || '';
-    // --- AÑADE ESTAS LÍNEAS ---
+    
     document.getElementById('evento-integrantes-min').value = evento.integrantes_min || '';
     document.getElementById('evento-integrantes-max').value = evento.integrantes_max || '';
 
     // Muestra u oculta los campos según el tipo de registro del evento
     mostrarCamposEquipo(evento.tipo_registro);
-    // --- FIN DE LÍNEAS AÑADIDAS ---
-
 }
 
 /**

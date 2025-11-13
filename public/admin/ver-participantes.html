@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Participantes - Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    /* Estilos específicos para esta tabla */
+    .tabla-container { margin-top: 20px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #f4f4f4; color: #333; font-weight: bold; }
+    tr:hover { background-color: #f9f9f9; }
+    .btn-volver { display: inline-block; margin-bottom: 15px; color: #003366; text-decoration: none; font-weight: bold; }
+    .tag-capitan { background: #ffd700; color: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-left: 5px; }
+  </style>
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+  <main class="page-content">
+    <a href="gestionar-eventos.html" class="btn-volver">&larr; Volver a Eventos</a>
+    
+    <h1 id="titulo-evento">Participantes del Evento</h1>
+    <p id="subtitulo-evento" style="color: #666;">Cargando información...</p>
+
+    <div id="mensaje-respuesta" style="display: none; margin-bottom: 15px;"></div>
+
+    <div class="tabla-container">
+      <table id="tabla-participantes">
+        <thead>
+          <tr>
+            <th>Matrícula</th>
+            <th>Nombre Completo</th>
+            <th>Correo</th>
+            <th>Género</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-tabla">
+          <tr><td colspan="6">Cargando participantes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <div id="modalEditarParticipante" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box;">
+    
+    <div class="modal-contenido" style="background: white; border-radius: 12px; width: 100%; max-width: 650px; position: relative; display: flex; flex-direction: column; max-height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        
+        <div style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 20px; color: #003366;">Editar Participante</h2>
+            <span onclick="cerrarModal()" style="font-size: 30px; font-weight: bold; color: #999; cursor: pointer; line-height: 20px;">&times;</span>
+        </div>
+        
+        <div id="contenedor-formulario-externo" style="padding: 20px; overflow-y: auto;">
+            </div>
+
+    </div>
+  </div>
+
+  <script src="../js/admin/participantes.js" type="module"></script>
+  <script src="../js/headFooter.js"></script>
+</body>
+</html>

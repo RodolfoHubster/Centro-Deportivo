@@ -8,7 +8,7 @@
 // Configuracion de la base de datos
 $servidor = "svdm056.serverneubox.com.mx";
 $usuario  = "glevanco_cdeportivo";
-$password = "cdeportivo.25";
+$password = "cdDeportivo.25";
 $bd       = "glevanco_cdeportivo";
 
 // establecer conexión
