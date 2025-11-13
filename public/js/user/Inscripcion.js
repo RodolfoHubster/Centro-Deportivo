@@ -3,6 +3,8 @@
  * Actualizado para nueva estructura de BD con tabla participante
  */
 
+import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras } from '../utils/formLogica.js';
+
 document.addEventListener("DOMContentLoaded", () => {
     // Verificar si viene desde un QR (parámetro id_evento en URL)
     const urlParams = new URLSearchParams(window.location.search);
@@ -383,24 +385,25 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     
     document.body.appendChild(modal);
     
-    // Cargar facultades
-    cargarFacultades();
+    // Cargar facultades (Versión nueva usando formLogica)
+    const selectFacultad = document.getElementById('select-facultad');
+    const selectCarrera = document.getElementById('select-carrera');
     
+    // Le pasamos el select y la ruta relativa al PHP desde 'public/'
+    cargarFacultades(selectFacultad, '../php/public/');
+
     // Manejar cambio de tipo de participante
     document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            actualizarCamposSegunTipo(this.value);
+            // Pasamos 'document' como contexto porque estamos en la página principal
+            actualizarCamposSegunTipo(this.value, document);
         });
     });
     
     // Cargar carreras cuando cambie la facultad
-    document.getElementById('select-facultad').addEventListener('change', (e) => {
+    selectFacultad.addEventListener('change', (e) => {
         const facultadId = e.target.value;
-        if (facultadId) {
-            cargarCarreras(facultadId);
-        } else {
-            document.getElementById('select-carrera').innerHTML = '<option value="">Selecciona primero una facultad</option>';
-        }
+        cargarCarreras(facultadId, selectCarrera, '../php/public/');
     });
     
     // Cerrar modal
@@ -424,160 +427,6 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
         modal.remove();
     });
 
-}
-
-function actualizarCamposSegunTipo(tipo) {
-    const labelMatricula = document.getElementById('label-matricula');
-    const inputMatricula = document.getElementById('input-matricula');
-    const helpMatricula = document.getElementById('help-matricula');
-    const requiredMatricula = document.getElementById('required-matricula');
-    
-    const labelFacultad = document.getElementById('label-facultad');
-    const selectFacultad = document.getElementById('select-facultad');
-    const requiredFacultad = document.getElementById('required-facultad');
-    const facultadContainer = document.getElementById('facultad-container');
-    
-    const labelCarrera = document.getElementById('label-carrera');
-    const selectCarrera = document.getElementById('select-carrera');
-    const requiredCarrera = document.getElementById('required-carrera');
-    const helpCarrera = document.getElementById('help-carrera');
-    const carreraContainer = document.getElementById('carrera-container');
-    
-    if (tipo === 'Estudiante') {
-        labelMatricula.textContent = 'Matrícula';
-        inputMatricula.placeholder = '12345678';
-        inputMatricula.required = true;
-        inputMatricula.setAttribute('pattern', '[0-9]{6,10}');
-        requiredMatricula.style.display = 'inline';
-        helpMatricula.textContent = 'Solo números (6-10 dígitos)';
-        helpMatricula.style.display = 'block';
-        
-        labelFacultad.textContent = 'Unidad Académica';
-        selectFacultad.required = true;
-        requiredFacultad.style.display = 'inline';
-        facultadContainer.style.display = 'block';
-        
-        labelCarrera.textContent = 'Carrera';
-        selectCarrera.required = true;
-        requiredCarrera.style.display = 'inline';
-        helpCarrera.style.display = 'block';
-        carreraContainer.style.display = 'block';
-        
-        if (selectFacultad.value) {
-            cargarCarreras(selectFacultad.value);
-        }
-        
-    } else if (tipo === 'Docente') {
-        labelMatricula.textContent = 'Número de Empleado';
-        inputMatricula.placeholder = 'Núm. empleado';
-        inputMatricula.required = true;
-        inputMatricula.setAttribute('pattern', '[0-9]{4,10}');
-        requiredMatricula.style.display = 'inline';
-        helpMatricula.textContent = 'Ingresa tu número de empleado UABC';
-        helpMatricula.style.display = 'block';
-        
-        labelFacultad.textContent = 'Unidad Académica';
-        selectFacultad.required = false;
-        requiredFacultad.style.display = 'none';
-        facultadContainer.style.display = 'block';
-        
-        selectCarrera.required = false;
-        requiredCarrera.style.display = 'none';
-        helpCarrera.style.display = 'none';
-        carreraContainer.style.display = 'block';
-        
-    } else { // Externo
-        labelMatricula.textContent = 'Identificación (Opcional)';
-        inputMatricula.placeholder = 'ID opcional';
-        inputMatricula.required = false;
-        inputMatricula.removeAttribute('pattern');
-        requiredMatricula.style.display = 'none';
-        helpMatricula.style.display = 'none';
-        
-        selectFacultad.required = false;
-        requiredFacultad.style.display = 'none';
-        facultadContainer.style.display = 'none';
-        
-        selectCarrera.required = false;
-        carreraContainer.style.display = 'none';
-    }
-}
-
-function cargarFacultades() {
-    const selectFacultad = document.getElementById('select-facultad');
-    selectFacultad.innerHTML = '<option value="">Cargando facultades...</option>';
-    
-    fetch('../php/public/obtenerFacultades.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                throw new Error(data.mensaje);
-            }
-            
-            selectFacultad.innerHTML = '<option value="">Selecciona tu facultad</option>';
-            
-            // Si tiene estructura {success: true, facultades: [...]}
-            const facultades = data.success ? data.facultades : data;
-            
-            facultades.forEach(facultad => {
-                const option = document.createElement('option');
-                option.value = facultad.id;
-                option.textContent = `${facultad.nombre} (${facultad.siglas})`;
-                selectFacultad.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            selectFacultad.innerHTML = '<option value="">Error al cargar facultades</option>';
-            mostrarToast('Error al cargar las facultades', 'error');
-        });
-}
-
-function cargarCarreras(facultadId) {
-    const selectCarrera = document.getElementById('select-carrera');
-    selectCarrera.innerHTML = '<option value="">Cargando carreras...</option>';
-    
-    if (!facultadId) {
-        selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
-        return;
-    }
-    
-    fetch(`../php/public/obtenerCarreras.php?facultad_id=${facultadId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                throw new Error(data.mensaje);
-            }
-            
-            selectCarrera.innerHTML = '<option value="">Selecciona tu carrera</option>';
-            
-            // Si tiene estructura {success: true, carreras: [...]}
-            const carreras = data.success ? data.carreras : data;
-            
-            carreras.forEach(carrera => {
-                const option = document.createElement('option');
-                option.value = carrera.id;
-                
-                // Usar nombre_completo si existe (incluye "Tronco Común - ")
-                const nombreMostrar = carrera.nombre_completo || carrera.nombre;
-                
-                // Agregar badge visual para tronco común
-                if (carrera.es_tronco_comun) {
-                    option.textContent = ` ${nombreMostrar}`;
-                    option.style.fontWeight = '600';
-                    option.style.color = '#00843D';
-                } else {
-                    option.textContent = nombreMostrar;
-                }
-                
-                selectCarrera.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            selectCarrera.innerHTML = '<option value="">Error al cargar carreras</option>';
-            mostrarToast('Error al cargar las carreras', 'error');
-        });
 }
 
 function enviarInscripcion(form, modal) {
@@ -1310,3 +1159,9 @@ function enviarInscripcionEquipo(form, modal) {
         btnEnviar.textContent = 'Registrar Equipo';
     });
 }
+// ==========================================
+// EXPONER FUNCIONES AL ÁMBITO GLOBAL
+// ==========================================
+// Esto permite que Eventos.js pueda invocar esta función aunque esto sea un módulo
+window.agregarBotonesInscripcion = agregarBotonesInscripcion;
+window.mostrarFormularioEquipo = mostrarFormularioEquipo;
