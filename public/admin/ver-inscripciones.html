@@ -56,6 +56,16 @@
             <option value="Externo">Externo</option>
           </select>
         </div>
+
+        <!-- Filtro por carrera -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Carrera:</label>
+          <select id="filtroCarrera" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todas</option>
+            <option value="">Licenciatura en Ciencias del Deporte (FCF)</option>
+            <option value="">TC - Ciencias de la Salud (FCF)</option>
+          </select>
+        </div>
       </div>
 
       <!-- Botón Limpiar Filtros -->
@@ -177,6 +187,18 @@
         });
     }
 
+    // Filtro por Carrera
+    // ==================== Nueva Funcion ====================
+    function poblarFiltroCarreras() {
+      const selectCarrera = document.getElementById('filtroCarrera');
+      const carrerasUnicas = [...new Set(todasInscripciones.map(i => i.carrera_display || i.carrera_nombre).filter(c => c && c !== 'No especificada'))];
+      
+      selectCarrera.innerHTML = '<option value="">Todas</option>';
+      carrerasUnicas.sort().forEach(carrera => {
+        selectCarrera.innerHTML += `<option value="${carrera}">${carrera}</option>`;
+      }); 
+    }
+
     function poblarFiltroEventos() {
       const selectEvento = document.getElementById('filtroEvento');
       const eventosUnicos = [...new Set(todasInscripciones.map(i => i.evento_nombre))];
@@ -185,6 +207,7 @@
       eventosUnicos.forEach(evento => {
         selectEvento.innerHTML += `<option value="${evento}">${evento}</option>`;
       });
+      poblarFiltroCarreras(); // Llamar a la función para poblar el filtro de carreras
     }
 
     function mostrarInscripciones(inscripciones) {
@@ -261,6 +284,7 @@
       document.getElementById('filtroEvento').addEventListener('change', aplicarFiltros);
       document.getElementById('filtroGenero').addEventListener('change', aplicarFiltros);
       document.getElementById('filtroTipo').addEventListener('change', aplicarFiltros);
+      document.getElementById('filtroCarrera').addEventListener('change', aplicarFiltros);
       
       // Limpiar filtros
       document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
@@ -268,6 +292,7 @@
         document.getElementById('filtroEvento').value = '';
         document.getElementById('filtroGenero').value = '';
         document.getElementById('filtroTipo').value = '';
+        document.getElementById('filtroCarrera').value = '';
         aplicarFiltros();
       });
     }
@@ -277,6 +302,7 @@
       const eventoFiltro = document.getElementById('filtroEvento').value;
       const generoFiltro = document.getElementById('filtroGenero').value;
       const tipoFiltro = document.getElementById('filtroTipo').value;
+      const carreraFiltro = document.getElementById('filtroCarrera').value;
       
       inscripcionesFiltradas = todasInscripciones.filter(insc => {
         // Filtro de búsqueda
@@ -295,7 +321,11 @@
         // Filtro de tipo
         const coincideTipo = !tipoFiltro || insc.tipo_participante === tipoFiltro;
         
-        return coincideBusqueda && coincideEvento && coincideGenero && coincideTipo;
+        // Filtro de carrera
+        const carreraParticipante = insc.carrera_display || insc.carrera_nombre || '';
+        const coincideCarrera = !carreraFiltro || carreraParticipante === carreraFiltro;
+        
+        return coincideBusqueda && coincideEvento && coincideGenero && coincideTipo && coincideCarrera;
       });
       
       mostrarInscripciones(inscripcionesFiltradas);
