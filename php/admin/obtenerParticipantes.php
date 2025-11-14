@@ -39,11 +39,26 @@ try {
         $fila['nombre_completo'] = $fila['apellido_paterno'] . ' ' . $fila['apellido_materno'] . ' ' . $fila['nombre'];
         $participantes[] = $fila;
     }
-    
+        // Obtener nombre del evento
+    $sqlEvento = "SELECT nombre FROM evento WHERE id = ?";
+    $stmtEvento = mysqli_prepare($conexion, $sqlEvento);
+    mysqli_stmt_bind_param($stmtEvento, 'i', $evento_id);
+    mysqli_stmt_execute($stmtEvento);
+    $resultEvento = mysqli_stmt_get_result($stmtEvento);
+    $evento = mysqli_fetch_assoc($resultEvento);
+    $nombre_evento = $evento ? $evento['nombre'] : "Evento sin nombre";
+
+    // Cerrar conexiones
     mysqli_stmt_close($stmt);
+    mysqli_stmt_close($stmtEvento);
     mysqli_close($conexion);
-    
-    echo json_encode(['success' => true, 'participantes' => $participantes]);
+
+    // Respuesta final
+    echo json_encode([
+        'success' => true,
+        'nombre_evento' => $nombre_evento,
+        'participantes' => $participantes
+    ]);
 
 } catch (Exception $e) {
     http_response_code(400);

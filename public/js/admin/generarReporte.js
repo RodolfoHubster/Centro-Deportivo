@@ -1,17 +1,19 @@
 /**
  * Generación de reportes Excel y PDF
+ * Funciona tanto para inscripciones generales como para participantes de eventos
  */
 
-// Función para obtener los filtros actuales
+// Función para obtener los filtros actuales (para inscripciones)
 function obtenerFiltros() {
     const buscar = document.getElementById('buscarInscripcion')?.value || '';
     const eventoNombre = document.getElementById('filtroEvento')?.value || '';
     const genero = document.getElementById('filtroGenero')?.value || '';
     const tipoParticipante = document.getElementById('filtroTipo')?.value || '';
+    const carrera = document.getElementById('filtroCarrera')?.value || '';
     
     // Convertir nombre de evento a ID si es necesario
     let eventoId = '';
-    if (eventoNombre && todasInscripciones.length > 0) {
+    if (eventoNombre && typeof todasInscripciones !== 'undefined' && todasInscripciones.length > 0) {
         const eventoEncontrado = todasInscripciones.find(i => i.evento_nombre === eventoNombre);
         if (eventoEncontrado) {
             eventoId = eventoEncontrado.evento_id;
@@ -23,50 +25,120 @@ function obtenerFiltros() {
         eventoNombre, 
         eventoId, 
         genero, 
-        tipoParticipante 
+        tipoParticipante,
+        carrera
     });
     
     return {
         buscar: buscar,
         evento_id: eventoId,
         genero: genero === '' ? 'todos' : genero,
-        tipo_participante: tipoParticipante === '' ? 'todos' : tipoParticipante
+        tipo_participante: tipoParticipante === '' ? 'todos' : tipoParticipante,
+        carrera: carrera === '' ? 'todas' : carrera
     };
+}
+
+// Función para detectar si estamos en la página de participantes
+function estiloEnPaginaParticipantes() {
+    // Detectar si existe el elemento específico de participantes
+    return document.getElementById('tabla-participantes') !== null;
+}
+
+// Función para obtener el evento_id de la URL
+function obtenerEventoIdDeURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('evento_id');
 }
 
 // Esperar a que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function() {
-    // Esperar un poco para asegurarnos de que los botones existan
     setTimeout(() => {
-        // Botón para generar Excel
         const btnExcel = document.getElementById('btnGenerarExcel');
+        const btnPDF = document.getElementById('btnGenerarPDF');
+        
+        // Detectar en qué página estamos
+        const esPaginaParticipantes = estiloEnPaginaParticipantes();
+        
         if (btnExcel) {
             btnExcel.addEventListener('click', function() {
-                console.log('Generando Excel...');
-                const filtros = obtenerFiltros();
-                const params = new URLSearchParams(filtros);
-                const url = '../../php/admin/generarExcel.php?' + params.toString();
-                console.log('URL Excel:', url);
-                window.open(url, '_blank');
+                if (esPaginaParticipantes) {
+                    // ============ LÓGICA PARA PARTICIPANTES DEL EVENTO ============
+                    console.log('Generando Excel de Participantes del Evento...');
+                    
+                    const eventoId = obtenerEventoIdDeURL();
+                    
+                    if (!eventoId) {
+                        alert('No se pudo identificar el evento');
+                        return;
+                    }
+                    
+                    const filtros = {
+                        evento_id: eventoId,
+                        genero: 'todos',
+                        tipo_participante: 'todos',
+                        carrera: 'todas',
+                        buscar: ''
+                    };
+                    
+                    const params = new URLSearchParams(filtros);
+                    const url = '../../php/admin/generarExcel.php?' + params.toString();
+                    console.log('URL Excel Evento:', url);
+                    window.open(url, '_blank');
+                    
+                } else {
+                    // ============ LÓGICA PARA INSCRIPCIONES GENERALES ============
+                    console.log('Generando Excel de Inscripciones...');
+                    const filtros = obtenerFiltros();
+                    const params = new URLSearchParams(filtros);
+                    const url = '../../php/admin/generarExcel.php?' + params.toString();
+                    console.log('URL Excel:', url);
+                    window.open(url, '_blank');
+                }
             });
         } else {
             console.error('No se encontró el botón btnGenerarExcel');
         }
 
-        // Botón para generar PDF
-        const btnPDF = document.getElementById('btnGenerarPDF');
         if (btnPDF) {
             btnPDF.addEventListener('click', function() {
-                console.log('Generando PDF...');
-                const filtros = obtenerFiltros();
-                const params = new URLSearchParams(filtros);
-                params.append('modo', 'descargar');
-                const url = '../../php/admin/generarPDF.php?' + params.toString();
-                console.log('URL PDF:', url);
-                window.open(url, '_blank');
+                if (esPaginaParticipantes) {
+                    // ============ LÓGICA PARA PARTICIPANTES DEL EVENTO ============
+                    console.log('Generando PDF de Participantes del Evento...');
+                    
+                    const eventoId = obtenerEventoIdDeURL();
+                    
+                    if (!eventoId) {
+                        alert('No se pudo identificar el evento');
+                        return;
+                    }
+                    
+                    const filtros = {
+                        evento_id: eventoId,
+                        genero: 'todos',
+                        tipo_participante: 'todos',
+                        carrera: 'todas',
+                        buscar: ''
+                    };
+                    
+                    const params = new URLSearchParams(filtros);
+                    params.append('modo', 'descargar');
+                    const url = '../../php/admin/generarPDF.php?' + params.toString();
+                    console.log('URL PDF Evento:', url);
+                    window.open(url, '_blank');
+                    
+                } else {
+                    // ============ LÓGICA PARA INSCRIPCIONES GENERALES ============
+                    console.log('Generando PDF de Inscripciones...');
+                    const filtros = obtenerFiltros();
+                    const params = new URLSearchParams(filtros);
+                    params.append('modo', 'descargar');
+                    const url = '../../php/admin/generarPDF.php?' + params.toString();
+                    console.log('URL PDF:', url);
+                    window.open(url, '_blank');
+                }
             });
         } else {
             console.error('No se encontró el botón btnGenerarPDF');
         }
-    }, 500); // Esperar 500ms para que todo se cargue
+    }, 500);
 });

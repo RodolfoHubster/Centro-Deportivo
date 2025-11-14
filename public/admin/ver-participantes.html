@@ -23,7 +23,7 @@
   <main class="page-content">
     <a href="gestionar-eventos.html" class="btn-volver">&larr; Volver a Eventos</a>
     
-    <h1 id="titulo-evento">Participantes del Evento</h1>
+    <h1 id="titulo-evento">Participantes: </h1>
     <p id="subtitulo-evento" style="color: #666;">Cargando información...</p>
 
     <div id="mensaje-respuesta" style="display: none; margin-bottom: 15px;"></div>
@@ -44,6 +44,28 @@
           <tr><td colspan="6">Cargando participantes...</td></tr>
         </tbody>
       </table>
+      <div style="text-align: right; margin-top: 20px; margin-bottom: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+      <button id="btnGenerarExcel" class="btn-reporte btn-excel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Exportar a Excel
+      </button>
+      
+      <button id="btnGenerarPDF" class="btn-reporte btn-pdf">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          Generar PDF
+      </button>
+  </div>
     </div>
   </main>
 
@@ -64,5 +86,6 @@
 
   <script src="../js/admin/participantes.js" type="module"></script>
   <script src="../js/headFooter.js"></script>
+  <script src="../js/admin/generarReporte.js"></script>
 </body>
 </html>

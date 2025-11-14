@@ -12,6 +12,11 @@ try {
     $modo = isset($_GET['modo']) ? $_GET['modo'] : 'ver';
     
     // ===================================
+    // DETECTAR SI ES REPORTE DE UN EVENTO ESPECÍFICO
+    // ===================================
+    $esReporteEvento = isset($_GET['evento_id']) && !empty($_GET['evento_id']) && $_GET['evento_id'] !== 'todos';
+    
+    // ===================================
     // CAPTURAR FILTROS
     // ===================================
     
@@ -31,9 +36,10 @@ try {
     $whereConditions = [];
     $params = [];
     $types = '';
+    $nombreEvento = ''; // Para almacenar el nombre del evento
     
     // Filtro por evento
-    if (isset($_GET['evento_id']) && !empty($_GET['evento_id']) && $_GET['evento_id'] !== 'todos') {
+    if ($esReporteEvento) {
         if (is_numeric($_GET['evento_id'])) {
             $whereConditions[] = "evento_id = ?";
             $params[] = intval($_GET['evento_id']);
@@ -45,28 +51,40 @@ try {
         }
     }     
     
-    // Filtro por género
-    if (isset($_GET['genero']) && !empty($_GET['genero']) && $_GET['genero'] !== 'todos') {
-        $whereConditions[] = "genero = ?";
-        $params[] = mysqli_real_escape_string($conexion, $_GET['genero']);
-        $types .= 's';
-    }
-    
-    // Filtro por tipo
-    if (isset($_GET['tipo_participante']) && !empty($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos') {
-        $whereConditions[] = "tipo_participante = ?";
-        $params[] = mysqli_real_escape_string($conexion, $_GET['tipo_participante']);
-        $types .= 's';
-    }
-    
-    // Búsqueda
-    if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
-        $buscar = mysqli_real_escape_string($conexion, $_GET['buscar']);
-        $whereConditions[] = "(nombre_completo LIKE ? OR participante_matricula LIKE ? OR correo_institucional LIKE ?)";
-        $params[] = "%{$buscar}%";
-        $params[] = "%{$buscar}%";
-        $params[] = "%{$buscar}%";
-        $types .= 'sss';
+    // Solo aplicar estos filtros si NO es reporte de evento específico
+    if (!$esReporteEvento) {
+        // Filtro por género
+        if (isset($_GET['genero']) && !empty($_GET['genero']) && $_GET['genero'] !== 'todos') {
+            $whereConditions[] = "genero = ?";
+            $params[] = mysqli_real_escape_string($conexion, $_GET['genero']);
+            $types .= 's';
+        }
+        
+        // Filtro por tipo
+        if (isset($_GET['tipo_participante']) && !empty($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos') {
+            $whereConditions[] = "tipo_participante = ?";
+            $params[] = mysqli_real_escape_string($conexion, $_GET['tipo_participante']);
+            $types .= 's';
+        }
+
+        // Filtro por carrera
+        if (isset($_GET['carrera']) && !empty($_GET['carrera']) && $_GET['carrera'] !== 'todas') {
+            $carrera_filtro = mysqli_real_escape_string($conexion, $_GET['carrera']);
+            $whereConditions[] = "(carrera_nombre = ? OR CONCAT('TC - ', area_tronco_comun) = ?)";
+            $params[] = $carrera_filtro;
+            $params[] = $carrera_filtro;
+            $types .= 'ss';
+        }
+        
+        // Búsqueda
+        if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
+            $buscar = mysqli_real_escape_string($conexion, $_GET['buscar']);
+            $whereConditions[] = "(nombre_completo LIKE ? OR participante_matricula LIKE ? OR correo_institucional LIKE ?)";
+            $params[] = "%{$buscar}%";
+            $params[] = "%{$buscar}%";
+            $params[] = "%{$buscar}%";
+            $types .= 'sss';
+        }
     }
     
     // Construir WHERE
@@ -108,6 +126,11 @@ try {
             $row['carrera_display'] = $row['carrera_nombre'];
         }
         
+        // Capturar el nombre del evento (todos serán iguales si es reporte de evento)
+        if ($esReporteEvento && empty($nombreEvento)) {
+            $nombreEvento = $row['evento_nombre'];
+        }
+        
         $datos[] = $row;
         
         if ($row['genero'] === 'Masculino' || $row['genero'] === 'Hombre') {
@@ -133,11 +156,15 @@ try {
     class PDF_Deportivo extends TCPDF {
         private $color_principal;
         private $color_secundario;
+        private $esReporteEvento;
+        private $nombreEvento;
         
-        public function __construct($colores) {
+        public function __construct($colores, $esReporteEvento = false, $nombreEvento = '') {
             parent::__construct('L', PDF_UNIT, 'LETTER', true, 'UTF-8', false);
             $this->color_principal = $colores['principal'];
             $this->color_secundario = $colores['secundario'];
+            $this->esReporteEvento = $esReporteEvento;
+            $this->nombreEvento = $nombreEvento;
         }
         
         public function Header() {
@@ -159,17 +186,26 @@ try {
             $this->SetY(12);
             $this->Cell(0, 10, 'CENTRO DEPORTIVO', 0, 1, 'C', false);
             
-            // Subtítulo
+            // Subtítulo - cambia según el tipo de reporte
             $this->SetFont('helvetica', 'B', 14);
             $this->SetTextColor($this->color_secundario[0], $this->color_secundario[1], $this->color_secundario[2]);
-            $this->Cell(0, 8, 'Reporte de Inscripciones a Eventos', 0, 1, 'C', false);
+            
+            if ($this->esReporteEvento) {
+                $this->Cell(0, 8, 'Participantes del Evento', 0, 1, 'C', false);
+                $this->SetFont('helvetica', 'B', 12);
+                $this->SetTextColor($this->color_principal[0], $this->color_principal[1], $this->color_principal[2]);
+                $this->Cell(0, 6, $this->nombreEvento, 0, 1, 'C', false);
+            } else {
+                $this->Cell(0, 8, 'Reporte de Inscripciones a Eventos', 0, 1, 'C', false);
+            }
             
             // Línea decorativa
             $this->SetDrawColor($this->color_secundario[0], $this->color_secundario[1], $this->color_secundario[2]);
             $this->SetLineWidth(0.8);
             $left = $this->getMargins()['left'];
             $right = $this->getPageWidth() - $this->getMargins()['right'];
-            $this->Line($left, 35, $right, 35);
+            $yPos = $this->esReporteEvento ? 40 : 35;
+            $this->Line($left, $yPos, $right, $yPos);
 
             $this->Ln(5);
         }
@@ -185,35 +221,44 @@ try {
     $pdf = new PDF_Deportivo([
         'principal' => $color_principal,
         'secundario' => $color_secundario
-    ]);
+    ], $esReporteEvento, $nombreEvento);
     
     $pdf->SetCreator('Centro Deportivo');
     $pdf->SetAuthor('Sistema de Inscripciones');
-    $pdf->SetTitle('Reporte de Inscripciones');
+    $pdf->SetTitle($esReporteEvento ? 'Participantes - ' . $nombreEvento : 'Reporte de Inscripciones');
     
-    $pdf->SetMargins(10, 45, 10);
+    $ajusteMargen = $esReporteEvento ? 50 : 45;
+    $pdf->SetMargins(10, $ajusteMargen, 10);
     $pdf->SetAutoPageBreak(TRUE, 15);
     
     $pdf->AddPage();
     
     // ===================================
-    // FILTROS APLICADOS
+    // FILTROS APLICADOS (solo si NO es reporte de evento)
     // ===================================
-    $pdf->SetFont('helvetica', 'B', 10);
-    $pdf->SetTextColor(0, 0, 0);
-    $pdf->SetFillColor($color_fondo_claro[0], $color_fondo_claro[1], $color_fondo_claro[2]);
-    $pdf->Cell(0, 7, 'Filtros Aplicados:', 0, 1, 'L', true);
-    
-    $pdf->SetFont('helvetica', '', 9);
-    $filtrosTexto = '';
-    if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
-        $filtrosTexto .= "Búsqueda: " . $_GET['buscar'] . " | ";
+    if (!$esReporteEvento) {
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFillColor($color_fondo_claro[0], $color_fondo_claro[1], $color_fondo_claro[2]);
+        $pdf->Cell(0, 7, 'Filtros Aplicados:', 0, 1, 'L', true);
+        
+        $pdf->SetFont('helvetica', '', 9);
+        $filtrosTexto = '';
+        if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
+            $filtrosTexto .= "Búsqueda: " . $_GET['buscar'] . " | ";
+        }
+        $filtrosTexto .= "Género: " . (isset($_GET['genero']) && $_GET['genero'] !== 'todos' ? $_GET['genero'] : 'Todos') . " | ";
+        $filtrosTexto .= "Tipo: " . (isset($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos' ? $_GET['tipo_participante'] : 'Todos');
+
+        if (isset($_GET['carrera']) && $_GET['carrera'] !== 'todas') {
+            $filtrosTexto .= " | Carrera: " . $_GET['carrera'];
+        } else {
+            $filtrosTexto .= " | Carrera: Todas";
+        }
+        
+        $pdf->MultiCell(0, 6, $filtrosTexto, 0, 'L');
+        $pdf->Ln(3);
     }
-    $filtrosTexto .= "Género: " . (isset($_GET['genero']) && $_GET['genero'] !== 'todos' ? $_GET['genero'] : 'Todos') . " | ";
-    $filtrosTexto .= "Tipo: " . (isset($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos' ? $_GET['tipo_participante'] : 'Todos');
-    
-    $pdf->MultiCell(0, 6, $filtrosTexto, 0, 'L');
-    $pdf->Ln(3);
     
     // ===================================
     // CALCULAR ANCHO DISPONIBLE
@@ -251,20 +296,31 @@ try {
     $pdf->Ln(5);
 
     // ===================================
-    // TABLA DE DATOS - CON ANCHO CALCULADO
+    // TABLA DE DATOS
     // ===================================
     $pdf->SetFont('helvetica', 'B', 8);
     $pdf->SetFillColor($color_encabezado[0], $color_encabezado[1], $color_encabezado[2]);
     $pdf->SetTextColor(255, 255, 255);
 
-    // Definir anchos de columna (deben sumar el ancho total de la página)
-    $w_matricula = 20;
-    $w_nombre = 50;
-    $w_correo = 55;
-    $w_genero = 18;
-    $w_tipo = 25;
-    $w_carrera = 50;
-    $w_evento = $pageWidth - ($w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo + $w_carrera);
+    // Definir anchos de columna
+    if ($esReporteEvento) {
+        // Sin columna de Evento
+        $w_matricula = 25;
+        $w_nombre = 55;
+        $w_correo = 60;
+        $w_genero = 20;
+        $w_tipo = 25;
+        $w_carrera = $pageWidth - ($w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo);
+    } else {
+        // Con columna de Evento
+        $w_matricula = 20;
+        $w_nombre = 50;
+        $w_correo = 55;
+        $w_genero = 18;
+        $w_tipo = 25;
+        $w_carrera = 50;
+        $w_evento = $pageWidth - ($w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo + $w_carrera);
+    }
 
     $pdf->SetX($pdf->getMargins()['left']);
     
@@ -274,7 +330,13 @@ try {
     $pdf->Cell($w_genero, 7, 'Género', 1, 0, 'C', true);
     $pdf->Cell($w_tipo, 7, 'Tipo', 1, 0, 'C', true);
     $pdf->Cell($w_carrera, 7, 'Carrera', 1, 0, 'C', true);
-    $pdf->Cell($w_evento, 7, 'Evento', 1, 1, 'C', true);
+    
+    // Solo agregar columna Evento si NO es reporte de evento específico
+    if (!$esReporteEvento) {
+        $pdf->Cell($w_evento, 7, 'Evento', 1, 1, 'C', true);
+    } else {
+        $pdf->Ln();
+    }
     
     // Datos
     $pdf->SetFont('helvetica', '', 7);
@@ -297,7 +359,13 @@ try {
         $pdf->Cell($w_genero, 6, substr($row['genero'], 0, 10), 1, 0, 'C', true);
         $pdf->Cell($w_tipo, 6, substr($row['tipo_participante'], 0, 15), 1, 0, 'C', true);
         $pdf->Cell($w_carrera, 6, substr($row['carrera_display'], 0, 30), 1, 0, 'L', true);
-        $pdf->Cell($w_evento, 6, substr($row['evento_nombre'], 0, 20), 1, 1, 'L', true);
+        
+        // Solo agregar columna Evento si NO es reporte de evento específico
+        if (!$esReporteEvento) {
+            $pdf->Cell($w_evento, 6, substr($row['evento_nombre'], 0, 20), 1, 1, 'L', true);
+        } else {
+            $pdf->Ln();
+        }
         
         $fill = !$fill;
     }
@@ -312,7 +380,9 @@ try {
     // SALIDA
     // ===================================
     
-    $filename = 'reporte_inscripciones_' . date('Ymd_His') . '.pdf';
+    $filename = $esReporteEvento 
+        ? 'participantes_' . preg_replace('/[^a-zA-Z0-9]/', '_', $nombreEvento) . '_' . date('Ymd_His') . '.pdf'
+        : 'reporte_inscripciones_' . date('Ymd_His') . '.pdf';
     
     if ($modo === 'descargar') {
         $pdf->Output($filename, 'D');
