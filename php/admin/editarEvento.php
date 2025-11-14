@@ -100,12 +100,13 @@ try {
     // ===================================
     // 4. ACTUALIZAR EVENTO
     // ===================================
-    
+    $periodo = $_POST['periodo'] ?? '';
     $sqlEvento = "UPDATE evento SET 
                     nombre = ?,
                     descripcion = ?,
                     fecha_inicio = ?,
                     fecha_termino = ?,
+                    periodo = ?,
                     lugar = ?,
                     id_actividad = ?,
                     tipo_registro = ?,
@@ -127,11 +128,12 @@ try {
     
     mysqli_stmt_bind_param(
         $stmt,
-        'sssssisssssiiiii',
+        'ssssssisssssiiiii',
         $nombre,
         $descripcion,
         $fecha_inicio,
         $fecha_termino,
+        $periodo,
         $lugar,
         $id_actividad,
         $tipo_registro,

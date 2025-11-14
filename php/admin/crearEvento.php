@@ -70,6 +70,7 @@ try {
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
     $campus_id = intval($_POST['campus_id']);
     $id_promotor = intval($_POST['id_promotor']);
+    $periodo = isset($_POST['periodo']) ? mysqli_real_escape_string($conexion, trim($_POST['periodo'])) : '';
     
     // 'actividad' es el ID de la actividad opcional
     $id_actividad = isset($_POST['actividad']) && !empty($_POST['actividad']) ? intval($_POST['actividad']) : null;
@@ -171,11 +172,12 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt,
-            'ssssssssssiissiii',
+            'sssssssssssiissiii',
             $nombre,
             $descripcion,
             $fecha_inicio,
             $fecha_termino,
+            $periodo,
             $lugar,
             $id_actividad,
             $tipo_registro,
