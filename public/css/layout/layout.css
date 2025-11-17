@@ -1,7 +1,11 @@
 /* css/layout/layout.css */
 
-/* PAGE CONTENT */
+/* Agregar espacio para el header y nav fijos */
+body {
+    padding-top: calc(var(--header-height) + var(--header-border) + 45px);
+}
 
+/* PAGE CONTENT */
 .page-content {
     max-width: 1100px;
     margin: 30px auto;
@@ -12,16 +16,14 @@
     text-align: left;
 }
 
-    /* H1 */
-
+/* H1 */
 .page-content h1 {
     color: var(--color-verde-uabc);
     font-size: 2rem;
     margin-bottom: 15px;
 }
 
-    /* P */
-
+/* P */
 .page-content p {
     font-size: 1.1rem;
     line-height: 1.6;
@@ -30,7 +32,6 @@
 }
 
 /* CONTAINTER DE FILTROS */
-
 .filtros-containter {
     padding: 20px;
     background: #f5f5f5;
@@ -40,25 +41,37 @@
     max-width: 1100px;
 }
 
-    /* LABEL */
-
+/* LABEL */
 .filtros-containter label {
     margin-right: 10px;
     font-weight: bold;
 }
 
-    /* SELECT */
-
+/* SELECT */
 .filtros-containter select {
     padding: 8px 15px;
     border-radius: 5px;
-    border: 1px sold var(--color-gris-claro);
+    border: 1px solid var(--color-gris-claro);
 }
 
 /* MEDIA QUERY PARA AJUSTAR EN MOVILES */
+@media (max-width: 845px) {
+    body {
+        padding-top: 85px; /* Aumentado para el header con título visible */
+    }
+
+    .page-content {
+        padding: 20px;
+        margin: 20px 15px;
+    }
+
+    .filtros-containter {
+        margin: 20px 15px;
+        padding: 15px;
+    }
+}
 
 @media (max-width: 768px) {
-    
     .page-content {
         padding: 20px;
         margin: 20px 15px;

@@ -1,19 +1,16 @@
-/* MAIN NAV */
+/* public/css/layout/navigation.css */
 
 .main-nav {
     background: var(--color-verde-uabc);
     padding: 10px 0;
     border-bottom: 1px solid var(--color-dorado-uabc);
-
-    /* --- Añadido para que se pegue DEBAJO del header --- */
-    position: sticky;
-    top: 85px;
-    z-index: 1000;
+    position: fixed;
+    top: calc(var(--header-height) + var(--header-border));
+    left: 0;
+    right: 0;
     width: 100%;
-    box-sizing: border-box;
+    z-index: 1000;
 }
-
-/* LISTA (UL) */
 
 .main-nav ul {
     display: flex;
@@ -22,10 +19,11 @@
     padding: 0;
     margin: 0;
     flex-wrap: wrap;
+    gap: 20px;
 }
 
 .main-nav ul li {
-    margin: 5px 5px;
+    margin: 5px 15px;
 }
 
 .main-nav ul li a {
@@ -35,9 +33,98 @@
     font-size: 1rem;
     transition: color 0.3s;
     white-space: nowrap;
+    padding: 8px 15px;
+    display: inline-block;
 }
 
 .main-nav ul li a:hover {
     color: var(--color-dorado-uabc);
-    text-decoration: none;
+}
+
+.main-nav ul li.mobile-only {
+    display: none;
+}
+
+/* MÓVIL - MENÚ COMPACTO */
+@media (max-width: 845px) {
+    .main-nav {
+        position: fixed;
+        top: 70px;
+        left: auto;
+        right: -100%;
+        width: auto;
+        height: auto;
+        padding: 8px 0;
+        border-bottom: none;
+        border-left: 3px solid var(--color-dorado-uabc);
+        border-radius: 0 0 0 10px;
+        transition: right 0.3s ease;
+        box-shadow: -5px 3px 15px rgba(0, 0, 0, 0.5);
+        overflow: visible;
+    }
+
+    .main-nav.active {
+        right: 0;
+    }
+
+    .main-nav ul {
+        flex-direction: column;
+        gap: 0;
+        padding: 0;
+        margin: 0;
+    }
+
+    .main-nav ul li {
+        margin: 0;
+        width: 100%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .main-nav ul li:first-child {
+        border-top: none;
+    }
+
+    .main-nav ul li:last-child {
+        border-bottom: none;
+    }
+
+    .main-nav ul li.mobile-only {
+        display: block;
+    }
+
+    .main-nav ul li a {
+        display: block;
+        padding: 18px 30px;
+        width: 100%;
+        text-align: left;
+        font-size: 1rem;
+        white-space: nowrap;
+        transition: background-color 0.3s ease;
+    }
+
+    .main-nav ul li a:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: var(--color-dorado-uabc);
+    }
+}
+
+.nav-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+}
+
+.nav-overlay.active {
+    display: block;
+}
+
+@media (min-width: 846px) {
+    .nav-overlay {
+        display: none !important;
+    }
 }
