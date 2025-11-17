@@ -1,17 +1,15 @@
-/* public/css/layout/header.css - CORREGIDO Y STICKY */
-
+/* public/css/layout/header.css - HEADER FIJO */
 
 .main-header {
   background-color: var(--color-verde-uabc);
-  border-bottom: 5px solid var(--color-dorado-uabc);
-  min-height: 80px; /* Altura mínima */
-  box-sizing: border-box; /* Incluye padding en el width */
-
-    /* --- Para que se quede pegado arriba --- */
-  position: sticky; 
-  top: 0;          
-  width: 100%;        
-  z-index: 1001;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1002;
+  min-height: var(--header-height);
+  border-bottom: var(--header-border) solid var(--color-dorado-uabc);
 }
 
 .header-content-wrapper {
@@ -22,12 +20,10 @@
   padding: 8px 30px;
   width: 100%;
   max-width: 1920px;
-  margin: 0 auto;    
-  position: relative; 
+  margin: 0 auto;
+  position: relative;
   box-sizing: border-box;
 }
-
-
 
 /* --- Logo --- */
 .main-header .logo img {
@@ -36,109 +32,160 @@
   flex-shrink: 0;
 }
 
+.main-header .logo a {
+  display: inline-block;
+}
+
+.main-header .logo {
+  cursor: pointer;
+}
+
 /* --- Título Centrado Absoluto --- */
 .main-header .title {
   text-align: center;
-  padding: 0 15px; /* Espacio por si acaso */
-  
-  /* Centrado absoluto */
+  padding: 0 15px;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: auto; /* Ancho automático */
-  /* Evita que tape logo/logout si es muy largo */
-  max-width: calc(100% - 180px); 
+  width: auto;
+  max-width: calc(100% - 180px);
 }
 
 .main-header .title h1 {
   margin: 0;
   font-size: 1.5rem;
-  white-space: nowrap; /* Evita que el título se parta en dos líneas */
-} 
+  white-space: nowrap;
+}
+
 .main-header .title p {
   margin: 0;
   font-size: 0.9rem;
-  white-space: nowrap; 
-} 
+  white-space: nowrap;
+}
 
 /* --- Logout / Admin Link --- */
-.main-header .logout { /* Cambié este selector por si no es solo un ícono */
-  min-width: 60px; /* Dale un poco de espacio */
+.main-header .logout {
+  min-width: 60px;
   text-align: right;
   flex-shrink: 0;
 }
-/* Si usas un link <a> en lugar de <i> */
-.main-header .logout a { 
+
+.main-header .logout a {
   color: var(--color-blanco);
   text-decoration: none;
   font-weight: bold;
   transition: color 0.3s;
 }
+
 .main-header .logout a:hover {
   color: var(--color-dorado-uabc);
 }
-/* Si sigues usando el ícono <i> */
+
 .main-header .logout i {
   font-size: 1.5rem;
   cursor: pointer;
   display: inline-block;
   transition: color 0.3s;
-} 
+  color: var(--color-blanco);
+}
+
 .main-header .logout i:hover {
   color: var(--color-dorado-uabc);
 }
 
-/* --- Responsividad SIMPLIFICADA --- */
+/* --- Botón Hamburguesa --- */
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 25px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1003;
+  margin-left: 15px;
+}
+
+.mobile-menu-toggle span {
+  width: 100%;
+  height: 3px;
+  background-color: var(--color-blanco);
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* --- RESPONSIVIDAD MÓVIL --- */
 @media (max-width: 845px) {
-  .main-header {
-      position: static !important; /* Quitar sticky, !important para asegurar */
-      min-height: auto; /* Altura automática */
+  .header-content-wrapper {
+      padding: 12px 15px;
+      align-items: center;
+      min-height: 60px;
   }
 
-  .header-content-wrapper { /* Si estás usando el wrapper */
-      flex-direction: column !important; /* Forzar columna */
-      padding: 15px !important; /* Asegurar padding */
-      position: static !important; /* Quitar relative */
-      gap: 10px; /* Espacio simple entre elementos apilados */
+  /* Logo a la izquierda */
+  .main-header .logo img {
+      height: 40px;
   }
-  
-  /* Resetear estilos problemáticos de los hijos */
-  .main-header .title,
-  .main-header .logo,
+
+  /* Título centrado */
+  .main-header .title {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 55%;
+  }
+
+  .main-header .title h1 {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
+
+  .main-header .title p {
+      font-size: 0.65rem;
+  }
+
+  /* Ocultar logout en móvil */
   .main-header .logout {
-      position: static !important; /* Asegurar posición normal */
-      transform: none !important; /* Quitar transformaciones */
-      margin: 0 !important; /* Quitar márgenes previos */
-      padding: 0 !important; /* Quitar paddings previos */
-      width: auto !important; /* Ancho automático */
-      max-width: 100% !important; /* Ancho máximo */
-      order: initial !important; /* Quitar orden específico */
-      text-align: center !important; /* Centrar todo */
-      flex-grow: 0 !important; /* No crecer */
-      flex-shrink: 1 !important; /* Permitir encoger si es necesario */
+      display: none;
   }
 
-  /* Ajustar tamaño del logo específicamente */
-  .main-header .logo img { 
-      height: 45px !important; 
-      width: auto !important; 
-      max-width: 100% !important; 
-      display: inline-block !important; /* Centrar con text-align del padre */
+  /* Mostrar botón hamburguesa */
+  .mobile-menu-toggle {
+      display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-header .logo img {
+      height: 35px;
   }
 
-   /* Ajustar tamaño texto título */
-  .main-header .title h1 { font-size: 1.2rem !important; }
-  .main-header .title p { font-size: 0.9rem !important; }
+  .main-header .title {
+      max-width: 50%;
+  }
+
+  .main-header .title h1 {
+      font-size: 0.7rem;
+  }
+
+  .main-header .title p {
+      font-size: 0.6rem;
+  }
 }
-
-
-
-/* @media (max-width: 480px) {
-  .main-header .title h1 { font-size: 1rem; }
-  .main-header .title p { font-size: 0.8rem; }
-  .main-header .logo img { 
-    height: 40px;
-  width: auto;
-max-width: 100%; 
-}
-} */

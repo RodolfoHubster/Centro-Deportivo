@@ -137,3 +137,55 @@ function cerrarSesionAdmin() {
             });
      }
 }
+
+// Al final de headFooter.js
+
+// Crear overlay para cerrar el menú
+const overlay = document.createElement('div');
+overlay.className = 'nav-overlay';
+overlay.id = 'navOverlay';
+document.body.appendChild(overlay);
+
+// Inicializar menú hamburguesa después de cargar el header
+setTimeout(function() {
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mainNav = document.querySelector('.main-nav');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (mobileMenuToggle && mainNav) {
+        // Toggle del menú
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.toggle('active');
+            mainNav.classList.toggle('active');
+            navOverlay.classList.toggle('active');
+            
+            // Prevenir scroll del body cuando el menú está abierto
+            if (mainNav.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // Cerrar menú al hacer click en overlay
+        navOverlay.addEventListener('click', function() {
+            mainNav.classList.remove('active');
+            mobileMenuToggle.classList.remove('active');
+            navOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+        
+        // Cerrar menú al hacer click en un enlace
+        const navLinks = mainNav.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mainNav.classList.remove('active');
+                mobileMenuToggle.classList.remove('active');
+                navOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+    }
+}, 100);

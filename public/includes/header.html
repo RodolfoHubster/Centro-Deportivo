@@ -1,27 +1,37 @@
-  <!-- HEADER -->
-  <header class="main-header">
-    <div class="header-content-wrapper">
-    <div class="logo">
+<!-- public/includes/header.html -->
+<header class="main-header">
+  <div class="header-content-wrapper">
+  <div class="logo">
+    <a href="index.html" aria-label="Ir a inicio">
       <img src="images/centroDeportivo.png" alt="Logo UABC">
-    </div>
-    <div class="title">
-      <h1>Universidad Autónoma de Baja California</h1>
-      <p>Centro Deportivo</p>
-    </div>
-    <div class="logout">
-      <a href="login.html">Admin</a>
-    </div>  
-    </div>
-    
-  </header>
+    </a>
+  </div>
 
-<nav class="main-nav">
-  <ul>
-    <li><a href="index.html">Inicio</a></li>
-    <li><a href="eventos.html">Eventos</a></li>
-    <li><a href="torneos.html" id="nav-torneos">Torneos</a></li>
-   <!-- <li><a href="actividades.html" id="nav-actividades">Actividades</a></li> -->
-    <li><a href="contacto.html">Contacto</a></li>
-    <!--<li><a href="login.html">Admin</a></li> -->
-  </ul>
+  <div class="title">
+    <h1>Universidad Autónoma de Baja California</h1>
+    <p>Centro Deportivo</p>
+  </div>
+  
+  <div class="logout">
+    <a href="login.html">Admin</a>
+  </div>
+
+  <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  </div>
+  
+</header>
+
+<nav class="main-nav" id="mainNav">
+<ul>
+  <li><a href="index.html">Inicio</a></li>
+  <li><a href="eventos.html">Eventos</a></li>
+  <li><a href="torneos.html" id="nav-torneos">Torneos</a></li>
+  <li><a href="contacto.html">Contacto</a></li>
+  <!-- Admin solo visible en móvil -->
+  <li class="mobile-only"><a href="login.html">Admin</a></li>
+</ul>
 </nav>

@@ -15,4 +15,6 @@
     --sombra-profunda: 0 4px 10px rgba(0 ,0 ,0 , 0.2);
     --borde-redondeado: 10px;
     --borde-redondo-grande: 12px;
+    --header-height: 80px;
+    --header-border: 5px;
 }
