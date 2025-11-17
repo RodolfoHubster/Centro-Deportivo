@@ -55,7 +55,8 @@ async function inicializarPaginaGestionEventos() {
         
         // Poblar el NUEVO filtro de campus en el admin
         ui.poblarFiltroCampus(campus);
-
+        // Poblar el nuevo filtro de periodos
+        ui.poblarFiltroPeriodos(todosLosEventos);
         // Mostrar los eventos
         ui.mostrarEventos(todosLosEventos);
         
@@ -98,12 +99,15 @@ function configurarListenersEventos() {
     document.getElementById('filtro-campus-admin').addEventListener('change', aplicarFiltrosAdmin);
     document.getElementById('filtro-categoria-admin').addEventListener('change', aplicarFiltrosAdmin);
     document.getElementById('filtro-tipo-admin').addEventListener('change', aplicarFiltrosAdmin);
-    
+    // Escucha 'change' (cuando seleccionas) en lugar de 'input' (cuando escribes)
+    document.getElementById('filtro-periodo-admin').addEventListener('change', aplicarFiltrosAdmin);
+
     document.getElementById('btnLimpiarFiltrosAdmin').addEventListener('click', () => {
         document.getElementById('filtro-buscar-admin').value = '';
         document.getElementById('filtro-campus-admin').value = '';
         document.getElementById('filtro-categoria-admin').value = '';
         document.getElementById('filtro-tipo-admin').value = '';
+        document.getElementById('filtro-periodo-admin').value = '';
         aplicarFiltrosAdmin(); // Vuelve a mostrar todos los eventos
     });
 }
@@ -263,6 +267,8 @@ function aplicarFiltrosAdmin() {
     const campus = document.getElementById('filtro-campus-admin').value;
     const categoria = document.getElementById('filtro-categoria-admin').value;
     const tipo = document.getElementById('filtro-tipo-admin').value;
+    // Simplemente lee el valor seleccionado del <select>
+    const periodo = document.getElementById('filtro-periodo-admin').value;
 
     // 2. Filtrar el array global 'todosLosEventos'
     const eventosFiltrados = todosLosEventos.filter(evento => {
@@ -280,8 +286,11 @@ function aplicarFiltrosAdmin() {
         // Filtro de tipo
         const coincideTipo = !tipo || evento.tipo_actividad === tipo;
         
+        // Compara el valor exacto del select (ej: "2025-1" == "2025-1")
+        const coincidePeriodo = !periodo || evento.periodo == periodo;
+        
         // Devolver true solo si CUMPLE TODOS los filtros
-        return coincideBusqueda && coincideCampus && coincideCategoria && coincideTipo;
+        return coincideBusqueda && coincideCampus && coincideCategoria && coincideTipo && coincidePeriodo;
     });
 
     // 3. Mostrar los eventos filtrados en la UI

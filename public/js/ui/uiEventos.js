@@ -95,6 +95,16 @@ export function mostrarEventos(eventos) {
                         <button data-action="editar" data-id="${evento.id}" style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Editar</button>
                         <button data-action="eliminar" data-id="${evento.id}" data-nombre="${evento.nombre.replace(/"/g, '&quot;')}" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Eliminar</button>
                         <button data-action="qr" data-id="${evento.id}" style="padding: 8px 15px; background: #777272ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Ver QR</button>
+
+                        <a href="ver-participantes.html?evento_id=${evento.id}" class="btn-participantes" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-size: 13.3333px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; font-family: Arial;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            Participantes
+                        </a>
                     </div>
                 </div>
             </div>
@@ -201,6 +211,43 @@ export function poblarFiltroCampus(campus) {
     // Añadir los campus de la base de datos
     campus.forEach(c => {
         select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+}
+
+// ===================================
+// =====   NUEVA FUNCIÓN AQUÍ   =====
+// ===================================
+
+/**
+ * Rellena el select de "Periodo" en el FILTRO del admin,
+ * basándose en los eventos cargados.
+ * @param {Array} eventos - Lista de todos los eventos
+ */
+export function poblarFiltroPeriodos(eventos) {
+    const select = document.getElementById('filtro-periodo-admin');
+    if (!select) {
+        console.warn("No se encontró el filtro de periodo 'filtro-periodo-admin'");
+        return; 
+    }
+
+    // 1. Extraer todos los periodos (ej: ["2025-1", "2025-2", null, "2025-1"])
+    const periodos = eventos.map(evento => evento.periodo);
+
+    // 2. Obtener solo los valores únicos y filtrar nulos/vacíos
+    const periodosUnicos = [...new Set(periodos)]
+                            .filter(p => p) // Filtra null, undefined, ""
+                            .sort();        // Ordena alfabéticamente
+
+    // 3. Guardar la opción "Todos"
+    const opcionDefault = select.querySelector('option[value=""]');
+    select.innerHTML = ''; 
+    if (opcionDefault) {
+        select.appendChild(opcionDefault);
+    }
+
+    // 4. Añadir los periodos únicos de la base de datos
+    periodosUnicos.forEach(p => {
+        select.innerHTML += `<option value="${p}">${p}</option>`;
     });
 }
 
