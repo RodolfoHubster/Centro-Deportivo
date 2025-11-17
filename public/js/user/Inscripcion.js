@@ -73,6 +73,16 @@ function agregarBotonesInscripcion() {
     const tarjetasEvento = document.querySelectorAll('.evento-card, .event-card, .card-evento');
 
     tarjetasEvento.forEach((tarjeta) => {
+        
+        // ======================================
+        // ===== ¡ESTA ES LA LÍNEA MÁGICA! =====
+        // ======================================
+        // Si la tarjeta tiene la marca 'data-lleno', no hagas nada y salta a la siguiente.
+        if (tarjeta.getAttribute('data-lleno') === 'true') {
+            return; // Saltar esta tarjeta
+        }
+        // ======================================
+
         if (tarjeta.querySelector('.btn-inscribir')) return;
         
         const eventoId = tarjeta.getAttribute('data-evento-id') || tarjeta.getAttribute('data-id');
@@ -89,9 +99,6 @@ function agregarBotonesInscripcion() {
         // 2. Lee el nuevo tipo de registro que guardamos
         const tipoRegistro = tarjeta.getAttribute('data-tipo-registro') || 'Individual';
         
-        // ¡¡¡AQUÍ ESTÁ EL PROBLEMA!!!
-        // tarjeta.getAttribute('data-integrantes-min') te está dando "2"
-        // Debes arreglarlo en tu base de datos o en el PHP que genera el HTML.
         const min = tarjeta.getAttribute('data-integrantes-min') || 8;
         
         // Si es 0 (o nulo) lo dejamos así para "sin límite"
@@ -144,7 +151,6 @@ function agregarBotonesInscripcion() {
         btnInscribir.addEventListener('click', () => {
             if (tipoRegistro === 'Por equipos') {
                 // Llama a la NUEVA función para equipos
-                // Aquí, 'min' está llevando el valor '2'
                 mostrarFormularioEquipo(eventoId, nombreEvento, min, max);
             } else {
                 // Llama a la función individual (que ya recibe el nombre)
@@ -890,11 +896,6 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     document.getElementById('formInscripcionEquipo').addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // ¡¡¡AQUÍ ESTÁ LA VALIDACIÓN!!!
-        // Si 'minIntegrantes' es 2 (porque lo leyó del HTML)...
-        // y 'contadorIntegrantes' es 2 (porque solo agregaste 2)...
-        // La condición '2 < 2' es FALSA.
-        // Por eso, NO se detiene y llama a 'enviarInscripcionEquipo'.
         if (contadorIntegrantes < minIntegrantes) {
             mostrarToast(`Se requiere un mínimo de ${minIntegrantes} integrantes para registrar el equipo`, 'error');
             return;
@@ -905,16 +906,6 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         }
         enviarInscripcionEquipo(e.target, modal);
     });
-}
-
-/**
- * Añade dinámicamente los campos para un nuevo integrante al formulario.
- * @param {boolean} esCapitan - True si es el primer integrante (capitán)
- */
-function agregarCamposIntegrante(esCapitan = false) {
-    // Esta función parece ser un duplicado de 'agregarIntegranteInterno'.
-    // La borro para evitar confusión, ya que 'agregarIntegranteInterno' es la que se usa.
-    // Si la necesitas, la puedes dejar, pero parece redundante.
 }
 
 /**
@@ -933,7 +924,7 @@ function cargarFacultadesEquipo(selectElement) {
             selectElement.innerHTML = '<option value="">Selecciona tu facultad</option>';
             const facultades = data.success ? data.facultades : data;
             facultades.forEach(facultad => {
-                selectElement.innerHTML += `<option value="${facultad.id}">${facultad.nombre} (${facultad.siglas})</option>`;
+                selectElement.innerHTML += `<option value="${facultad.id}">${facultad.nombre} (${facultad.siglas || ''})</option>`;
             });
         })
         .catch(error => {
