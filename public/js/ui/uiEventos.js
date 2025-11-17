@@ -12,14 +12,6 @@ import { formatearFecha } from '../utils/utilidades.js';
  * @param {Array} campus - Lista campus
  * */
 
-export function poblarSelectCampus(campus) {
-    const select = document.getElementById('evento-campus');
-    select.innerHTML = '<option value="">Seleccionar campus...</option>'
-    campus.forEach(c => {
-        select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
-    });
-}
-
 /**
  * Rellena los select de actividades en el formulario
  * @param {Array} actividades - Lista de actividades
@@ -85,7 +77,8 @@ export function mostrarEventos(eventos) {
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
                             <div><strong>Fechas:</strong><br>${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}</div>
                             <div><strong>Lugar:</strong><br>${evento.lugar}</div>
-                            <div><strong>Campus:</strong><br>${evento.campus_nombre || 'N/A'}</div>
+                            <div><strong>Facultades:</strong><br>${evento.facultades_nombres || 'Abierto a todas'}</div>
+                            <div><strong>Periodo:</strong><br>${evento.periodo || 'N/A'}</div>
                             <div><strong>Tipo:</strong><br>${evento.tipo_actividad || 'N/A'}</div>
                             <div><strong>Categoría:</strong><br>${evento.categoria_deporte || 'N/A'}</div>
                             <div><strong>Cupo:</strong><br><span style="color: ${cupoColor}; font-weight: bold;">${cupoTexto}</span></div>
@@ -126,7 +119,6 @@ export function poblarFormularioParaEditar(evento) {
     document.getElementById('evento-fecha-termino').value = evento.fecha_termino;
     document.getElementById('evento-periodo').value = evento.periodo || '';
     document.getElementById('evento-lugar').value = evento.lugar;
-    document.getElementById('evento-campus').value = evento.campus_id || '';
     document.getElementById('evento-ubicacion-tipo').value = evento.ubicacion_tipo || '';
     document.getElementById('evento-tipo-registro').value = evento.tipo_registro || 'Individual';
     document.getElementById('evento-categoria').value = evento.categoria_deporte || '';
@@ -213,6 +205,33 @@ export function poblarFiltroCampus(campus) {
         select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
     });
 }
+
+/**
+ * Rellena el select de facultades en el FILTRO del admin.
+ * @param {Array} facultades - Lista de facultades
+ */
+export function poblarFiltroFacultades(facultades) {
+    const select = document.getElementById('filtro-facultad-admin');
+    if (!select) {
+        console.warn("No se encontró el filtro de facultad 'filtro-facultad-admin'");
+        return; 
+    }
+
+    // Guardar la opción "Todas" que ya está en el HTML
+    const opcionDefault = select.querySelector('option[value=""]');
+    select.innerHTML = ''; // Limpiar el select
+
+    // Volver a poner la opción "Todas" al inicio
+    if (opcionDefault) {
+        select.appendChild(opcionDefault);
+    }
+
+    // Añadir las facultades de la base de datos
+    facultades.forEach(fac => {
+        select.innerHTML += `<option value="${fac.id}">${fac.nombre}</option>`;
+    });
+}
+
 
 // ===================================
 // =====   NUEVA FUNCIÓN AQUÍ   =====

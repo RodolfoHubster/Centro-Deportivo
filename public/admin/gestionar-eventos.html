@@ -25,10 +25,10 @@
         </div>
 
         <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Campus:</label>
-          <select id="filtro-campus-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-            <option value="">Todos los campus</option>
-          </select>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Facultad:</label>
+          <select id="filtro-facultad-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todas las facultades</option>
+            </select>
         </div>
 
         <div>
@@ -137,12 +137,7 @@
           </div>
           <!-- Fin agregado -->
           <div class="form-grid">
-            <div class="form-group">
-              <label for="evento-campus">Campus <span class="required">*</span></label>
-              <select name="campus_id" id="evento-campus" required>
-                <option value="">Cargando Campus...</option>
-              </select>
-            </div>
+            <input type="hidden" id="evento-campus" name="campus_id">
               <div class="form-group">
               <label for="evento-ubicacion-tipo">Tipo de Ubicación <span class="required">*</span></label>
               <select name="ubicacion_tipo" id="evento-ubicacion-tipo" required>

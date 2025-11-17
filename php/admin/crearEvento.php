@@ -45,7 +45,6 @@ try {
         'categoria_deporte' => 'Categoría deportiva',
         'tipo_actividad' => 'Tipo de actividad',
         'ubicacion_tipo' => 'Tipo de ubicación',
-        'campus_id' => 'Campus',
         'id_promotor' => 'ID de Promotor'
     ];
     
@@ -68,7 +67,7 @@ try {
     $categoria_deporte = mysqli_real_escape_string($conexion, $_POST['categoria_deporte']);
     $tipo_actividad = mysqli_real_escape_string($conexion, $_POST['tipo_actividad']);
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
-    $campus_id = intval($_POST['campus_id']);
+    $campus_id = isset($_POST['campus_id']) && !empty($_POST['campus_id']) ? intval($_POST['campus_id']) : 1;
     $id_promotor = intval($_POST['id_promotor']);
     $periodo = isset($_POST['periodo']) ? mysqli_real_escape_string($conexion, trim($_POST['periodo'])) : '';
     

@@ -111,7 +111,11 @@ try {
                 c.nombre AS campus_nombre,
                 c.codigo AS campus_codigo,
                 u.nombre AS promotor_nombre,
-                GROUP_CONCAT(DISTINCT f.siglas ORDER BY f.siglas SEPARATOR ', ') AS facultades,
+                /* --- LÍNEA MODIFICADA --- */
+                GROUP_CONCAT(DISTINCT f.siglas ORDER BY f.siglas SEPARATOR ', ') AS facultades_siglas, /* Renombramos esta */
+                /* --- LÍNEAS NUEVAS A AÑADIR --- */
+                GROUP_CONCAT(DISTINCT f.id ORDER BY f.id SEPARATOR ',') AS facultades_ids,
+                GROUP_CONCAT(DISTINCT f.nombre ORDER BY f.nombre SEPARATOR ', ') AS facultades_nombres,
                 -- Calcular si tiene cupo disponible
                 CASE 
                     WHEN e.cupo_maximo > 0 THEN 
@@ -131,10 +135,12 @@ try {
             LEFT JOIN evento_facultad ef ON e.id = ef.evento_id
             LEFT JOIN facultad f ON ef.facultad_id = f.id
             $whereClause
+            /* --- SECCIÓN GROUP BY --- */
             GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino,e.periodo,
                      e.lugar, e.tipo_registro, e.categoria_deporte, e.tipo_actividad,
                      e.ubicacion_tipo, e.cupo_maximo, e.integrantes_min, e.integrantes_max, e.registros_actuales, e.codigo_qr,
                      e.activo, a.nombre, c.nombre, c.codigo, u.nombre
+            /* (Ya no se necesita agrupar por los GROUP_CONCAT) */
             ORDER BY e.fecha_inicio DESC";
     
     // Preparar y ejecutar consulta
