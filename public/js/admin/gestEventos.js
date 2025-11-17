@@ -49,12 +49,13 @@ async function inicializarPaginaGestionEventos() {
 
         // Una vez cargados, usa las funciones de UI para mostrarlos
         // Poblar selects del MODAL
-        ui.poblarSelectCampus(campus);
+        // Usamos la variable 'facultades' que ya cargamos para el modal
+        ui.poblarFiltroFacultades(facultades);
         ui.poblarSelectActividades(actividades);
         ui.poblarCheckboxesFacultades(facultades);
         
-        // Poblar el NUEVO filtro de campus en el admin
-        ui.poblarFiltroCampus(campus);
+        // Poblar el nuevo filtro de periodos
+        ui.poblarFiltroPeriodos(todosLosEventos);
         // Poblar el nuevo filtro de periodos
         ui.poblarFiltroPeriodos(todosLosEventos);
         // Mostrar los eventos
@@ -96,7 +97,8 @@ function configurarListenersEventos() {
 
     // --- LISTENERS PARA LOS NUEVOS FILTROS ---
     document.getElementById('filtro-buscar-admin').addEventListener('input', aplicarFiltrosAdmin);
-    document.getElementById('filtro-campus-admin').addEventListener('change', aplicarFiltrosAdmin);
+    // Apuntamos al nuevo ID
+    document.getElementById('filtro-facultad-admin').addEventListener('change', aplicarFiltrosAdmin);
     document.getElementById('filtro-categoria-admin').addEventListener('change', aplicarFiltrosAdmin);
     document.getElementById('filtro-tipo-admin').addEventListener('change', aplicarFiltrosAdmin);
     // Escucha 'change' (cuando seleccionas) en lugar de 'input' (cuando escribes)
@@ -104,7 +106,7 @@ function configurarListenersEventos() {
 
     document.getElementById('btnLimpiarFiltrosAdmin').addEventListener('click', () => {
         document.getElementById('filtro-buscar-admin').value = '';
-        document.getElementById('filtro-campus-admin').value = '';
+        document.getElementById('filtro-facultad-admin').value = ''; // Resetea el select de facultad
         document.getElementById('filtro-categoria-admin').value = '';
         document.getElementById('filtro-tipo-admin').value = '';
         document.getElementById('filtro-periodo-admin').value = '';
@@ -264,7 +266,7 @@ function handleTipoRegistroChange(e) {
 function aplicarFiltrosAdmin() {
     // 1. Leer valores de los filtros
     const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
-    const campus = document.getElementById('filtro-campus-admin').value;
+    const facultad = document.getElementById('filtro-facultad-admin').value; // Leemos la facultad
     const categoria = document.getElementById('filtro-categoria-admin').value;
     const tipo = document.getElementById('filtro-tipo-admin').value;
     // Simplemente lee el valor seleccionado del <select>
@@ -277,8 +279,11 @@ function aplicarFiltrosAdmin() {
             evento.nombre.toLowerCase().includes(busqueda) ||
             (evento.lugar && evento.lugar.toLowerCase().includes(busqueda)); // Prevenir error si lugar es null
         
-        // Filtro de campus
-        const coincideCampus = !campus || evento.campus_id == campus;
+        // Filtro de Facultades
+        // El 'evento.facultades_ids' viene de 'obtenerEventos.php' como un string "1,2,5"
+        // Lo convertimos en array para buscar
+        const eventoFacultades = (evento.facultades_ids || '').split(',');
+        const coincideFacultad = !facultad || eventoFacultades.includes(facultad);
         
         // Filtro de categoría
         const coincideCategoria = !categoria || evento.categoria_deporte === categoria;
@@ -290,7 +295,7 @@ function aplicarFiltrosAdmin() {
         const coincidePeriodo = !periodo || evento.periodo == periodo;
         
         // Devolver true solo si CUMPLE TODOS los filtros
-        return coincideBusqueda && coincideCampus && coincideCategoria && coincideTipo && coincidePeriodo;
+        return coincideBusqueda && coincideFacultad && coincideCategoria && coincideTipo && coincidePeriodo;
     });
 
     // 3. Mostrar los eventos filtrados en la UI
