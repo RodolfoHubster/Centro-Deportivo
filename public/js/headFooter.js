@@ -29,6 +29,8 @@ if (headerPlaceholder) {
             headerPlaceholder.innerHTML = html;
             if (isAdminPage) {
                 ajustarTituloAdminHeader();
+                // Verifica el rol para ocultar/mostrar elementos
+                verificarRolParaNavegacion();
                 const btnLogout = document.querySelector('#header-placeholder #btnCerrarSesion');
                 
                 if (btnLogout) {
@@ -83,8 +85,33 @@ function ajustarTituloAdminHeader() {
         case 'ver-inscripciones.html': subtitulo = "Inscripciones a Eventos";break;
         case 'ver-mensajes.html': subtitulo = "Mensajes de Contacto";break;
     }
+    // También verifica el rol para el subtítulo (opcional)
+    if (currentPage === 'gestionar-usuarios.html') subtitulo = "Gestión de Usuarios";
     h1.textContent = tituloPrincipal;
     p.textContent = subtitulo;
+}
+
+/**
+ * Verifica el rol del usuario y oculta elementos del menú si no es Admin.
+ */
+function verificarRolParaNavegacion() {
+    // Definimos la ruta a verificarSesion.php
+    // Usamos la variable 'cerrarSesionPHP' como referencia para la ruta base
+    const verificarSesionURL = cerrarSesionPHP.replace('cerrarSesion.php', 'verificarSesion.php');
+
+    fetch(verificarSesionURL)
+        .then(response => response.json())
+        .then(data => {
+            if (data.loggedin && data.rol !== 'Administrador') {
+                // Si está logueado PERO NO es Administrador...
+                const navGestionarUsuarios = document.getElementById('nav-gestionar-usuarios');
+                if (navGestionarUsuarios) {
+                    // Oculta el enlace
+                    navGestionarUsuarios.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error("Error al verificar rol para nav:", error));
 }
 
 function cerrarSesionAdmin() {

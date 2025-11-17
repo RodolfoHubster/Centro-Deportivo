@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionar Usuarios - Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+  <main class="page-content">
+    <h1>Gestionar Usuarios</h1>
+    
+    <button id="btnNuevoUsuario">
+      Crear Nuevo Usuario
+    </button>
+
+    <div id="mensaje-respuesta" style="display: none;"></div>
+
+    <div id="lista-usuarios" style="margin-top: 20px;">
+      <p style="text-align: center;">Cargando usuarios...</p>
+    </div>
+  </main>
+
+  <div id="modalUsuario" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; padding: 20px;">
+    <div class="admin-modal-contenido" style="max-width: 600px; position: relative;">
+      
+      <button type="button" id="btnCerrarModalX" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; font-size: 24px; color: #666;">&times;</button>
+      
+      <h2 id="tituloModal">Crear Nuevo Usuario</h2>
+      
+      <form id="formUsuario">
+        <input type="hidden" id="usuario-id" name="id">
+        
+        <div class="form-section">
+          <h3>Datos Personales</h3>
+          <div class="form-group">
+            <label for="usuario-nombre">Nombre(s) <span class="required">*</span></label>
+            <input type="text" id="usuario-nombre" name="nombre" required>
+          </div>
+          <div class="form-group">
+            <label for="usuario-paterno">Apellido Paterno <span class="required">*</span></label>
+            <input type="text" id="usuario-paterno" name="apellido_paterno" required>
+          </div>
+          <div class="form-group">
+            <label for="usuario-materno">Apellido Materno</label>
+            <input type="text" id="usuario-materno" name="apellido_materno">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Cuenta</h3>
+          <div class="form-group">
+            <label for="usuario-matricula">Matrícula / Núm. Empleado <span class="required">*</span></label>
+            <input type="text" id="usuario-matricula" name="matricula" required>
+          </div>
+          <div class="form-group">
+            <label for="usuario-correo">Correo <span class="required">*</span></label>
+            <input type="email" id="usuario-correo" name="correo" required>
+          </div>
+          <div class="form-group">
+            <label for="usuario-rol">Rol <span class="required">*</span></label>
+            <select id="usuario-rol" name="rol" required>
+              <option value="">Selecciona un rol...</option>
+              <option value="Promotor">Promotor</option>
+              <option value="Administrador">Administrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="usuario-password">Contraseña <span id="password-required" class="required">*</span></label>
+            <input type="password" id="usuario-password" name="contrasena">
+            <p class="help-text">Dejar vacío si no se desea cambiar</p>
+          </div>
+        </div>
+
+        <div class="admin-modal-botones">
+          <button type="submit" class="admin-modal-btn-guardar">Guardar Usuario</button>
+          <button type="button" id="btnCancelar" class="admin-modal-btn-cancelar">Cancelar</button>
+        </div>
+
+        <div id="danger-zone" style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; text-align: right; display: none;">
+        <p style="text-align: left; color: #dc3545; font-size: 14px; margin-top: 0;">
+            <strong>Zona Peligrosa:</strong> Esta acción no se puede deshacer.
+        </p>
+        <button type="button" id="btnEliminarPermanente" 
+                style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Eliminar Usuario Permanentemente
+        </button>
+    </div>
+
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/admin/gestUsuarios.js" type="module"></script>
+  <script src="../js/headFooter.js"></script>
+</body>
+</html>

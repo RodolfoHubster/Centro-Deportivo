@@ -131,7 +131,7 @@ try {
             LEFT JOIN evento_facultad ef ON e.id = ef.evento_id
             LEFT JOIN facultad f ON ef.facultad_id = f.id
             $whereClause
-            GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino,
+            GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino,e.periodo,
                      e.lugar, e.tipo_registro, e.categoria_deporte, e.tipo_actividad,
                      e.ubicacion_tipo, e.cupo_maximo, e.integrantes_min, e.integrantes_max, e.registros_actuales, e.codigo_qr,
                      e.activo, a.nombre, c.nombre, c.codigo, u.nombre
