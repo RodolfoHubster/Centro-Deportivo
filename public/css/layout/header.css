@@ -63,20 +63,22 @@
   white-space: nowrap;
 }
 
-/* public/css/layout/header.css */
-
-/* Contenedor principal del botón */
+/* --- Logout / Admin Link (Escritorio) --- */
 .main-header .logout {
-  min-width: auto;
-  display: flex;
-  align-items: center;
+  display: flex;            /* Alineación flexible */
+  align-items: center;      /* Centrado vertical */
+  gap: 8px;                 /* Espacio entre texto e icono */
+  cursor: pointer;
+  color: var(--color-blanco);
+  transition: color 0.3s ease, transform 0.2s ease;
+  min-width: auto;          /* Ajuste automático */
 }
 
 /* Estilo para el enlace (Solo en el header público) */
 .main-header .logout a.header-btn {
   display: flex;
   align-items: center;
-  gap: 8px; /* Espacio entre texto e icono */
+  gap: 8px; 
   color: var(--color-blanco);
   text-decoration: none;
   transition: color 0.3s ease, transform 0.2s ease;
@@ -89,7 +91,7 @@
   gap: 8px;
 }
 
-/* Texto */
+/* Texto del botón */
 .main-header .logout .logout-text {
   font-weight: bold;
   font-size: 1rem;
@@ -99,50 +101,19 @@
 
 /* Iconos SVG */
 .main-header .logout svg {
-  width: 22px;
-  height: 22px;
-  display: block;
-}
-
-/* Efecto Hover General */
-.main-header .logout:hover a.header-btn,
-.main-header .logout:hover {
-  color: var(--color-dorado-uabc);
-  transform: translateX(3px); /* Pequeño movimiento a la derecha */
-  cursor: pointer;
-}
-
-/* --- Logout / Admin Link --- */
-.main-header .logout {
-  display: flex;            /* Alineación flexible */
-  align-items: center;      /* Centrado vertical */
-  gap: 8px;                 /* Espacio entre texto e icono */
-  cursor: pointer;
-  color: var(--color-blanco);
-  transition: color 0.3s ease, transform 0.2s ease;
-  min-width: auto;          /* Ajuste automático */
-}
-
-/* Texto del botón */
-.main-header .logout .logout-text {
-  font-weight: bold;
-  font-size: 1rem;
-  text-transform: uppercase; /* Opcional: para que se vea más como botón */
-  letter-spacing: 0.5px;
-}
-
-/* Icono SVG */
-.main-header .logout svg {
   width: 22px;              /* Tamaño del icono */
   height: 22px;
   display: block;
 }
 
 /* Efecto Hover (Al pasar el mouse) */
+.main-header .logout:hover a.header-btn,
 .main-header .logout:hover {
-  color: var(--color-dorado-uabc); /* Cambia a dorado */
-  transform: translateX(3px);      /* Pequeño movimiento a la derecha indicando salida */
+  color: var(--color-dorado-uabc); 
+  transform: translateX(3px);      
+  cursor: pointer;
 }
+
 
 /* --- Botón Hamburguesa --- */
 .mobile-menu-toggle {
@@ -179,7 +150,52 @@
   transform: rotate(-45deg) translate(7px, -7px);
 }
 
-/* --- RESPONSIVIDAD MÓVIL --- */
+/* === INFO USUARIO ESCRITORIO === */
+.user-info-desktop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Alineado a la derecha */
+  margin-left: auto;     /* Empuja todo hacia la derecha */
+  margin-right: 20px;    /* Espacio antes del botón salir */
+  line-height: 1.2;
+}
+
+.user-welcome {
+  font-size: 0.9rem;
+  font-weight: normal;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.user-welcome span {
+  font-weight: bold;
+  color: var(--color-blanco);
+}
+
+.user-role-badge {
+  font-size: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: var(--color-dorado-uabc);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+}
+
+/* === CORRECCIÓN DE TRASLAPE (Pantallas medianas 980px - 1150px) === */
+/* Ocultamos info de usuario antes de tiempo para dar espacio al título */
+@media (max-width: 1150px) {
+    .user-info-desktop {
+        display: none !important;
+    }
+    
+    /* Reducimos un poco el título para ganar espacio */
+    .main-header .title h1 { font-size: 1.2rem; }
+    .main-header .title p { font-size: 0.8rem; }
+}
+
+/* --- RESPONSIVIDAD MÓVIL (< 845px) --- */
 @media (max-width: 845px) {
   .header-content-wrapper {
       padding: 12px 15px;
@@ -212,9 +228,14 @@
       font-size: 0.65rem;
   }
 
-  /* Ocultar logout en móvil */
+  /* Ocultar logout de escritorio en móvil (IMPORTANTE) */
   .main-header .logout {
-      display: none;
+      display: none !important;
+  }
+  
+  /* Ocultar info de usuario de escritorio */
+  .user-info-desktop {
+    display: none !important;
   }
 
   /* Mostrar botón hamburguesa */

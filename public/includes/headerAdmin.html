@@ -1,45 +1,63 @@
 <!-- HEADER -->
 <header class="main-header">
   <div class="header-content-wrapper">  
-  <div class="logo">
-    <a href="admin.html" aria-label="Ir a inicio">
-      <img src="/Centro-Deportivo/public/images/centroDeportivo.png" alt="UABC Logo">
-    </a>
+    
+    <div class="logo">
+      <a href="admin.html" aria-label="Ir a inicio">
+        <img src="/Centro-Deportivo/public/images/centroDeportivo.png" alt="UABC Logo">
+      </a>
     </div>
 
+    <div class="title">
+        <h1>Universidad Autónoma de Baja California</h1>
+        <p>Panel Administrativo</p>
+    </div>
 
-  <div class="title">
-      <h1>Universidad Autónoma de Baja California</h1>
-      <p>Panel Administrativo</p>
+    <div class="user-info-desktop">
+        <span class="user-welcome">Bienvenido, <span id="deskUserNombre">Cargando...</span></span>
+        <span class="user-role-badge" id="deskUserRol">...</span>
+    </div>
+
+    <div class="logout" id="btnCerrarSesion" title="Cerrar sesión" role="button">
+      <span class="logout-text">Salir</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+    </div>
+    
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+  
   </div>
-
-
-  <div class="logout" id="btnCerrarSesion" title="Cerrar sesión" role="button">
-    <span class="logout-text">Salir</span>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-        <polyline points="16 17 21 12 16 7"></polyline>
-        <line x1="21" y1="12" x2="9" y2="12"></line>
-    </svg>
-</div>
-  
-  <!-- Botón hamburguesa para móviles -->
-  <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation">
-      <span></span>
-      <span></span>
-      <span></span>
-  </button>
-  
-</div>
 </header>
-
 
 <nav class="main-nav" id="mainNav"> 
   <ul>
+    <li class="user-profile-mobile">
+        <div class="mobile-user-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        </div>
+        <div class="mobile-user-data">
+            <span class="mobile-welcome">Hola, <span id="movilUserNombre">Usuario</span></span>
+            <span class="mobile-role" id="movilUserRol">Cargando...</span>
+        </div>
+    </li>
+
     <li><a href="/Centro-Deportivo/public/admin/admin.html">Dashboard</a></li>
     <li><a href="/Centro-Deportivo/public/admin/gestionar-eventos.html">Gestionar Eventos</a></li>
     <li><a href="/Centro-Deportivo/public/admin/ver-inscripciones.html">Inscripciones</a></li>
     <li><a href="/Centro-Deportivo/public/admin/gestionar-usuario.html" id="nav-gestionar-usuarios">Gestionar Usuarios</a></li>
-    <!-- <li><a href="/Centro-Deportivo/public/index.html">Ver Sitio Público</a></li> -->
+    
+    <li class="mobile-logout">
+        <a href="#" id="btnCerrarSesionMovil">Salir</a>
+    </li>
   </ul>
 </nav>

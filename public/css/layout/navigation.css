@@ -45,6 +45,29 @@
     display: none;
 }
 
+.main-nav .mobile-logout {
+    display: none;
+}
+
+.user-profile-mobile {
+    display: none;
+}
+
+.nav-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+}
+
+.nav-overlay.active {
+    display: block;
+}
+
 /* MÓVIL - MENÚ COMPACTO */
 @media (max-width: 845px) {
     .main-nav {
@@ -61,6 +84,16 @@
         transition: right 0.3s ease;
         box-shadow: -5px 3px 15px rgba(0, 0, 0, 0.5);
         overflow: visible;
+    }
+
+    .main-nav .mobile-logout {
+        display: block;
+        border-top: none; /* Separador visual */
+        margin-top: none;
+    }
+
+    .main-nav .mobile-logout a {
+        color: var(--color-dorado-uabc) !important; /* Color dorado para resaltar */
     }
 
     .main-nav.active {
@@ -106,22 +139,52 @@
         background-color: rgba(255, 255, 255, 0.15);
         color: var(--color-dorado-uabc);
     }
+
+    .user-profile-mobile {
+        display: flex !important; /* Flex para alinear icono y texto */
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.15); /* Fondo un poco más oscuro */
+        padding: 20px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--color-dorado-uabc);
+    }
+
+    .mobile-user-icon {
+        background: var(--color-dorado-uabc);
+        color: var(--color-verde-uabc);
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+    }
+
+    .mobile-user-data {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mobile-welcome {
+        font-size: 1.1rem;
+        color: var(--color-blanco);
+        margin-bottom: 2px;
+    }
+    
+    .mobile-welcome span {
+        font-weight: bold;
+    }
+
+    .mobile-role {
+        font-size: 0.85rem;
+        color: var(--color-dorado-uabc);
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
 }
 
-.nav-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    z-index: 999;
-}
-
-.nav-overlay.active {
-    display: block;
-}
 
 @media (min-width: 846px) {
     .nav-overlay {
