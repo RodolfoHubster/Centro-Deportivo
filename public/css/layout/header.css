@@ -63,34 +63,85 @@
   white-space: nowrap;
 }
 
-/* --- Logout / Admin Link --- */
+/* public/css/layout/header.css */
+
+/* Contenedor principal del botón */
 .main-header .logout {
-  min-width: 60px;
-  text-align: right;
-  flex-shrink: 0;
+  min-width: auto;
+  display: flex;
+  align-items: center;
 }
 
-.main-header .logout a {
+/* Estilo para el enlace (Solo en el header público) */
+.main-header .logout a.header-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espacio entre texto e icono */
   color: var(--color-blanco);
   text-decoration: none;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+/* Estilo para el div (Solo en el header admin que no tiene <a>) */
+.main-header .logout:not(:has(a)) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Texto */
+.main-header .logout .logout-text {
   font-weight: bold;
-  transition: color 0.3s;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-.main-header .logout a:hover {
+/* Iconos SVG */
+.main-header .logout svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* Efecto Hover General */
+.main-header .logout:hover a.header-btn,
+.main-header .logout:hover {
   color: var(--color-dorado-uabc);
-}
-
-.main-header .logout i {
-  font-size: 1.5rem;
+  transform: translateX(3px); /* Pequeño movimiento a la derecha */
   cursor: pointer;
-  display: inline-block;
-  transition: color 0.3s;
-  color: var(--color-blanco);
 }
 
-.main-header .logout i:hover {
-  color: var(--color-dorado-uabc);
+/* --- Logout / Admin Link --- */
+.main-header .logout {
+  display: flex;            /* Alineación flexible */
+  align-items: center;      /* Centrado vertical */
+  gap: 8px;                 /* Espacio entre texto e icono */
+  cursor: pointer;
+  color: var(--color-blanco);
+  transition: color 0.3s ease, transform 0.2s ease;
+  min-width: auto;          /* Ajuste automático */
+}
+
+/* Texto del botón */
+.main-header .logout .logout-text {
+  font-weight: bold;
+  font-size: 1rem;
+  text-transform: uppercase; /* Opcional: para que se vea más como botón */
+  letter-spacing: 0.5px;
+}
+
+/* Icono SVG */
+.main-header .logout svg {
+  width: 22px;              /* Tamaño del icono */
+  height: 22px;
+  display: block;
+}
+
+/* Efecto Hover (Al pasar el mouse) */
+.main-header .logout:hover {
+  color: var(--color-dorado-uabc); /* Cambia a dorado */
+  transform: translateX(3px);      /* Pequeño movimiento a la derecha indicando salida */
 }
 
 /* --- Botón Hamburguesa --- */
