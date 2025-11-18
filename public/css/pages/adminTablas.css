@@ -77,3 +77,45 @@
     margin-left: 5px;
     text-transform: uppercase;
 }
+
+/* === BOTONES DE REPORTE (Excel/PDF) === */
+.btn-reporte {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-reporte svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-reporte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    opacity: 0.95;
+}
+
+/* Color específico para Excel (Verde) */
+.btn-excel {
+    background-color: #28a745; 
+    /* Opcional: Gradiente */
+    background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
+}
+
+/* Color específico para PDF (Rojo) */
+.btn-pdf {
+    background-color: #dc3545;
+    /* Opcional: Gradiente */
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+}

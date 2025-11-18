@@ -621,29 +621,32 @@ function mostrarToast(mensaje, tipo = 'success') {
 /**
  * Muestra el formulario para registrar un equipo completo.
  */
+/**
+ * Muestra el formulario para registrar un equipo completo.
+ * VERSIÓN CORREGIDA: RESPONSIVE (Móvil Friendly)
+ */
 function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, maxIntegrantes = 0) {
-    // DECLARAR LAS VARIABLES AQUÍ DENTRO DE LA FUNCIÓN
-    let contadorIntegrantes = 0; // Contador local para este formulario
+    let contadorIntegrantes = 0; 
     
-    // Evita modales duplicados
     const modalExistente = document.getElementById('modal-inscripcion-equipo');
     if(modalExistente) modalExistente.remove();
 
     const modal = document.createElement('div');
     modal.id = 'modal-inscripcion-equipo';
+    // CAMBIO 1: align-items: flex-start y padding-top para permitir scroll natural en móvil
     modal.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center;
-        align-items: flex-start;
-        z-index: 10000; overflow-y: auto; padding: 20px; animation: fadeIn 0.3s ease;
+        align-items: flex-start; 
+        z-index: 10000; overflow-y: auto; padding: 20px 10px; animation: fadeIn 0.3s ease;
     `;
     
-    // Construir el texto del máximo de forma segura
     const maxTexto = maxIntegrantes > 0 ? `/ ${maxIntegrantes}` : '(Sin límite)';
     
-    // minIntegrantes aquí está recibiendo "2" desde la tarjeta.
+    // CAMBIO 2: Quitamos 'max-height' y 'overflow-y' del contenedor blanco.
+    // Usamos clases CSS para manejar el padding y el ancho responsivo.
     modal.innerHTML = `
-        <div style="background: white; padding: 40px; border-radius: 16px; max-width: 900px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 95vh; overflow-y: auto; position: relative;">
+        <div class="modal-contenido-responsive" style="background: white; border-radius: 16px; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; position: relative;">
             
             <button type="button" class="btnCerrarXEquipo" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
@@ -653,10 +656,10 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             </button>
 
             <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Registro de Equipo</h2>
-                <p style="color: #666; margin: 0 0 15px 0; font-size: 15px;">Inscribe a tu equipo (${minIntegrantes} - ${maxIntegrantes > 0 ? maxIntegrantes : 'Sin límite'} integrantes)</p>
-                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 15px 20px; border-radius: 10px; border-left: 4px solid #00843D;">
-                    <p style="margin: 0; color: #003366; font-weight: 600; font-size: 16px;">
+                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Registro de Equipo</h2>
+                <p style="color: #666; margin: 0 0 15px 0; font-size: 14px;">Inscribe a tu equipo (${minIntegrantes} - ${maxIntegrantes > 0 ? maxIntegrantes : 'Sin límite'} integrantes)</p>
+                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 15px; border-radius: 10px; border-left: 4px solid #00843D;">
+                    <p style="margin: 0; color: #003366; font-weight: 600; font-size: 15px;">
                         Evento: <span style="color: #00843D;">${nombreEvento || 'No especificado'}</span>
                     </p>
                 </div>
@@ -670,28 +673,28 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                         Nombre del Equipo <span style="color: #dc3545;">*</span>
                     </label>
                     <input type="text" name="nombre_equipo" required class="form-input"
-                            style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px;">
+                            style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
                 </div>
 
                 <div id="integrantes-container"></div>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                <div class="acciones-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px;">
                     <button type="button" id="btnAgregarIntegrante" 
-                            style="padding: 12px 20px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            style="padding: 12px 20px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; flex-grow: 1;">
                         + Añadir Integrante
                     </button>
-                    <p style="margin: 0; font-weight: 600; color: #003366; font-size: 16px;">
+                    <p style="margin: 0; font-weight: 600; color: #003366; font-size: 16px; white-space: nowrap;">
                         Total: <span id="contador-integrantes">0</span> ${maxTexto}
                     </p>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <div class="grid-botones-finales" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
                     <button type="button" id="btnCerrarModalEquipo" 
-                            style="padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            style="padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%;">
                         Cancelar
                     </button>
                     <button type="submit" id="btnSubmitEquipo"
-                            style="padding: 15px; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            style="padding: 15px; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%;">
                         Registrar Equipo
                     </button>
                 </div>
@@ -701,7 +704,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     
     document.body.appendChild(modal);
 
-    // Añadir estilos
+    // CAMBIO 3: ESTILOS DINÁMICOS Y MEDIA QUERIES
     if (!document.getElementById('estilos-inscripcion-dinamicos')) {
         const style = document.createElement('style');
         style.id = 'estilos-inscripcion-dinamicos';
@@ -709,35 +712,43 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             
-            .btnCerrarXEquipo:hover {
-                background: #f3f4f6 !important;
-                color: #dc3545 !important;
+            /* Estilos base */
+            .modal-contenido-responsive { padding: 40px; width: 100%; max-width: 900px; }
+            .grid-responsive { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+            .grid-botones-finales { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+            .radio-group-responsive { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+            /* === MEDIA QUERY PARA MÓVIL === */
+            @media (max-width: 600px) {
+                .modal-contenido-responsive { padding: 20px; } /* Menos padding */
+                .grid-responsive { grid-template-columns: 1fr; } /* 1 sola columna */
+                .grid-botones-finales { grid-template-columns: 1fr; } /* Botones apilados */
+                .radio-group-responsive { grid-template-columns: 1fr; } /* Radios apilados */
+                
+                /* Ajuste inputs */
+                .form-input { font-size: 16px !important; } /* Evita zoom en iPhone */
             }
+
+            .btnCerrarXEquipo:hover { background: #f3f4f6 !important; color: #dc3545 !important; }
             .radio-option input[type="radio"]:checked + span { color: #00843D; font-weight: 600; }
             .radio-option:has(input[type="radio"]:checked) { border-color: #00843D !important; background: #f1f8f4 !important; }
             .form-input:focus { outline: none; border-color: #00843D !important; box-shadow: 0 0 0 3px rgba(0, 132, 61, 0.1) !important; }
             .form-input:invalid:not(:placeholder-shown) { border-color: #dc3545 !important; }
             .form-input:valid:not(:placeholder-shown) { border-color: #28a745 !important; }
-            .radio-option {
-                display: flex; align-items: center; cursor: pointer; padding: 10px; 
-                background: white; border-radius: 8px; border: 2px solid #e0e0e0; 
-                font-size: 14px; transition: all 0.2s;
-            }
-            .radio-option input[type="radio"] {
-                margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #00843D;
-            }
+            .radio-option { display: flex; align-items: center; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; transition: all 0.2s; }
+            .radio-option input[type="radio"] { margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #00843D; }
         `;
         document.head.appendChild(style);
     }
 
-    // --- Función interna para agregar integrantes ---
+    // --- FUNCIÓN INTERNA MODIFICADA PARA USAR GRID RESPONSIVE ---
     function agregarIntegranteInterno(esCapitan = false) {
         const container = document.getElementById('integrantes-container');
         const index = contadorIntegrantes;
         
         const divIntegrante = document.createElement('div');
         divIntegrante.className = 'integrante-card';
-        divIntegrante.style.cssText = 'border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #fdfdfd;';
+        divIntegrante.style.cssText = 'border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #fdfdfd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
         
         const titulo = esCapitan ? 'Integrante 1 (Capitán del Equipo)' : `Integrante ${index + 1}`;
         const nombreMatricula = esCapitan ? 'capitan_matricula' : `integrantes[${index}][matricula]`;
@@ -756,15 +767,15 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
 
         divIntegrante.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: #00843D;">${titulo}</h3>
-                ${!esCapitan ? '<button type="button" class="btn-quitar-integrante" style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer;">Quitar</button>' : ''}
+                <h3 style="margin: 0; color: #00843D; font-size: 18px;">${titulo}</h3>
+                ${!esCapitan ? '<button type="button" class="btn-quitar-integrante" style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 12px;">✕ Quitar</button>' : ''}
             </div>
             
             ${hiddenFieldsCapitan}
 
             <div style="background: #f4f8f4; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #003366; font-size: 14px;">Tipo de Participante <span style="color: #dc3545;">*</span></label>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <div class="radio-group-responsive">
                     <label class="radio-option">
                         <input type="radio" name="${nombreBase}[tipo_participante]" value="Estudiante" checked> Estudiante
                     </label>
@@ -777,31 +788,32 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="grid-responsive">
                 <div>
                     <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Apellido Paterno <span style="color: #dc3545;">*</span></label>
-                    <input type="text" name="${nombreBase}[apellido_paterno]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                    <input type="text" name="${nombreBase}[apellido_paterno]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Apellido Materno <span style="color: #dc3545;">*</span></label>
-                    <input type="text" name="${nombreBase}[apellido_materno]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                    <input type="text" name="${nombreBase}[apellido_materno]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
                 </div>
             </div>
+
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Nombre(s) <span style="color: #dc3545;">*</span></label>
-                <input type="text" name="${nombreBase}[nombres]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                <input type="text" name="${nombreBase}[nombres]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="grid-responsive">
                 <div class="matricula-container-equipo">
                     <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">
                         <span class="label-matricula">Matrícula</span> <span style="color: #dc3545;" class="required-matricula">*</span>
                     </label>
-                    <input type="text" name="${nombreMatricula}" required class="form-input input-matricula" pattern="[0-9]{6,10}" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                    <input type="text" name="${nombreMatricula}" required class="form-input input-matricula" pattern="[0-9]{6,10}" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Género <span style="color: #dc3545;">*</span></label>
-                    <select name="${nombreBase}[genero]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                    <select name="${nombreBase}[genero]" required class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; box-sizing: border-box;">
                         <option value="">Selecciona</option>
                         <option value="Hombre">Hombre</option>
                         <option value="Mujer">Mujer</option>
@@ -811,14 +823,14 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
 
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Correo Electrónico UABC <span style="color: #dc3545;">*</span></label>
-                <input type="email" name="${nombreBase}[correo]" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                <input type="email" name="${nombreBase}[correo]" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
             </div>
 
             <div class="facultad-container-equipo" style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">
                     <span class="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" class="required-facultad">*</span>
                 </label>
-                <select name="${nombreBase}[facultad]" required class="form-input select-facultad" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                <select name="${nombreBase}[facultad]" required class="form-input select-facultad" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; box-sizing: border-box;">
                     <option value="">Cargando facultades...</option>
                 </select>
             </div>
@@ -826,7 +838,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">
                     <span class="label-carrera">Carrera</span> <span style="color: #dc3545;" class="required-carrera">*</span>
                 </label>
-                <select name="${nombreBase}[carrera_id]" required class="form-input select-carrera" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                <select name="${nombreBase}[carrera_id]" required class="form-input select-carrera" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; box-sizing: border-box;">
                     <option value="">Selecciona primero una facultad</option>
                 </select>
             </div>
@@ -836,18 +848,16 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         contadorIntegrantes++;
         document.getElementById('contador-integrantes').textContent = contadorIntegrantes;
 
-        // Quitar integrante
+        // Re-asociar eventos (Quitar, Cargar Facultades, etc)
         divIntegrante.querySelector('.btn-quitar-integrante')?.addEventListener('click', function() {
             divIntegrante.remove();
             contadorIntegrantes--;
             document.getElementById('contador-integrantes').textContent = contadorIntegrantes;
         });
 
-        // Cargar facultades
         const selectFacultad = divIntegrante.querySelector('.select-facultad');
         cargarFacultadesEquipo(selectFacultad);
 
-        // Cargar carreras
         const selectCarrera = divIntegrante.querySelector('.select-carrera');
         selectFacultad.addEventListener('change', (e) => {
             const facultadId = e.target.value;
@@ -858,7 +868,6 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             }
         });
 
-        // Tipo de participante
         divIntegrante.querySelectorAll('input[name*="[tipo_participante]"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 actualizarCamposEquipo(this.value, divIntegrante);
@@ -867,7 +876,6 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         
         actualizarCamposEquipo('Estudiante', divIntegrante);
 
-        // Si es capitán, duplicar datos
         if (esCapitan) {
             adjuntarListenersCapitan(divIntegrante);
         }
@@ -876,7 +884,6 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     // Añadir el primer integrante (Capitán)
     agregarIntegranteInterno(true);
 
-    // Listener para añadir más integrantes
     document.getElementById('btnAgregarIntegrante').addEventListener('click', () => {
         if (maxIntegrantes > 0 && contadorIntegrantes >= maxIntegrantes) {
             mostrarToast(`Se ha alcanzado el límite de ${maxIntegrantes} integrantes`, 'error');
@@ -885,14 +892,12 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         }
     });
 
-    // Cerrar modal
     document.getElementById('btnCerrarModalEquipo').addEventListener('click', () => modal.remove());
     modal.querySelector('.btnCerrarXEquipo').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
     });
 
-    // Enviar formulario
     document.getElementById('formInscripcionEquipo').addEventListener('submit', (e) => {
         e.preventDefault();
         

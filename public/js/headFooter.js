@@ -1,3 +1,5 @@
+// public/js/headFooter.js
+
 // 1. Definimos las variables al principio para que sean accesibles en todo el archivo
 const isAdminPage = window.location.pathname.includes('/admin/');
 
@@ -31,14 +33,39 @@ if (headerPlaceholder) {
                 ajustarTituloAdminHeader();
                 // Verifica el rol para ocultar/mostrar elementos
                 verificarRolParaNavegacion();
-                const btnLogout = document.querySelector('#header-placeholder #btnCerrarSesion');
-                
-                if (btnLogout) {
-                    // OJO: No ejecutamos la función aquí con (), solo pasamos la referencia
-                    btnLogout.addEventListener('click', cerrarSesionAdmin);
-                } else {
-                    console.warn("Botón de cerrar sesión (#btnCerrarSesion) no encontrado.");
+
+                // --- LÓGICA DE CERRAR SESIÓN (ACTUALIZADA) ---
+                // Manejamos ambos botones: escritorio y móvil
+
+                // 1. Botón del Header (Icono escritorio)
+                const btnLogoutHeader = document.getElementById('btnCerrarSesion');
+                if (btnLogoutHeader) {
+                    btnLogoutHeader.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        cerrarSesionAdmin();
+                    });
                 }
+
+                // 2. Botón del Menú Hamburguesa (Texto móvil)
+                const btnLogoutMovil = document.getElementById('btnCerrarSesionMovil');
+                if (btnLogoutMovil) {
+                    btnLogoutMovil.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        // Cerramos el menú hamburguesa visualmente antes de salir
+                        const mainNav = document.querySelector('.main-nav');
+                        const toggle = document.getElementById('mobileMenuToggle');
+                        const navOverlay = document.getElementById('navOverlay');
+                        
+                        if(mainNav) mainNav.classList.remove('active');
+                        if(toggle) toggle.classList.remove('active');
+                        if(navOverlay) navOverlay.classList.remove('active');
+                        document.body.style.overflow = ''; // Restaurar scroll
+
+                        cerrarSesionAdmin();
+                    });
+                }
+                // ---------------------------------------------
             }
         })
         .catch(error => {
@@ -86,7 +113,7 @@ function ajustarTituloAdminHeader() {
         case 'ver-mensajes.html': subtitulo = "Mensajes de Contacto";break;
     }
     // También verifica el rol para el subtítulo (opcional)
-    if (currentPage === 'gestionar-usuarios.html') subtitulo = "Gestión de Usuarios";
+    if (currentPage === 'gestionar-usuario.html') subtitulo = "Gestión de Usuarios";
     h1.textContent = tituloPrincipal;
     p.textContent = subtitulo;
 }
@@ -116,7 +143,6 @@ function verificarRolParaNavegacion() {
 
 function cerrarSesionAdmin() {
     if (confirm('¿Estás seguro de cerrar sesión?')) {
-        // AHORA SÍ FUNCIONARÁ: cerrarSesionPHP ya es accesible aquí
         fetch(cerrarSesionPHP) 
             .then(response => response.json())
             .then(data => {
@@ -124,23 +150,21 @@ function cerrarSesionAdmin() {
                     localStorage.removeItem('usuarioLogeado'); 
                     window.location.href = loginPageURL; 
                 } else {
-                     // Fallback por si el servidor responde pero no success
+                    // Fallback por si el servidor responde pero no success
                     localStorage.removeItem('usuarioLogeado'); 
                     window.location.href = loginPageURL;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                 // Forzar salida incluso si falla el PHP para que no se quede pegado el usuario
+                // Forzar salida incluso si falla el PHP para que no se quede pegado el usuario
                 localStorage.removeItem('usuarioLogeado');
                 window.location.href = loginPageURL; 
             });
      }
 }
 
-// Al final de headFooter.js
-
-// Crear overlay para cerrar el menú
+// Crear overlay para cerrar el menú (si no existe ya en el HTML)
 const overlay = document.createElement('div');
 overlay.className = 'nav-overlay';
 overlay.id = 'navOverlay';
@@ -189,3 +213,44 @@ setTimeout(function() {
         });
     }
 }, 100);
+
+/**
+ * Verifica el rol, oculta elementos y MUESTRA DATOS DEL USUARIO EN EL HEADER.
+ */
+function verificarRolParaNavegacion() {
+    const verificarSesionURL = cerrarSesionPHP.replace('cerrarSesion.php', 'verificarSesion.php');
+
+    fetch(verificarSesionURL)
+        .then(response => response.json())
+        .then(data => {
+            if (data.loggedin) {
+                
+                // 1. Obtener elementos del DOM
+                const deskNombre = document.getElementById('deskUserNombre');
+                const deskRol = document.getElementById('deskUserRol');
+                const movilNombre = document.getElementById('movilUserNombre');
+                const movilRol = document.getElementById('movilUserRol');
+
+                // 2. Formatear Nombre (Solo primer nombre para que no ocupe mucho)
+                const nombreCompleto = data.nombre || "Usuario";
+                const primerNombre = nombreCompleto.split(' ')[0]; 
+
+                // 3. Inyectar en Escritorio
+                if(deskNombre) deskNombre.textContent = primerNombre;
+                if(deskRol) deskRol.textContent = data.rol;
+
+                // 4. Inyectar en Móvil
+                if(movilNombre) movilNombre.textContent = primerNombre;
+                if(movilRol) movilRol.textContent = data.rol;
+
+                // 5. Lógica de permisos (Ocultar menú usuarios si no es admin)
+                if (data.rol !== 'Administrador') {
+                    const navGestionarUsuarios = document.getElementById('nav-gestionar-usuarios');
+                    if (navGestionarUsuarios) {
+                        navGestionarUsuarios.style.display = 'none';
+                    }
+                }
+            }
+        })
+        .catch(error => console.error("Error al verificar sesión y datos:", error));
+}
