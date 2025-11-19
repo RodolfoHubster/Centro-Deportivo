@@ -249,6 +249,11 @@ function verificarRolParaNavegacion() {
                     if (navGestionarUsuarios) {
                         navGestionarUsuarios.style.display = 'none';
                     }
+                    // NUEVO: Ocultar Gestión de Periodos
+                    const navGestionarPeriodos = document.getElementById('nav-gestionar-periodos');
+                    if (navGestionarPeriodos) {
+                        navGestionarPeriodos.style.display = 'none';
+                    }
                 }
             }
         })
