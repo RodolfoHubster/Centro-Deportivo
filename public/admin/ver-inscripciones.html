@@ -36,6 +36,7 @@
             <option value="">Todos</option>
             <option value="Hombre">Hombre</option>
             <option value="Mujer">Mujer</option>
+            <option value="Prefiero no decirlo">Prefiero no decirlo</option>
           </select>
         </div>
 
@@ -74,6 +75,10 @@
       <div style="background: linear-gradient(135deg, #dc3545, #bd2130); color: white; padding: 20px; border-radius: 8px; text-align: center;">
         <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-mujeres">0</h3>
         <p style="margin: 0; font-size: 14px; color: white;"><strong>Mujeres</strong></p>
+      </div>
+      <div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+        <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="total-otros">0</h3>
+        <p style="margin: 0; font-size: 14px; color: white;"><strong>Otros</strong></p>
       </div>
       <div style="background: linear-gradient(135deg, #ffc107, #e0a800); color: white; padding: 20px; border-radius: 8px; text-align: center;">
         <h3 style="margin: 0 0 5px 0; font-size: 32px; font-weight: bold;" id="mostrando">0</h3>
@@ -251,6 +256,8 @@
       document.getElementById('total-hombres').textContent = stats.por_genero?.Hombre || 0;
       document.getElementById('total-mujeres').textContent = stats.por_genero?.Mujer || 0;
       document.getElementById('mostrando').textContent = stats.mostrando || 0;
+      const totalOtros = stats.por_genero ? (stats.por_genero['Prefiero no decirlo'] || 0) : 0;
+      document.getElementById('total-otros').textContent = totalOtros;
     }
 
     function formatearFechaHora(fecha) {
@@ -314,7 +321,8 @@
         mostrando: inscripcionesFiltradas.length,
         por_genero: {
           Hombre: inscripcionesFiltradas.filter(i => i.genero === 'Hombre').length,
-          Mujer: inscripcionesFiltradas.filter(i => i.genero === 'Mujer').length
+          Mujer: inscripcionesFiltradas.filter(i => i.genero === 'Mujer').length,
+          'Prefiero no decirlo': inscripcionesFiltradas.filter(i => i.genero === 'Prefiero no decirlo').length
         }
       };
       actualizarEstadisticas(statsLocales);

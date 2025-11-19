@@ -290,6 +290,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                             <option value="">Selecciona</option>
                             <option value="Hombre">Hombre</option>
                             <option value="Mujer">Mujer</option>
+                            <option value="Prefiero no decirlo">Prefiero no decirlo</option>
                         </select>
                     </div>
                 </div>
@@ -817,6 +818,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                         <option value="">Selecciona</option>
                         <option value="Hombre">Hombre</option>
                         <option value="Mujer">Mujer</option>
+                        <option value="Prefiero no decirlo">Prefiero no decirlo</option>
                     </select>
                 </div>
             </div>

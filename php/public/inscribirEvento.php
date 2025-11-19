@@ -94,7 +94,7 @@ try {
         throw new Exception('Debes usar tu correo institucional de UABC (@uabc.mx o @uabc.edu.mx)');
     }
     
-    $generos_validos = ['Hombre', 'Mujer'];
+    $generos_validos = ['Hombre', 'Mujer','Prefiero no decirlo'];
     if (!in_array($genero, $generos_validos)) {
         throw new Exception('Género inválido');
     }

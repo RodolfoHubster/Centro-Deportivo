@@ -14,6 +14,7 @@ let modoEdicion = false;
 let eventoEditandoId = null;
 let usuarioId = null; // Guardará el ID del admin/promotor logueado
 let todosLosEventos = []; // <--- VARIABLE PARA GUARDAR EVENTOS Y FILTRAR
+let periodoActivoGlobal = null;
 
 // 3. --- INICIALIZACIÓN DE LA PÁGINA ---
 // Se ejecuta cuando el HTML está listo.
@@ -37,15 +38,23 @@ async function inicializarPaginaGestionEventos() {
     // Carga todos los datos necesarios en paralelo para más rapidez
     try {
         mostrarMensaje('Cargando datos iniciales...', 'success'); // Muestra mensaje temporal
-        const [campus, actividades, facultades, eventos] = await Promise.all([
+        const [campus, actividades, facultades, eventos,periodoObj] = await Promise.all([
             api.cargarCampus(),
             api.cargarActividades(),
             api.cargarFacultades(),
-            api.cargarEventos()
+            api.cargarEventos(),
+            api.obtenerPeriodoActivo()
         ]);
 
         // Guardar todos los eventos en la variable global
         todosLosEventos = eventos;
+        
+        // Guardamos el nombre del periodo activo
+        if (periodoObj) {
+            periodoActivoGlobal = periodoObj.nombre;
+        } else {
+            periodoActivoGlobal = "N/A";
+        }
 
         // Una vez cargados, usa las funciones de UI para mostrarlos
         // Poblar selects del MODAL
@@ -123,7 +132,7 @@ function configurarListenersEventos() {
 function handleNuevoEventoClick() {
     modoEdicion = false;
     eventoEditandoId = null;
-    ui.prepararModalParaCrear();
+    ui.prepararModalParaCrear(periodoActivoGlobal);
 }
 
 /**
@@ -150,7 +159,7 @@ async function handleListaEventosClick(e) {
             
             modoEdicion = true; // Cambia el estado global
             eventoEditandoId = id;
-            ui.poblarFormularioParaEditar(evento); // Llama a la UI para llenar el form
+            ui.poblarFormularioParaEditar(evento,periodoActivoGlobal); // Llama a la UI para llenar el form
             document.getElementById('modalEvento').style.display = 'block'; // Muestra el modal
             document.getElementById('mensaje-respuesta').style.display = 'none'; // Oculta mensaje
         } catch (error) {
