@@ -69,7 +69,15 @@ try {
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
     $campus_id = isset($_POST['campus_id']) && !empty($_POST['campus_id']) ? intval($_POST['campus_id']) : 1;
     $id_promotor = intval($_POST['id_promotor']);
-    $periodo = isset($_POST['periodo']) ? mysqli_real_escape_string($conexion, trim($_POST['periodo'])) : '';
+    
+    $sqlP = "SELECT nombre FROM periodos WHERE activo = 1 LIMIT 1";
+    $resP = mysqli_query($conexion, $sqlP);
+    $filaP = mysqli_fetch_assoc($resP);
+    
+    if (!$filaP) {
+        throw new Exception('No hay un periodo activo configurado en el sistema.');
+    }
+    $periodo = $filaP['nombre']; // Sobreescribimos cualquier input del usuario
     
     // 'actividad' es el ID de la actividad opcional
     $id_actividad = isset($_POST['actividad']) && !empty($_POST['actividad']) ? intval($_POST['actividad']) : null;

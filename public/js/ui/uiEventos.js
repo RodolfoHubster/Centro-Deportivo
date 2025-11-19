@@ -293,3 +293,20 @@ export function mostrarCamposEquipo(tipoRegistro) {
         maxInput.value = '';
     }
 }
+// Función auxiliar para obtener periodo activo
+async function obtenerPeriodoActivoParaFormulario() {
+    try {
+        const response = await fetch('../../php/admin/gestionarPeriodos.php?accion=obtener');
+        const data = await response.json();
+        const activo = data.periodos.find(p => p.activo);
+        
+        const inputDisplay = document.getElementById('evento-periodo-display');
+        if (inputDisplay) {
+            inputDisplay.value = activo ? activo.nombre : 'Sin periodo activo';
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// LLAMAR ESTA FUNCIÓN en 'prepararModalParaCrear' en gestEventos.js
