@@ -108,9 +108,10 @@ export function mostrarEventos(eventos) {
 /**
  * Rellena el formulario del modal con los datos de un evento
  * @param {object} evento - Datos del evento
+ * @param {string} periodoActivoNombre - Nombre del periodo activo (fallback)
  */
 
-export function poblarFormularioParaEditar(evento) {
+export function poblarFormularioParaEditar(evento,periodoActivoNombre) {
     document.getElementById('tituloModal').textContent = 'Editar Evento';
     document.getElementById('evento-id').value = evento.id;
     document.getElementById('evento-nombre').value = evento.nombre;
@@ -128,7 +129,9 @@ export function poblarFormularioParaEditar(evento) {
     // --- AÑADE ESTAS LÍNEAS ---
     document.getElementById('evento-integrantes-min').value = evento.integrantes_min || '';
     document.getElementById('evento-integrantes-max').value = evento.integrantes_max || '';
-
+    // Si el evento tiene periodo guardado, úsalo. Si no (es viejo/bug), usa el activo actual.
+    const periodoMostrar = evento.periodo || periodoActivoNombre || 'Sin Asignar';
+    document.getElementById('evento-periodo').value = periodoMostrar;
     // Muestra u oculta los campos según el tipo de registro del evento
     mostrarCamposEquipo(evento.tipo_registro);
     // --- FIN DE LÍNEAS AÑADIDAS ---
@@ -137,11 +140,13 @@ export function poblarFormularioParaEditar(evento) {
 
 /**
  * Resetea y prepara el modal para crear un nuevo evento.
- */
-export function prepararModalParaCrear() {
+* @param {string} periodoActivoNombre - Nombre del periodo activo para pre-llenar
+*/
+export function prepararModalParaCrear(periodoActivoNombre) {
     document.getElementById('tituloModal').textContent = 'Crear Nuevo Evento';
     document.getElementById('formEvento').reset(); //
     document.getElementById('evento-id').value = '';
+    document.getElementById('evento-periodo').value = periodoActivoNombre || 'Sin Periodo Activo';
     mostrarCamposEquipo('Individual'); // Oculta los campos por defecto
     document.querySelectorAll('input[name="facultades[]"]').forEach(cb => cb.checked = false);
     document.getElementById('modalEvento').style.display = 'block';

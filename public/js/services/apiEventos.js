@@ -135,3 +135,22 @@ export async function eliminarEvento(id) {
     });
     return await response.json();
 }
+
+/**
+ * Obtiene el periodo marcado como activo
+ * @returns {object|null} El objeto periodo o null
+ */
+export async function obtenerPeriodoActivo() {
+    try {
+        const response = await fetch('../../php/admin/gestionarPeriodos.php?accion=obtener');
+        const data = await response.json();
+        if (data.success && Array.isArray(data.periodos)) {
+            // Buscar el activo (activo == 1 o true)
+            return data.periodos.find(p => p.activo == 1 || p.activo === true);
+        }
+        return null;
+    } catch (error) {
+        console.error("Error obteniendo periodo activo:", error);
+        return null;
+    }
+}
