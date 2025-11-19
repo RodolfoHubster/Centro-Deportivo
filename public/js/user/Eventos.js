@@ -54,6 +54,8 @@ function cargarEventos(filtros = {}) {
     // Construir URL con filtros
     let url = "../php/public/obtenerEventos.php";
 
+    // Esto le dice al PHP que aplique los filtros de periodo activo y cupo lleno
+    filtros.modo = 'usuario';
     // Convertir el objeto de filtros en parámetros de URL
     const params = new URLSearchParams(filtros);
 
