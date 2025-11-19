@@ -1,0 +1,30 @@
+/* css/main.css */
+
+/* public/css/main.css */
+
+/* 1. BASE */
+@import url('base/variables.css'); /* Primero las variables */
+@import url('base/general.css');
+
+/* 2. LAYOUT */
+@import url('layout/header.css');
+@import url('layout/navigation.css');
+@import url('layout/layout.css'); /* Estilos generales de .page-content */
+@import url('layout/footer.css');
+
+/* 3. COMPONENTS */
+@import url('components/buttons.css');
+@import url('components/cards.css');
+@import url('components/forms.css');
+
+/* 4. PAGES */
+@import url('pages/login.css');
+@import url('pages/home.css');
+@import url('pages/contacto.css');
+@import url('pages/adminDashboard.css');
+@import url('pages/adminGestEventos.css');
+@import url('pages/adminTablas.css');
+@import url('pages/adminGestUsuarios.css');
+/* Puedes añadir más imports de páginas aquí si es necesario */
+/* @import url('pages/eventos.css'); */
+/*  */

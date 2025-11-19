@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto - Centro Deportivo UABC</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="page-content">
+    <h1>Contacto</h1>
+    <p>Si tienes dudas o comentarios, envianos un mensaje a traves del siguiente formulario:</p>
+
+    <!-- Mensaje de respuesta (se mostrará dinámicamente) -->
+    <div id="mensaje-respuesta" style="display: none;"></div>
+
+    <form id="formularioContacto" class="contact-form">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" name="nombre" required>
+
+      <label for="correo">Correo electrónico:</label>
+      <input type="email" id="correo" name="correo" required>
+
+      <label for="mensaje">Mensaje:</label>
+      <textarea id="mensaje" name="mensaje" rows="5" required></textarea>
+
+      <button type="submit">Enviar</button>
+    </form>
+  </main>
+  <!-- Script de contacto -->
+  <script src="../Back-End-Usuario/Contacto.js"></script>
+  <script src="../Back-End-Usuario/headFooter.js"></script>
+</body>
+  <div id="footer-placeholder"></div>
+</html>

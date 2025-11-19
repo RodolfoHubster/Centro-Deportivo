@@ -1,0 +1,121 @@
+/* public/css/pages/adminDashboard.css */
+
+/* GRID PRINCIPAL */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+/* TARJETAS DE ESTADÍSTICAS */
+.admin-stat-card {
+    color: var(--color-blanco);
+    padding: 30px;
+    border-radius: 12px; /* Bordes más suaves */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.admin-stat-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+.admin-stat-card .stat-number {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 10px 0;
+    line-height: 1;
+    color: white;
+}
+
+.admin-stat-card .stat-link {
+    color: var(--color-blanco);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+.admin-stat-card .stat-link:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* VARIANTES DE COLOR USANDO TUS VARIABLES */
+.admin-stat-card.eventos {
+    /* Gradiente basado en Verde UABC */
+    background: linear-gradient(135deg, var(--color-verde-uabc) 0%, #0eb662 100%);
+}
+
+.admin-stat-card.inscripciones {
+    /* Gradiente basado en Dorado UABC pero ajustado para texto blanco */
+    background: linear-gradient(135deg, #d4af37 0%, #b79a42 100%);
+}
+/* Para inscripciones, como el fondo es dorado, mejor texto oscuro o asegurar contraste */
+.admin-stat-card.inscripciones .stat-number,
+.admin-stat-card.inscripciones h3 {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* ACCESOS RÁPIDOS */
+.admin-quick-links {
+    margin-top: 50px;
+}
+
+.admin-quick-links h2 {
+    color: var(--color-verde-uabc);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-quick-links-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.admin-quick-link-btn {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px;
+    text-align: center;
+    color: var(--color-blanco);
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--sombra-general);
+}
+
+.admin-quick-link-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra-profunda);
+}
+
+/* Colores de botones */
+.admin-quick-link-btn.eventos {
+    background-color: var(--color-verde-uabc);
+}
+
+.admin-quick-link-btn.inscripciones {
+    background-color: #444; /* Un gris oscuro para variar */
+}

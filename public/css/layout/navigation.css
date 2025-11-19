@@ -1,0 +1,193 @@
+/* public/css/layout/navigation.css */
+
+.main-nav {
+    background: var(--color-verde-uabc);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-dorado-uabc);
+    position: fixed;
+    top: calc(var(--header-height) + var(--header-border));
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.main-nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.main-nav ul li {
+    margin: 5px 15px;
+}
+
+.main-nav ul li a {
+    color: var(--color-blanco);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: color 0.3s;
+    white-space: nowrap;
+    padding: 8px 15px;
+    display: inline-block;
+}
+
+.main-nav ul li a:hover {
+    color: var(--color-dorado-uabc);
+}
+
+.main-nav ul li.mobile-only {
+    display: none;
+}
+
+.main-nav .mobile-logout {
+    display: none;
+}
+
+.user-profile-mobile {
+    display: none;
+}
+
+.nav-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+}
+
+.nav-overlay.active {
+    display: block;
+}
+
+/* MÓVIL - MENÚ COMPACTO */
+@media (max-width: 845px) {
+    .main-nav {
+        position: fixed;
+        top: 70px;
+        left: auto;
+        right: -100%;
+        width: auto;
+        height: auto;
+        padding: 8px 0;
+        border-bottom: none;
+        border-left: 3px solid var(--color-dorado-uabc);
+        border-radius: 0 0 0 10px;
+        transition: right 0.3s ease;
+        box-shadow: -5px 3px 15px rgba(0, 0, 0, 0.5);
+        overflow: visible;
+    }
+
+    .main-nav .mobile-logout {
+        display: block;
+        border-top: none; /* Separador visual */
+        margin-top: none;
+    }
+
+    .main-nav .mobile-logout a {
+        color: var(--color-dorado-uabc) !important; /* Color dorado para resaltar */
+    }
+
+    .main-nav.active {
+        right: 0;
+    }
+
+    .main-nav ul {
+        flex-direction: column;
+        gap: 0;
+        padding: 0;
+        margin: 0;
+    }
+
+    .main-nav ul li {
+        margin: 0;
+        width: 100%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .main-nav ul li:first-child {
+        border-top: none;
+    }
+
+    .main-nav ul li:last-child {
+        border-bottom: none;
+    }
+
+    .main-nav ul li.mobile-only {
+        display: block;
+    }
+
+    .main-nav ul li a {
+        display: block;
+        padding: 18px 30px;
+        width: 100%;
+        text-align: left;
+        font-size: 1rem;
+        white-space: nowrap;
+        transition: background-color 0.3s ease;
+    }
+
+    .main-nav ul li a:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: var(--color-dorado-uabc);
+    }
+
+    .user-profile-mobile {
+        display: flex !important; /* Flex para alinear icono y texto */
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.15); /* Fondo un poco más oscuro */
+        padding: 20px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--color-dorado-uabc);
+    }
+
+    .mobile-user-icon {
+        background: var(--color-dorado-uabc);
+        color: var(--color-verde-uabc);
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+    }
+
+    .mobile-user-data {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mobile-welcome {
+        font-size: 1.1rem;
+        color: var(--color-blanco);
+        margin-bottom: 2px;
+    }
+    
+    .mobile-welcome span {
+        font-weight: bold;
+    }
+
+    .mobile-role {
+        font-size: 0.85rem;
+        color: var(--color-dorado-uabc);
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+}
+
+
+@media (min-width: 846px) {
+    .nav-overlay {
+        display: none !important;
+    }
+}

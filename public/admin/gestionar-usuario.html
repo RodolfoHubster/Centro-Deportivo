@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionar Usuarios - Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+  <main class="page-content">
+    <h1>Gestionar Usuarios</h1>
+    
+    <button id="btnNuevoUsuario">
+      Crear Nuevo Usuario
+    </button>
+
+    <div id="mensaje-respuesta" style="display: none;"></div>
+
+    <div id="lista-usuarios" style="margin-top: 20px;">
+      <p style="text-align: center;">Cargando usuarios...</p>
+    </div>
+  </main>
+
+  <div id="modalUsuario">
+    <div class="admin-modal-contenido">
+      
+      <button type="button" id="btnCerrarModalX" style="position: absolute; background: transparent; border: none; cursor: pointer;">&times;</button>
+      
+      <h2 id="tituloModal">Crear Nuevo Usuario</h2>
+      
+      <form id="formUsuario">
+        <input type="hidden" id="usuario-id" name="id">
+        
+        <div class="form-section">
+          <h3>Datos Personales</h3>
+          
+          <div class="form-grid-2">
+              <div class="form-group">
+                <label for="usuario-nombre">Nombre(s) <span class="required">*</span></label>
+                <input type="text" id="usuario-nombre" name="nombre" required placeholder="Ej. Juan Antonio">
+              </div>
+              <div class="form-group">
+                <label for="usuario-paterno">Apellido Paterno <span class="required">*</span></label>
+                <input type="text" id="usuario-paterno" name="apellido_paterno" required placeholder="Ej. Pérez">
+              </div>
+          </div>
+
+          <div class="form-group">
+            <label for="usuario-materno">Apellido Materno</label>
+            <input type="text" id="usuario-materno" name="apellido_materno" placeholder="Ej. López">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Cuenta y Acceso</h3>
+          
+          <div class="form-grid-2">
+              <div class="form-group">
+                <label for="usuario-matricula">Matrícula / N. Empleado <span class="required">*</span></label>
+                <input type="text" id="usuario-matricula" name="matricula" required placeholder="Ej. 123456">
+              </div>
+              <div class="form-group">
+                <label for="usuario-rol">Rol de Usuario <span class="required">*</span></label>
+                <select id="usuario-rol" name="rol" required>
+                  <option value="">Selecciona un rol...</option>
+                  <option value="Promotor">Promotor Deportivo</option>
+                  <option value="Administrador">Administrador</option>
+                </select>
+              </div>
+          </div>
+
+          <div class="form-grid-2">
+              <div class="form-group">
+                <label for="usuario-correo">Correo Institucional <span class="required">*</span></label>
+                <input type="email" id="usuario-correo" name="correo" required placeholder="usuario@uabc.edu.mx">
+              </div>
+              <div class="form-group">
+                <label for="usuario-password">Contraseña <span id="password-required" class="required">*</span></label>
+                <input type="password" id="usuario-password" name="contrasena" placeholder="••••••••">
+                <p class="help-text">Mínimo 8 caracteres. Dejar vacío para no cambiar.</p>
+              </div>
+          </div>
+        </div>
+
+        <div class="admin-modal-botones">
+          <button type="submit" class="admin-modal-btn-guardar">Guardar Usuario</button>
+          <button type="button" id="btnCancelar" class="admin-modal-btn-cancelar">Cancelar</button>
+        </div>
+
+        <div id="danger-zone" style="display: none;">
+            <p><strong>Zona de Peligro:</strong> Esta acción no se puede deshacer.</p>
+            <button type="button" id="btnEliminarPermanente">
+                Eliminar Usuario Permanentemente
+            </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/admin/gestUsuarios.js" type="module"></script>
+  <script src="../js/headFooter.js"></script>
+
+</body>
+</html>

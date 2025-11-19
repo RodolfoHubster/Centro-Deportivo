@@ -1,0 +1,20 @@
+/*css\base\variables.css*/
+
+:root {
+    --color-verde-uabc: #006633;
+    --color-dorado-uabc: #f9b233;
+    --color-dorado-hover: #e5a322;
+    --color-fondo: #f4f4f4;
+    --color-texto: #333;
+    --color-blanco: #ffffff;
+    --color-gris-claro: #ccc;
+    --color-gris-oscuro: #666;
+    --color-error: #dc3545;
+    --color-exito: #28a745;
+    --sombra-general: 0 4px 8px rgba(0, 0, 0, 0.102);
+    --sombra-profunda: 0 4px 10px rgba(0 ,0 ,0 , 0.2);
+    --borde-redondeado: 10px;
+    --borde-redondo-grande: 12px;
+    --header-height: 80px;
+    --header-border: 5px;
+}
