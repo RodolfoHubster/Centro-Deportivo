@@ -1,4 +1,9 @@
 <?php
+ini_set('session.cookie_httponly', 1); // Javascript no puede leer la cookie
+ini_set('session.use_only_cookies', 1); // Fuerza uso de cookies (no ID en URL)
+ini_set('session.cookie_secure', 1);   // Solo si tienes HTTPS (Recomendado)
+ini_set('session.cookie_samesite', 'Strict'); // Protege contra CSRF
+
 
 /**
  * Archivo de Conexion a la Base de Datos

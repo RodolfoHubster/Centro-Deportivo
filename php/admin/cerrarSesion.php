@@ -8,8 +8,9 @@ header('Access-Control-Allow-Credentials: true');
 $_SESSION = array();
 
 // Destruir la cookie de sesion
-if (isset($_COOKIE[session_name()])) {
-    setcookie(session_name(), '', time()-3600, '/');
+if (isset($_SESSION['user_id'])) {
+    $sql = "UPDATE usuario SET token_sesion = NULL WHERE id = " . intval($_SESSION['user_id']);
+    mysqli_query($conexion, $sql);
 }
 
 // Destruir la sesion
