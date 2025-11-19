@@ -30,7 +30,9 @@ try {
                 es_tronco_comun,
                 area_tronco_comun,
                 evento_nombre,
-                fecha_inscripcion
+                fecha_inscripcion,
+                equipo_id,
+                es_capitan
             FROM v_inscripciones_completas";
     
     $whereConditions = [];
@@ -92,7 +94,8 @@ try {
         $sql .= " WHERE " . implode(" AND ", $whereConditions);
     }
     
-    $sql .= " ORDER BY fecha_inscripcion DESC";
+    // Ordenamiento: Por evento, por equipo, CAPITÁN PRIMERO, y alfabético por nombre
+    $sql .= " ORDER BY evento_id ASC, equipo_id ASC, es_capitan DESC, nombre_completo ASC";
     
     // ===================================
     // EJECUTAR CONSULTA
@@ -118,6 +121,7 @@ try {
     $datos = [];
     $total_hombres = 0;
     $total_mujeres = 0;
+    $total_otros = 0; // NUEVO: Conteo de "Prefiero no decirlo"
     
     while ($row = mysqli_fetch_assoc($resultado)) {
         if ($row['es_tronco_comun']) {
@@ -133,10 +137,70 @@ try {
         
         $datos[] = $row;
         
+        // Conteo de estadísticas
         if ($row['genero'] === 'Masculino' || $row['genero'] === 'Hombre') {
             $total_hombres++;
         } else if ($row['genero'] === 'Femenino' || $row['genero'] === 'Mujer') {
             $total_mujeres++;
+        } else if ($row['genero'] === 'Prefiero no decirlo') { // NUEVO: Conteo de 'Otros'
+            $total_otros++;
+        }
+    }
+    
+    // ===================================
+    // NUEVA LÓGICA: REPORTE POR EQUIPO (para torneos)
+    // ===================================
+    $esEventoPorEquipos = false;
+    $reporte_equipo = [];
+    
+    // Determinar si es reporte de evento Y el primer registro es de equipo
+    if ($esReporteEvento && count($datos) > 0 && !is_null($datos[0]['equipo_id'])) {
+        $esEventoPorEquipos = true;
+    }
+
+    if ($esEventoPorEquipos) {
+        $ids_equipo = [];
+        foreach ($datos as $row) {
+            if ($row['equipo_id']) {
+                $ids_equipo[] = $row['equipo_id'];
+            }
+        }
+        $ids_equipo = array_unique($ids_equipo);
+        $equipo_names = [];
+        
+        // Consultar nombres de equipos
+        if (!empty($ids_equipo)) {
+            $sqlEquipos = "SELECT id, nombre FROM equipo WHERE id IN (" . implode(',', array_fill(0, count($ids_equipo), '?')) . ")";
+            $stmtEquipos = mysqli_prepare($conexion, $sqlEquipos);
+            
+            $typesEquipos = str_repeat('i', count($ids_equipo)); 
+            
+            mysqli_stmt_bind_param($stmtEquipos, $typesEquipos, ...$ids_equipo);
+            
+            mysqli_stmt_execute($stmtEquipos);
+            $resultadoEquipos = mysqli_stmt_get_result($stmtEquipos);
+            
+            while ($eqRow = mysqli_fetch_assoc($resultadoEquipos)) {
+                $equipo_names[$eqRow['id']] = $eqRow['nombre'];
+            }
+            mysqli_stmt_close($stmtEquipos);
+        }
+
+        // Agrupar participantes por equipo
+        foreach ($datos as $row) {
+            $equipo_id = $row['equipo_id'];
+            if (!$equipo_id) continue;
+            
+            $nombre_equipo = $equipo_names[$equipo_id] ?? 'Equipo sin nombre';
+            
+            if (!isset($reporte_equipo[$equipo_id])) {
+                $reporte_equipo[$equipo_id] = [
+                    'nombre' => $nombre_equipo,
+                    'integrantes' => []
+                ];
+            }
+            
+            $reporte_equipo[$equipo_id]['integrantes'][] = $row;
         }
     }
     
@@ -272,7 +336,7 @@ try {
     $pdf->SetFillColor($color_principal[0], $color_principal[1], $color_principal[2]);
     $pdf->SetTextColor(255, 255, 255);
 
-    $colWidth = $pageWidth / 4;
+    $colWidth = $pageWidth / 5; // 5 columnas
 
     $pdf->SetX($pdf->getMargins()['left']); 
 
@@ -280,6 +344,7 @@ try {
     $pdf->Cell($colWidth, 8, 'Total Registros', 1, 0, 'C', true);
     $pdf->Cell($colWidth, 8, 'Hombres', 1, 0, 'C', true);
     $pdf->Cell($colWidth, 8, 'Mujeres', 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, 'Otros', 1, 0, 'C', true); // NUEVO
     $pdf->Cell($colWidth, 8, 'Mostrando', 1, 1, 'C', true);
 
     $pdf->SetFont('helvetica', 'B', 11);
@@ -292,6 +357,7 @@ try {
     $pdf->Cell($colWidth, 8, count($datos), 1, 0, 'C', true);
     $pdf->Cell($colWidth, 8, $total_hombres, 1, 0, 'C', true);
     $pdf->Cell($colWidth, 8, $total_mujeres, 1, 0, 'C', true);
+    $pdf->Cell($colWidth, 8, $total_otros, 1, 0, 'C', true); // NUEVO VALOR
     $pdf->Cell($colWidth, 8, count($datos), 1, 1, 'C', true);
     $pdf->Ln(5);
 
@@ -302,72 +368,154 @@ try {
     $pdf->SetFillColor($color_encabezado[0], $color_encabezado[1], $color_encabezado[2]);
     $pdf->SetTextColor(255, 255, 255);
 
-    // Definir anchos de columna
-    if ($esReporteEvento) {
-        // Sin columna de Evento
+    // Definir anchos de columna (ajustados para incluir "Nº")
+    $w_num = 10;
+    
+    if ($esReporteEvento && $esEventoPorEquipos) { 
+        // Anchos para Reporte por Equipos (7 columnas + Nº)
         $w_matricula = 25;
-        $w_nombre = 55;
-        $w_correo = 60;
+        $w_nombre = 50;
+        $w_rol = 20;
+        $w_correo = 50;
         $w_genero = 20;
         $w_tipo = 25;
-        $w_carrera = $pageWidth - ($w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo);
+        // La última columna toma el espacio restante
+        $w_carrera = $pageWidth - ($w_num + $w_matricula + $w_nombre + $w_rol + $w_correo + $w_genero + $w_tipo);
+        
+        // Skip writing headers here, they are written inside the loop
+
+    } else if ($esReporteEvento) {
+        // Anchos para Reporte Individual (no-equipo) (6 columnas + Nº)
+        $w_matricula = 25;
+        $w_nombre = 55;
+        $w_correo = 55; // Ajustado
+        $w_genero = 20;
+        $w_tipo = 25;
+        $w_carrera = $pageWidth - ($w_num + $w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo);
+        
+        $pdf->SetX($pdf->getMargins()['left']);
+        $pdf->Cell($w_num, 7, 'Nº', 1, 0, 'C', true);
+        $pdf->Cell($w_matricula, 7, 'Matrícula', 1, 0, 'C', true);
+        $pdf->Cell($w_nombre, 7, 'Nombre', 1, 0, 'C', true);
+        $pdf->Cell($w_correo, 7, 'Correo', 1, 0, 'C', true);
+        $pdf->Cell($w_genero, 7, 'Género', 1, 0, 'C', true);
+        $pdf->Cell($w_tipo, 7, 'Tipo', 1, 0, 'C', true);
+        $pdf->Cell($w_carrera, 7, 'Carrera', 1, 1, 'C', true);
     } else {
-        // Con columna de Evento
+        // Anchos para Reporte General (7 columnas + Nº)
         $w_matricula = 20;
-        $w_nombre = 50;
-        $w_correo = 55;
+        $w_nombre = 45; // Ajustado
+        $w_correo = 50; // Ajustado
         $w_genero = 18;
         $w_tipo = 25;
-        $w_carrera = 50;
-        $w_evento = $pageWidth - ($w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo + $w_carrera);
+        $w_carrera = 45; // Ajustado
+        $w_evento = $pageWidth - ($w_num + $w_matricula + $w_nombre + $w_correo + $w_genero + $w_tipo + $w_carrera);
+
+        $pdf->SetX($pdf->getMargins()['left']);
+        $pdf->Cell($w_num, 7, 'Nº', 1, 0, 'C', true);
+        $pdf->Cell($w_matricula, 7, 'Matrícula', 1, 0, 'C', true);
+        $pdf->Cell($w_nombre, 7, 'Nombre', 1, 0, 'C', true);
+        $pdf->Cell($w_correo, 7, 'Correo', 1, 0, 'C', true);
+        $pdf->Cell($w_genero, 7, 'Género', 1, 0, 'C', true);
+        $pdf->Cell($w_tipo, 7, 'Tipo', 1, 0, 'C', true);
+        $pdf->Cell($w_carrera, 7, 'Carrera', 1, 0, 'C', true);
+        $pdf->Cell($w_evento, 7, 'Evento', 1, 1, 'C', true);
     }
 
-    $pdf->SetX($pdf->getMargins()['left']);
-    
-    $pdf->Cell($w_matricula, 7, 'Matrícula', 1, 0, 'C', true);
-    $pdf->Cell($w_nombre, 7, 'Nombre', 1, 0, 'C', true);
-    $pdf->Cell($w_correo, 7, 'Correo', 1, 0, 'C', true);
-    $pdf->Cell($w_genero, 7, 'Género', 1, 0, 'C', true);
-    $pdf->Cell($w_tipo, 7, 'Tipo', 1, 0, 'C', true);
-    $pdf->Cell($w_carrera, 7, 'Carrera', 1, 0, 'C', true);
-    
-    // Solo agregar columna Evento si NO es reporte de evento específico
-    if (!$esReporteEvento) {
-        $pdf->Cell($w_evento, 7, 'Evento', 1, 1, 'C', true);
-    } else {
-        $pdf->Ln();
-    }
-    
     // Datos
     $pdf->SetFont('helvetica', '', 7);
     $pdf->SetTextColor(0, 0, 0);
     $fill = false;
+    $contador = 1;
     
-    foreach ($datos as $row) {
-        $pdf->SetX($pdf->getMargins()['left']);
-        
-        // Alternar colores de fila
-        if ($fill) {
-            $pdf->SetFillColor(245, 245, 245);
-        } else {
-            $pdf->SetFillColor(255, 255, 255);
+    if ($esEventoPorEquipos) {
+        // === DATOS PARA REPORTE POR EQUIPOS ===
+        foreach ($reporte_equipo as $equipo) {
+            
+            // 1. Fila del Equipo (Centered, Enumerated)
+            $pdf->SetX($pdf->getMargins()['left']);
+            $pdf->SetFillColor($color_fondo_claro[0], $color_fondo_claro[1], $color_fondo_claro[2]);
+            $pdf->SetFont('helvetica', 'B', 8);
+            $pdf->SetTextColor($color_principal[0], $color_principal[1], $color_principal[2]);
+            $pdf->Cell($pageWidth, 7, 'EQUIPO ' . $contador . ': ' . $equipo['nombre'], 1, 1, 'C', true);
+            $contador++; // El contador de equipos
+
+            // 2. Encabezado de Miembros del Equipo
+            $pdf->SetFont('helvetica', 'B', 8);
+            $pdf->SetFillColor($color_encabezado[0], $color_encabezado[1], $color_encabezado[2]);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetX($pdf->getMargins()['left']);
+            $pdf->Cell($w_num, 7, 'Nº', 1, 0, 'C', true);
+            $pdf->Cell($w_matricula, 7, 'Matrícula', 1, 0, 'C', true);
+            $pdf->Cell($w_nombre, 7, 'Nombre', 1, 0, 'C', true);
+            $pdf->Cell($w_rol, 7, 'Rol', 1, 0, 'C', true); 
+            $pdf->Cell($w_correo, 7, 'Correo', 1, 0, 'C', true);
+            $pdf->Cell($w_genero, 7, 'Género', 1, 0, 'C', true);
+            $pdf->Cell($w_tipo, 7, 'Tipo', 1, 0, 'C', true);
+            $pdf->Cell($w_carrera, 7, 'Carrera', 1, 1, 'C', true);
+            
+            // 3. Integrantes
+            $pdf->SetFont('helvetica', '', 7);
+            $pdf->SetTextColor(0, 0, 0);
+            $fillMember = false; // Alternating color for members
+            $subContador = 1; // Contador de miembros por equipo
+
+            foreach ($equipo['integrantes'] as $member) {
+                $pdf->SetX($pdf->getMargins()['left']);
+                
+                // Color alternado para la fila del miembro
+                if ($fillMember) {
+                    $pdf->SetFillColor(245, 245, 245);
+                } else {
+                    $pdf->SetFillColor(255, 255, 255); 
+                }
+                
+                $member_rol = $member['es_capitan'] ? 'Capitán' : 'Integrante';
+                
+                $pdf->Cell($w_num, 6, $subContador, 1, 0, 'C', true);
+                $pdf->Cell($w_matricula, 6, $member['participante_matricula'], 1, 0, 'C', true);
+                $pdf->Cell($w_nombre, 6, substr($member['nombre_completo'], 0, 40), 1, 0, 'L', true);
+                $pdf->Cell($w_rol, 6, $member_rol, 1, 0, 'C', true);
+                $pdf->Cell($w_correo, 6, substr($member['correo_institucional'], 0, 35), 1, 0, 'L', true);
+                $pdf->Cell($w_genero, 6, substr($member['genero'], 0, 10), 1, 0, 'C', true);
+                $pdf->Cell($w_tipo, 6, substr($member['tipo_participante'], 0, 15), 1, 0, 'C', true);
+                $pdf->Cell($w_carrera, 6, substr($member['carrera_display'], 0, 30), 1, 1, 'L', true);
+
+                $fillMember = !$fillMember;
+                $subContador++;
+            }
+            $pdf->Ln(2); // Small break between teams
         }
-        
-        $pdf->Cell($w_matricula, 6, $row['participante_matricula'], 1, 0, 'C', true);
-        $pdf->Cell($w_nombre, 6, substr($row['nombre_completo'], 0, 30), 1, 0, 'L', true);
-        $pdf->Cell($w_correo, 6, substr($row['correo_institucional'], 0, 35), 1, 0, 'L', true);
-        $pdf->Cell($w_genero, 6, substr($row['genero'], 0, 10), 1, 0, 'C', true);
-        $pdf->Cell($w_tipo, 6, substr($row['tipo_participante'], 0, 15), 1, 0, 'C', true);
-        $pdf->Cell($w_carrera, 6, substr($row['carrera_display'], 0, 30), 1, 0, 'L', true);
-        
-        // Solo agregar columna Evento si NO es reporte de evento específico
-        if (!$esReporteEvento) {
-            $pdf->Cell($w_evento, 6, substr($row['evento_nombre'], 0, 20), 1, 1, 'L', true);
-        } else {
-            $pdf->Ln();
+    } else {
+        // === DATOS PARA REPORTE INDIVIDUAL (Original Logic) ===
+        foreach ($datos as $row) {
+            $pdf->SetX($pdf->getMargins()['left']);
+            
+            // Alternar colores de fila
+            if ($fill) {
+                $pdf->SetFillColor(245, 245, 245);
+            } else {
+                $pdf->SetFillColor(255, 255, 255);
+            }
+            
+            $pdf->Cell($w_num, 6, $contador, 1, 0, 'C', true);
+            $pdf->Cell($w_matricula, 6, $row['participante_matricula'], 1, 0, 'C', true);
+            $pdf->Cell($w_nombre, 6, substr($row['nombre_completo'], 0, 30), 1, 0, 'L', true);
+            $pdf->Cell($w_correo, 6, substr($row['correo_institucional'], 0, 35), 1, 0, 'L', true);
+            $pdf->Cell($w_genero, 6, substr($row['genero'], 0, 10), 1, 0, 'C', true);
+            $pdf->Cell($w_tipo, 6, substr($row['tipo_participante'], 0, 15), 1, 0, 'C', true);
+            
+            // Solo agregar columna Evento si NO es reporte de evento específico
+            if (!$esReporteEvento) {
+                $pdf->Cell($w_carrera, 6, substr($row['carrera_display'], 0, 30), 1, 0, 'L', true);
+                $pdf->Cell($w_evento, 6, substr($row['evento_nombre'], 0, 20), 1, 1, 'L', true);
+            } else {
+                $pdf->Cell($w_carrera, 6, substr($row['carrera_display'], 0, 30), 1, 1, 'L', true);
+            }
+            
+            $fill = !$fill;
+            $contador++;
         }
-        
-        $fill = !$fill;
     }
     
     // Pie de página con información

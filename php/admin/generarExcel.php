@@ -38,7 +38,9 @@ try {
                 es_tronco_comun,
                 area_tronco_comun,
                 facultad_nombre,
-                fecha_inscripcion
+                fecha_inscripcion,
+                equipo_id,
+                es_capitan
             FROM v_inscripciones_completas";
     
     $whereConditions = [];
@@ -100,7 +102,8 @@ try {
         $sql .= " WHERE " . implode(" AND ", $whereConditions);
     }
     
-    $sql .= " ORDER BY fecha_inscripcion DESC";
+    // Ordenamiento: Por evento, por equipo, CAPITÁN PRIMERO, y alfabético por nombre
+    $sql .= " ORDER BY evento_id ASC, equipo_id ASC, es_capitan DESC, nombre_completo ASC";
     
     // ===================================
     // EJECUTAR CONSULTA
@@ -126,6 +129,7 @@ try {
     $datos = [];
     $total_hombres = 0;
     $total_mujeres = 0;
+    $total_otros = 0; 
     
     while ($row = mysqli_fetch_assoc($resultado)) {
         // Formatear carrera
@@ -142,10 +146,69 @@ try {
         
         $datos[] = $row;
         
+        // Conteo de estadísticas
         if ($row['genero'] === 'Masculino' || $row['genero'] === 'Hombre') {
             $total_hombres++;
         } else if ($row['genero'] === 'Femenino' || $row['genero'] === 'Mujer') {
             $total_mujeres++;
+        } else if ($row['genero'] === 'Prefiero no decirlo') { 
+            $total_otros++;
+        }
+    }
+    
+    // ===================================
+    // NUEVA LÓGICA: REPORTE POR EQUIPO (para torneos)
+    // ===================================
+    $esEventoPorEquipos = false;
+    $reporte_equipo = [];
+    
+    // Determinar si es reporte de evento Y el primer registro es de equipo
+    if ($esReporteEvento && count($datos) > 0 && !is_null($datos[0]['equipo_id'])) {
+        $esEventoPorEquipos = true;
+    }
+
+    if ($esEventoPorEquipos) {
+        $ids_equipo = [];
+        foreach ($datos as $row) {
+            if ($row['equipo_id']) {
+                $ids_equipo[] = $row['equipo_id'];
+            }
+        }
+        $ids_equipo = array_unique($ids_equipo);
+        $equipo_names = [];
+        
+        // Consultar nombres de equipos
+        if (!empty($ids_equipo)) {
+            $sqlEquipos = "SELECT id, nombre FROM equipo WHERE id IN (" . implode(',', array_fill(0, count($ids_equipo), '?')) . ")";
+            $stmtEquipos = mysqli_prepare($conexion, $sqlEquipos);
+            
+            $typesEquipos = str_repeat('i', count($ids_equipo)); 
+            mysqli_stmt_bind_param($stmtEquipos, $typesEquipos, ...$ids_equipo);
+            
+            mysqli_stmt_execute($stmtEquipos);
+            $resultadoEquipos = mysqli_stmt_get_result($stmtEquipos);
+            
+            while ($eqRow = mysqli_fetch_assoc($resultadoEquipos)) {
+                $equipo_names[$eqRow['id']] = $eqRow['nombre'];
+            }
+            mysqli_stmt_close($stmtEquipos);
+        }
+
+        // Agrupar participantes por equipo
+        foreach ($datos as $row) {
+            $equipo_id = $row['equipo_id'];
+            if (!$equipo_id) continue;
+            
+            $nombre_equipo = $equipo_names[$equipo_id] ?? 'Equipo sin nombre';
+            
+            if (!isset($reporte_equipo[$equipo_id])) {
+                $reporte_equipo[$equipo_id] = [
+                    'nombre' => $nombre_equipo,
+                    'integrantes' => []
+                ];
+            }
+            
+            $reporte_equipo[$equipo_id]['integrantes'][] = $row;
         }
     }
     
@@ -187,6 +250,7 @@ try {
         $sheet->getRowDimension(2)->setRowHeight(25);
         
         $filaActual = 4; // Comenzar después del título y nombre del evento
+        $maxColTabla = $esEventoPorEquipos ? 'G' : 'G';
     } else {
         $sheet->setCellValue('A1', 'CENTRO DEPORTIVO - REPORTE DE INSCRIPCIONES A EVENTOS');
         $sheet->mergeCells('A1:H1');
@@ -197,6 +261,7 @@ try {
         $sheet->getRowDimension(1)->setRowHeight(30);
         
         $filaActual = 3; // Comenzar después del título
+        $maxColTabla = 'H';
     }
     
     // ===================================
@@ -223,7 +288,7 @@ try {
         }
         
         $sheet->setCellValue('A' . $filaActual, $filtrosTexto);
-        $sheet->mergeCells('A' . $filaActual . ':H' . $filaActual);
+        $sheet->mergeCells('A' . $filaActual . ':' . $maxColTabla . $filaActual);
         
         $filaActual += 2; // Espacio después de filtros
     }
@@ -232,112 +297,203 @@ try {
     // ESTADÍSTICAS
     // ===================================
     $filaStats = $filaActual;
-    $maxCol = $esReporteEvento ? 'D' : 'D';
+    $maxColStats = 'E'; // 5 columnas
     
     $sheet->setCellValue('A' . $filaStats, 'Total Participantes');
     $sheet->setCellValue('B' . $filaStats, 'Hombres');
     $sheet->setCellValue('C' . $filaStats, 'Mujeres');
-    $sheet->setCellValue('D' . $filaStats, 'Mostrando');
+    $sheet->setCellValue('D' . $filaStats, 'Otros'); // NUEVO
+    $sheet->setCellValue('E' . $filaStats, 'Mostrando');
     
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getFont()->setBold(true);
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getFill()
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getFill()
         ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_principal);
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getFont()->getColor()->setARGB('FFFFFFFF');
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getFont()->getColor()->setARGB('FFFFFFFF');
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     
     // Bordes estadísticas
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getBorders()->getAllBorders()
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getBorders()->getAllBorders()
         ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
     
     $filaStats++;
     $sheet->setCellValue('A' . $filaStats, count($datos));
     $sheet->setCellValue('B' . $filaStats, $total_hombres);
     $sheet->setCellValue('C' . $filaStats, $total_mujeres);
-    $sheet->setCellValue('D' . $filaStats, count($datos));
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getFont()->setBold(true);
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getFill()
+    $sheet->setCellValue('D' . $filaStats, $total_otros); // NUEVO VALOR
+    $sheet->setCellValue('E' . $filaStats, count($datos));
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getFill()
         ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFFFFF');
     
     // Bordes datos estadísticas
-    $sheet->getStyle('A' . $filaStats . ':' . $maxCol . $filaStats)->getBorders()->getAllBorders()
+    $sheet->getStyle('A' . $filaStats . ':' . $maxColStats . $filaStats)->getBorders()->getAllBorders()
         ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
     
     // ===================================
-    // ENCABEZADOS DE TABLA (cambian según tipo de reporte)
+    // ENCABEZADOS DE TABLA
     // ===================================
     $filaEncabezado = $filaStats + 2;
+    $filaActual = $filaEncabezado;
     
-    if ($esReporteEvento) {
-        // Sin columna "Evento"
+    // Headers definition
+    if ($esEventoPorEquipos) {
+        // 7 columns: A-G
+        $teamMemberHeaders = ['Matrícula', 'Nombre Completo', 'Rol', 'Correo', 'Género', 'Tipo', 'Carrera/Facultad'];
+        $teamMemberColumns = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+        $maxColTablaTeam = 'G';
+        
+        // Start from $filaEncabezado but only apply headers inside the loop.
+    } elseif ($esReporteEvento) {
+        // Individual event: 7 columns (A-G)
         $encabezados = ['Matrícula', 'Nombre Completo', 'Correo', 'Género', 'Tipo', 'Carrera/Facultad', 'Fecha Inscripción'];
         $columnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
         $maxColTabla = 'G';
+        
+        foreach ($encabezados as $index => $encabezado) {
+            $celda = $columnas[$index] . $filaEncabezado;
+            $sheet->setCellValue($celda, $encabezado);
+            $sheet->getStyle($celda)->getFont()->setBold(true);
+            $sheet->getStyle($celda)->getFill()
+                ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_oscuro);
+            $sheet->getStyle($celda)->getFont()->getColor()->setARGB('FFFFFFFF');
+            $sheet->getStyle($celda)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        $filaActual++;
     } else {
-        // Con columna "Evento"
+        // General report: 8 columns (A-H)
         $encabezados = ['Matrícula', 'Nombre Completo', 'Correo', 'Género', 'Tipo', 'Carrera/Facultad', 'Evento', 'Fecha Inscripción'];
         $columnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         $maxColTabla = 'H';
-    }
-    
-    foreach ($encabezados as $index => $encabezado) {
-        $celda = $columnas[$index] . $filaEncabezado;
-        $sheet->setCellValue($celda, $encabezado);
-        $sheet->getStyle($celda)->getFont()->setBold(true);
-        $sheet->getStyle($celda)->getFill()
-            ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_oscuro);
-        $sheet->getStyle($celda)->getFont()->getColor()->setARGB('FFFFFFFF');
-        $sheet->getStyle($celda)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    }
-    
-    // ===================================
-    // DATOS
-    // ===================================
-    $filaActual = $filaEncabezado + 1;
-    foreach ($datos as $row) {
-        $sheet->setCellValue('A' . $filaActual, $row['participante_matricula']);
-        $sheet->setCellValue('B' . $filaActual, $row['nombre_completo']);
-        $sheet->setCellValue('C' . $filaActual, $row['correo_institucional']);
-        $sheet->setCellValue('D' . $filaActual, $row['genero']);
-        $sheet->setCellValue('E' . $filaActual, $row['tipo_participante']);
-        $sheet->setCellValue('F' . $filaActual, $row['carrera_display']);
         
-        if ($esReporteEvento) {
-            // Sin columna Evento
-            $sheet->setCellValue('G' . $filaActual, date('d/m/Y H:i', strtotime($row['fecha_inscripcion'])));
-        } else {
-            // Con columna Evento
-            $sheet->setCellValue('G' . $filaActual, $row['evento_nombre']);
-            $sheet->setCellValue('H' . $filaActual, date('d/m/Y H:i', strtotime($row['fecha_inscripcion'])));
+        foreach ($encabezados as $index => $encabezado) {
+            $celda = $columnas[$index] . $filaEncabezado;
+            $sheet->setCellValue($celda, $encabezado);
+            $sheet->getStyle($celda)->getFont()->setBold(true);
+            $sheet->getStyle($celda)->getFill()
+                ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_oscuro);
+            $sheet->getStyle($celda)->getFont()->getColor()->setARGB('FFFFFFFF');
+            $sheet->getStyle($celda)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
-        
-        // Alternar colores verde claro
-        if ($filaActual % 2 == 0) {
-            $sheet->getStyle('A' . $filaActual . ':' . $maxColTabla . $filaActual)->getFill()
-                ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_claro);
-        }
-        
         $filaActual++;
     }
     
-    // Bordes tabla completa
-    $rangoTabla = 'A' . $filaEncabezado . ':' . $maxColTabla . ($filaActual - 1);
-    $sheet->getStyle($rangoTabla)->getBorders()->getAllBorders()
-        ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
+    // ===================================
+    // DATOS (Diferenciación por Equipo o Individual)
+    // ===================================
+    
+    if ($esEventoPorEquipos) {
+        // === REPORTE POR EQUIPO ===
+        $fill = false;
+        $teamCounter = 1; // Para enumeración
+        foreach ($reporte_equipo as $equipo) {
+            // 1. Team Name Row (Centered and Enumerated)
+            $sheet->setCellValue('A' . $filaActual, 'EQUIPO ' . $teamCounter . ': ' . $equipo['nombre']);
+            $sheet->mergeCells('A' . $filaActual . ':' . $maxColTablaTeam . $filaActual); // Use maxColTablaTeam = G
+            $sheet->getStyle('A' . $filaActual)->getFont()->setBold(true)->getColor()->setARGB('FF' . $verde_principal);
+            $sheet->getStyle('A' . $filaActual)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Centered
+            $sheet->getStyle('A' . $filaActual)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_claro);
+            $sheet->getStyle('A' . $filaActual . ':' . $maxColTablaTeam . $filaActual)->getBorders()->getAllBorders()
+                ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
+            $filaActual++;
+            
+            // 2. Team Member Headers (Drawn before members)
+            $filaHeadersEquipo = $filaActual;
+            foreach ($teamMemberHeaders as $index => $encabezado) {
+                $celda = $teamMemberColumns[$index] . $filaHeadersEquipo;
+                $sheet->setCellValue($celda, $encabezado);
+                $sheet->getStyle($celda)->getFont()->setBold(true);
+                $sheet->getStyle($celda)->getFill()
+                    ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_oscuro);
+                $sheet->getStyle($celda)->getFont()->getColor()->setARGB('FFFFFFFF');
+                $sheet->getStyle($celda)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            }
+            $filaActual++; // Move past the new sub-header row
+
+            // 3. Members
+            foreach ($equipo['integrantes'] as $member) {
+                $member_rol = $member['es_capitan'] ? 'Capitán' : 'Integrante'; // New Rol Logic
+                
+                $member_data = [
+                    $member['participante_matricula'],
+                    $member['nombre_completo'], // Removed (Capitán)
+                    $member_rol, // New Rol column
+                    $member['correo_institucional'],
+                    $member['genero'],
+                    $member['tipo_participante'],
+                    $member['carrera_display']
+                ];
+                
+                $member_style = 'FFFFFFFF'; // White background for all members
+                
+                for ($i = 0; $i < count($member_data); $i++) {
+                    $cell = $teamMemberColumns[$i] . $filaActual;
+                    $sheet->setCellValue($cell, $member_data[$i]);
+                    $sheet->getStyle($cell)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($member_style);
+                    $sheet->getStyle($cell)->getBorders()->getAllBorders()
+                        ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
+                }
+                
+                $filaActual++;
+            }
+            $fill = !$fill; // Toggle color for the *next* team
+            
+            // Add a separator space
+            $filaActual++;
+            $teamCounter++; // Increment team counter
+        }
+        
+    } else {
+        // === REPORTE INDIVIDUAL O GENERAL ===
+        $fill = false;
+        foreach ($datos as $row) {
+            // Alternar colores de fila
+            $fillColor = $fill ? 'FF' . $verde_claro : 'FFFFFFFF';
+            
+            $sheet->setCellValue('A' . $filaActual, $row['participante_matricula']);
+            $sheet->setCellValue('B' . $filaActual, $row['nombre_completo']);
+            $sheet->setCellValue('C' . $filaActual, $row['correo_institucional']);
+            $sheet->setCellValue('D' . $filaActual, $row['genero']);
+            $sheet->setCellValue('E' . $filaActual, $row['tipo_participante']);
+            $sheet->setCellValue('F' . $filaActual, $row['carrera_display']);
+            
+            if ($esReporteEvento) {
+                // Sin columna Evento
+                $sheet->setCellValue('G' . $filaActual, date('d/m/Y H:i', strtotime($row['fecha_inscripcion'])));
+            } else {
+                // Con columna Evento
+                $sheet->setCellValue('G' . $filaActual, $row['evento_nombre']);
+                $sheet->setCellValue('H' . $filaActual, date('d/m/Y H:i', strtotime($row['fecha_inscripcion'])));
+            }
+            
+            $sheet->getStyle('A' . $filaActual . ':' . $maxColTabla . $filaActual)->getFill()
+                ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($fillColor);
+            
+            $filaActual++;
+            $fill = !$fill;
+        }
+        
+        // Bordes tabla completa (solo para individual/general)
+        $rangoTabla = 'A' . $filaEncabezado . ':' . $maxColTabla . ($filaActual - 1);
+        $sheet->getStyle($rangoTabla)->getBorders()->getAllBorders()
+            ->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FF' . $verde_oscuro);
+    }
+
     
     // ===================================
-    // AJUSTAR ANCHOS (según tipo de reporte)
+    // AJUSTAR ANCHOS
     // ===================================
     $sheet->getColumnDimension('A')->setWidth(15);
     $sheet->getColumnDimension('B')->setWidth(35);
-    $sheet->getColumnDimension('C')->setWidth(35);
-    $sheet->getColumnDimension('D')->setWidth(12);
-    $sheet->getColumnDimension('E')->setWidth(15);
-    $sheet->getColumnDimension('F')->setWidth(30);
+    $sheet->getColumnDimension('C')->setWidth(15); // Rol/Correo (ajustado para el rol)
+    $sheet->getColumnDimension('D')->setWidth(35); // Correo/Género (ajustado para el rol)
+    $sheet->getColumnDimension('E')->setWidth(12); // Género/Tipo (ajustado para el rol)
+    $sheet->getColumnDimension('F')->setWidth(15); // Tipo/Carrera (ajustado para el rol)
+    $sheet->getColumnDimension('G')->setWidth(30); // Carrera/Fecha (ajustado para el rol)
     
-    if ($esReporteEvento) {
+    if (!$esEventoPorEquipos && $esReporteEvento) {
         $sheet->getColumnDimension('G')->setWidth(20); // Fecha
-    } else {
+    } elseif (!$esEventoPorEquipos) {
         $sheet->getColumnDimension('G')->setWidth(35); // Evento
         $sheet->getColumnDimension('H')->setWidth(20); // Fecha
     }
@@ -347,7 +503,7 @@ try {
     // ===================================
     $filaPie = $filaActual + 2;
     $sheet->setCellValue('A' . $filaPie, 'Generado el: ' . date('d/m/Y H:i:s'));
-    $sheet->mergeCells('A' . $filaPie . ':' . $maxColTabla . $filaPie);
+    $sheet->mergeCells('A' . $filaPie . ':' . ($esEventoPorEquipos ? $maxColTablaTeam : $maxColTabla) . $filaPie);
     $sheet->getStyle('A' . $filaPie)->getFont()->setItalic(true)->setSize(9);
     $sheet->getStyle('A' . $filaPie)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     $sheet->getStyle('A' . $filaPie)->getFont()->getColor()->setARGB('FF666666');
