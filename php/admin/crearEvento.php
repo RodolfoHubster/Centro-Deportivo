@@ -6,9 +6,8 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Credentials: true');
 
-session_start();
 include '../includes/conexion.php';
-
+session_start();
 // Validar sesión
 if (!isset($_SESSION['user_logged']) || $_SESSION['user_logged'] !== true) {
     http_response_code(401);
