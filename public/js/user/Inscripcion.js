@@ -617,7 +617,7 @@ function mostrarToast(mensaje, tipo = 'success') {
 
 // =======================================================================
 // === NUEVO CÓDIGO PARA REGISTRO DE EQUIPOS (AÑADIR AL FINAL DEL ARCHIVO) ===
-// =======================================================================
+// ========================================================================-==
 
 /**
  * Muestra el formulario para registrar un equipo completo.
