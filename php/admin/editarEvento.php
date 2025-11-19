@@ -99,15 +99,7 @@ try {
     // ===================================
     // 4. ACTUALIZAR EVENTO
     // ===================================
-    // Buscar periodo activo automáticamente
-    $sqlP = "SELECT nombre FROM periodos WHERE activo = 1 LIMIT 1";
-    $resP = mysqli_query($conexion, $sqlP);
-    $filaP = mysqli_fetch_assoc($resP);
-    
-    if (!$filaP) {
-        throw new Exception('No hay un periodo activo configurado en el sistema.');
-    }
-    $periodo = $filaP['nombre']; // Sobreescribimos cualquier input del usuario
+    $periodo = $_POST['periodo'] ?? '';
     $sqlEvento = "UPDATE evento SET 
                     nombre = ?,
                     descripcion = ?,
