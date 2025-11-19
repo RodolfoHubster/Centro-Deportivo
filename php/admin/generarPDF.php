@@ -52,41 +52,37 @@ try {
             $types .= 's';
         }
     }     
-    
-    // Solo aplicar estos filtros si NO es reporte de evento específico
-    if (!$esReporteEvento) {
-        // Filtro por género
-        if (isset($_GET['genero']) && !empty($_GET['genero']) && $_GET['genero'] !== 'todos') {
-            $whereConditions[] = "genero = ?";
-            $params[] = mysqli_real_escape_string($conexion, $_GET['genero']);
-            $types .= 's';
-        }
+    // Filtro por género
+    if (isset($_GET['genero']) && !empty($_GET['genero']) && $_GET['genero'] !== 'todos') {
+        $whereConditions[] = "genero = ?";
+        $params[] = mysqli_real_escape_string($conexion, $_GET['genero']);
+        $types .= 's';
+    }
         
-        // Filtro por tipo
-        if (isset($_GET['tipo_participante']) && !empty($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos') {
-            $whereConditions[] = "tipo_participante = ?";
-            $params[] = mysqli_real_escape_string($conexion, $_GET['tipo_participante']);
-            $types .= 's';
-        }
+    // Filtro por tipo
+    if (isset($_GET['tipo_participante']) && !empty($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos') {
+        $whereConditions[] = "tipo_participante = ?";
+        $params[] = mysqli_real_escape_string($conexion, $_GET['tipo_participante']);
+        $types .= 's';
+    }
 
-        // Filtro por carrera
-        if (isset($_GET['carrera']) && !empty($_GET['carrera']) && $_GET['carrera'] !== 'todas') {
-            $carrera_filtro = mysqli_real_escape_string($conexion, $_GET['carrera']);
-            $whereConditions[] = "(carrera_nombre = ? OR CONCAT('TC - ', area_tronco_comun) = ?)";
-            $params[] = $carrera_filtro;
-            $params[] = $carrera_filtro;
-            $types .= 'ss';
-        }
+    // Filtro por carrera
+    if (isset($_GET['carrera']) && !empty($_GET['carrera']) && $_GET['carrera'] !== 'todas') {
+        $carrera_filtro = mysqli_real_escape_string($conexion, $_GET['carrera']);
+        $whereConditions[] = "(carrera_nombre = ? OR CONCAT('TC - ', area_tronco_comun) = ?)";
+        $params[] = $carrera_filtro;
+        $params[] = $carrera_filtro;
+        $types .= 'ss';
+    }
         
-        // Búsqueda
-        if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
-            $buscar = mysqli_real_escape_string($conexion, $_GET['buscar']);
-            $whereConditions[] = "(nombre_completo LIKE ? OR participante_matricula LIKE ? OR correo_institucional LIKE ?)";
-            $params[] = "%{$buscar}%";
-            $params[] = "%{$buscar}%";
-            $params[] = "%{$buscar}%";
-            $types .= 'sss';
-        }
+    // Búsqueda
+    if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
+        $buscar = mysqli_real_escape_string($conexion, $_GET['buscar']);
+        $whereConditions[] = "(nombre_completo LIKE ? OR participante_matricula LIKE ? OR correo_institucional LIKE ?)";
+        $params[] = "%{$buscar}%";
+        $params[] = "%{$buscar}%";
+        $params[] = "%{$buscar}%";
+        $types .= 'sss';
     }
     
     // Construir WHERE
