@@ -76,11 +76,20 @@ try {
         $valores_params[] = $_GET['fecha_hasta'];
     }
     
-    // Filtro por eventos activos (por defecto solo activos)
+// --- LÓGICA DE FILTRO DE ESTADO PARA EL FRONT-END ---
+    // NUEVA BANDERA: Para saber si la llamada viene del panel de administración
+    $incluirInactivos = isset($_GET['incluir_inactivos']) && $_GET['incluir_inactivos'] === 'true'; 
     $soloActivos = isset($_GET['activos']) ? $_GET['activos'] === 'true' : true;
-    if ($soloActivos) {
-        $filtros[] = "e.activo = TRUE";
+    
+    // Solo aplicamos el filtro de activo si NO se pide incluir inactivos (uso público).
+    if (!$incluirInactivos) {
+        if ($soloActivos) {
+            $filtros[] = "e.activo = TRUE";
+            // Solo muestra eventos activos y cuya fecha de término es HOY o después.
+            $filtros[] = "e.fecha_termino >= CURDATE()"; 
+        }
     }
+    // Si $incluirInactivos es true, no aplicamos ningún filtro de estado ni fecha pasada.
     
     // Construir WHERE clause
     $whereClause = '';

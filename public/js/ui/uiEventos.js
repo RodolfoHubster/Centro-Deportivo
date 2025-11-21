@@ -48,7 +48,6 @@ export function poblarCheckboxesFacultades(facultades) {
  * Muestra la lista de los eventos en el DOM
  * @param {Array} eventos - Lista de eventos
  */
-
 export function mostrarEventos(eventos) {
     const container = document.getElementById('lista-eventos');
 
@@ -68,11 +67,46 @@ export function mostrarEventos(eventos) {
         ? '#dc3545'
         : '#28a745';
 
+        // 1. Botones base (Eliminar y Participantes siempre visibles)
+        const botonEliminarHTML = `<button data-action="eliminar" data-id="${evento.id}" data-nombre="${evento.nombre.replace(/"/g, '&quot;')}" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Eliminar</button>`;
+        const botonParticipantesHTML = `<a href="ver-participantes.html?evento_id=${evento.id}" class="btn-participantes" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-size: 13.3333px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; font-family: Arial;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="9" cy="7" r="4"></circle>
+                                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                            </svg>
+                                            Participantes
+                                        </a>`;
+
+        // 2. Lógica condicional para los botones de estado/edición
+        let botonPrincipal = ''; // Activar o Finalizar
+        let botonEditar = '';
+        let botonVerQR = '';
+        let etiquetaFinalizado = ''; // <--- ETIQUETA NUEVA
+
+        if (evento.activo == 1) { // Evento Activo: Finalizar, Editar, Ver QR
+            botonPrincipal = `<button data-action="finalizar" data-id="${evento.id}" data-nombre="${evento.nombre.replace(/"/g, '&quot;')}" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Finalizar</button>`;
+            botonEditar = `<button data-action="editar" data-id="${evento.id}" style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Editar</button>`;
+            botonVerQR = `<button data-action="qr" data-id="${evento.id}" style="padding: 8px 15px; background: #777272ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Ver QR</button>`;
+
+        } else { // Evento Inactivo/Finalizado: Activar, Eliminar, Participantes
+            // 1. Botón Activar (data-action="reactivar")
+            botonPrincipal = `<button data-action="reactivar" data-id="${evento.id}" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Activar</button>`;
+            // 2. Etiqueta FINALIZADO (junto al título)
+            etiquetaFinalizado = `<span style="padding: 3px 8px; background: #6c757d; color: white; border-radius: 4px; font-weight: bold; white-space: nowrap; text-align: center; font-size: 0.9rem; margin-left: 10px;">FINALIZADO</span>`;
+            // Los botones Editar y Ver QR se ocultan
+            botonEditar = ''; 
+            botonVerQR = '';
+        }
+        
         container.innerHTML += `
         <div class="evento-card" style="background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #003366;">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
-                        <h3 style="margin: 0 0 10px 0; color: #003366;">${evento.nombre}</h3>
+                        <h3 style="margin: 0 0 10px 0; color: #003366; display: flex; align-items: center;">
+                            ${evento.nombre} 
+                            ${etiquetaFinalizado} </h3>
                         <p style="margin: 5px 0; color: #666;">${evento.descripcion || 'Sin descripción'}</p>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
                             <div><strong>Fechas:</strong><br>${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}</div>
@@ -85,24 +119,11 @@ export function mostrarEventos(eventos) {
                         </div>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-left: 20px;">
-                        <button data-action="editar" data-id="${evento.id}" style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Editar</button>
-                        <button data-action="eliminar" data-id="${evento.id}" data-nombre="${evento.nombre.replace(/"/g, '&quot;')}" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Eliminar</button>
-                        <button data-action="qr" data-id="${evento.id}" style="padding: 8px 15px; background: #777272ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Ver QR</button>
-
-                        <a href="ver-participantes.html?evento_id=${evento.id}" class="btn-participantes" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-size: 13.3333px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; font-family: Arial;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            Participantes
-                        </a>
-                    </div>
+                        ${botonPrincipal} ${botonEditar}    ${botonEliminarHTML}  ${botonVerQR}     ${botonParticipantesHTML} </div>
                 </div>
             </div>
         `;
-    })
+    });
 }
 
 /**
@@ -298,3 +319,4 @@ export function mostrarCamposEquipo(tipoRegistro) {
         maxInput.value = '';
     }
 }
+// ...=========================================================
