@@ -64,12 +64,20 @@ export async function cargarFacultades() {
 
 /**
  * Carga lista de eventos
+ * @param {boolean} [incluirInactivos=false] - Si es true, incluye eventos con activo=0 y fechas pasadas.
  * @returns {Array}
  */
-
-export async function cargarEventos() {
+export async function cargarEventos(incluirInactivos = false) { 
     try {
-        const response = await fetch('../../php/public/obtenerEventos.php');
+        let url = '../../php/public/obtenerEventos.php';
+        
+        // Si incluimos inactivos (uso exclusivo del Admin), usamos la bandera.
+        // Esto anula los filtros de fecha de término y de activo=TRUE en el backend.
+        if (incluirInactivos) {
+            url += '?activos=false&incluir_inactivos=true'; 
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         return (data.success && data.eventos) ? data.eventos : [];
     } catch (error) {
@@ -153,4 +161,38 @@ export async function obtenerPeriodoActivo() {
         console.error("Error obteniendo periodo activo:", error);
         return null;
     }
+}
+
+/**
+ * Envia la peticion para finalizar un evento (set activo = 0)
+ * @param {number} id - id del evento a finalizar
+ * @returns {object} - respuesta JSON del servidor
+ */
+export async function finalizarEvento(id) { 
+    const formData = new FormData();
+    formData.append('id', id);
+
+    const response = await fetch('../../php/admin/finalizarEvento.php', {
+        method: 'POST',
+        body: formData
+    });
+    return await response.json();
+}
+
+
+
+/**
+ * Envia la peticion para reactivar un evento (set activo = 1)
+ * @param {number} id - id del evento a reactivar
+ * @returns {object} - respuesta JSON del servidor
+ */
+export async function reactivarEvento(id) { // <-- NUEVA FUNCIÓN
+    const formData = new FormData();
+    formData.append('id', id);
+
+    const response = await fetch('../../php/admin/reactivarEvento.php', {
+        method: 'POST',
+        body: formData
+    });
+    return await response.json();
 }

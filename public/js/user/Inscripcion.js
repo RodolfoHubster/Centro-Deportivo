@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Nueva función para obtener datos del evento desde el QR
 function obtenerDatosEventoYMostrarFormulario(eventoId) {
-    // Usar el archivo obtenerEventos.php existente pero sin filtros
-    fetch('../php/public/obtenerEventos.php?activos=false') // Asegúrate que este fetch funcione
+    // Usar el archivo obtenerEventos.php existente pero con el filtro 'activos=true'
+    fetch('../php/public/obtenerEventos.php?activos=true') 
         .then(response => response.json())
         .then(data => {
             if (data.success && data.eventos) {
@@ -33,9 +33,18 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
                 
                 if (evento) {
                     const nombreEvento = evento.nombre || 'Evento';
-                    // --- INICIO DE CAMBIO ---
                     const tipoRegistro = evento.tipo_registro || 'Individual';
+                    // === LÍNEA MODIFICADA: Verifica el campo 'tiene_cupo' ===
+                    const tieneCupo = evento.tiene_cupo == 1; // Lee el campo 'tiene_cupo' del backend
+                    
+                    if (!tieneCupo) {
+                        // El evento está lleno, mostrar mensaje de error y salir
+                        mostrarToast(`El evento "${nombreEvento}" ha alcanzado el cupo máximo de participantes.`, 'error');
+                        return; // Detener ejecución y no mostrar formulario
+                    }
+                    // === FIN DE LÓGICA NUEVA ===
 
+                    // Si hay cupo, procede con la lógica normal:
                     if (tipoRegistro === 'Por equipos') {
                         const min = evento.integrantes_min || 8;
                         const max = evento.integrantes_max || 0; // 0 = sin límite
@@ -49,23 +58,21 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
                         const tarjeta = document.querySelector(`[data-evento-id="${eventoId}"]`);
                         if(tarjeta) tarjeta.scrollIntoView({behavior: "smooth", block: "center"});
                     }, 500);
-                    // --- FIN DE CAMBIO ---
 
                 } else {
-                    // Si no se encuentra el evento, mostrar con nombre genérico
-                    mostrarFormularioInscripcion(eventoId, 'Evento');
+                    // Si el ID es erróneo o el evento no existe
+                    mostrarToast('El evento solicitado no está disponible.', 'error');
                     console.warn('Evento no encontrado en la lista');
                 }
             } else {
-                // Si hay error, mostrar formulario con nombre genérico
-                mostrarFormularioInscripcion(eventoId, 'Evento');
+                // Si hay error en el fetch
+                mostrarToast('Error al obtener datos del evento. Intenta de nuevo más tarde.', 'error');
                 console.warn('No se pudieron obtener los datos de los eventos');
             }
         })
         .catch(error => {
             console.error('Error al obtener datos del evento:', error);
-            // Mostrar formulario con nombre genérico si hay error
-            mostrarFormularioInscripcion(eventoId, 'Evento');
+            mostrarToast('Error de conexión. Intenta de nuevo más tarde.', 'error');
         });
 }
 
@@ -659,11 +666,11 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             <div style="text-align: center; margin-bottom: 20px;">
                 <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Registro de Equipo</h2>
                 <p style="color: #666; margin: 0 0 15px 0; font-size: 14px;">Inscribe a tu equipo (${minIntegrantes} - ${maxIntegrantes > 0 ? maxIntegrantes : 'Sin límite'} integrantes)</p>
-                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 15px; border-radius: 10px; border-left: 4px solid #00843D;">
-                    <p style="margin: 0; color: #003366; font-weight: 600; font-size: 15px;">
-                        Evento: <span style="color: #00843D;">${nombreEvento || 'No especificado'}</span>
-                    </p>
-                </div>
+                
+                <!-- El titulo del formulario por equipo ya no aparece con el cuadro -->
+                <h3 style="margin: 0; color: #003366; font-weight: 600; font-size: 20px;">
+                    <span style="color: #00843D;">${nombreEvento || 'No especificado'}</span>
+                </h3>
             </div>
             
             <form id="formInscripcionEquipo">

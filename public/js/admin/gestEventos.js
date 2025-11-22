@@ -20,6 +20,8 @@ let periodoActivoGlobal = null;
 // Se ejecuta cuando el HTML está listo.
 window.addEventListener('DOMContentLoaded', inicializarPaginaGestionEventos);
 
+// rodolfohubster/centro-deportivo/Centro-Deportivo-53f90df0e44e57527258c9fe8ba44b1d0cab1122/public/js/admin/gestEventos.js
+
 async function inicializarPaginaGestionEventos() {
     // Primero, verifica si hay una sesión activa
     try {
@@ -42,7 +44,7 @@ async function inicializarPaginaGestionEventos() {
             api.cargarCampus(),
             api.cargarActividades(),
             api.cargarFacultades(),
-            api.cargarEventos(),
+            api.cargarEventos(true), // Carga TODOS los eventos (activos e inactivos)
             api.obtenerPeriodoActivo()
         ]);
 
@@ -58,18 +60,29 @@ async function inicializarPaginaGestionEventos() {
 
         // Una vez cargados, usa las funciones de UI para mostrarlos
         // Poblar selects del MODAL
-        // Usamos la variable 'facultades' que ya cargamos para el modal
         ui.poblarFiltroFacultades(facultades);
         ui.poblarSelectActividades(actividades);
         ui.poblarCheckboxesFacultades(facultades);
         
         // Poblar el nuevo filtro de periodos
         ui.poblarFiltroPeriodos(todosLosEventos);
-        // Poblar el nuevo filtro de periodos
+        // La doble llamada a poblarFiltroPeriodos es innecesaria, pero se mantiene si es parte de tu código.
         ui.poblarFiltroPeriodos(todosLosEventos);
-        // Mostrar los eventos
-        ui.mostrarEventos(todosLosEventos);
         
+        // --- LÓGICA CLAVE: Forzar el filtro a 'Activo' por defecto ---
+        const filtroEstado = document.getElementById('filtro-estado-admin');
+        if (filtroEstado) {
+            // 1. Establecer el valor por defecto a 'activo'
+            filtroEstado.value = 'activo'; 
+        }
+        
+        // 2. Aplicar filtros iniciales: Esto llamará a aplicarFiltrosAdmin, 
+        //    el cual tomará el valor 'activo' y mostrará solo los eventos activos.
+        aplicarFiltrosAdmin();
+
+        // Eliminar llamada directa a ui.mostrarEventos(todosLosEventos)
+        // porque ya se hace dentro de aplicarFiltrosAdmin()
+
         // Ocultar el mensaje de carga si aún está visible
         const mensajeDiv = document.getElementById('mensaje-respuesta');
         if (mensajeDiv.textContent.includes('Cargando')) {
@@ -112,13 +125,15 @@ function configurarListenersEventos() {
     document.getElementById('filtro-tipo-admin').addEventListener('change', aplicarFiltrosAdmin);
     // Escucha 'change' (cuando seleccionas) en lugar de 'input' (cuando escribes)
     document.getElementById('filtro-periodo-admin').addEventListener('change', aplicarFiltrosAdmin);
-
+    document.getElementById('filtro-estado-admin').addEventListener('change', aplicarFiltrosAdmin);  // Nuevo filtro de estado
+    
     document.getElementById('btnLimpiarFiltrosAdmin').addEventListener('click', () => {
         document.getElementById('filtro-buscar-admin').value = '';
         document.getElementById('filtro-facultad-admin').value = ''; // Resetea el select de facultad
         document.getElementById('filtro-categoria-admin').value = '';
         document.getElementById('filtro-tipo-admin').value = '';
         document.getElementById('filtro-periodo-admin').value = '';
+        document.getElementById('filtro-estado-admin').value = 'activo'; // Resetea el select de estado a "Activos" por defecto
         aplicarFiltrosAdmin(); // Vuelve a mostrar todos los eventos
     });
 }
@@ -144,8 +159,52 @@ async function handleListaEventosClick(e) {
     const boton = e.target.closest('button[data-action]');
     if (!boton) return; // Si no se hizo clic en un botón con acción, no hace nada
 
-    const id = boton.dataset.id; // Obtiene el ID del evento desde 'data-id'
-    const accion = boton.dataset.action; // Obtiene la acción ('editar', 'eliminar', 'qr')
+    const id = boton.dataset.id;
+    const accion = boton.dataset.action;
+
+    // --- Acción: Finalizar --- 
+    if (accion === 'finalizar') {
+        const nombre = boton.dataset.nombre || 'este evento';
+        if (!confirm(`¿Estás seguro de FINALIZAR el evento "${nombre}"? Al finalizar, dejará de aparecer en la página pública y no se podrán hacer más inscripciones.`)) {
+            return; 
+        }
+
+        try {
+            mostrarMensaje('Finalizando evento...', 'error'); 
+            const data = await api.finalizarEvento(id); // Llama al nuevo API
+            mostrarMensaje(data.mensaje, data.success ? 'success' : 'error');
+            if (data.success) {
+                // Recarga la lista para que el evento desaparezca de la vista de gestión
+                todosLosEventos = await api.cargarEventos(true);
+                aplicarFiltrosAdmin(); 
+            }
+        } catch (error) {
+            mostrarMensaje('Error de conexión al finalizar el evento.', 'error');
+            console.error(error);
+        }
+    }
+
+    // --- Acción: Reactivar --- // <-- NUEVA LÓGICA
+    if (accion === 'reactivar') {
+        const nombre = boton.dataset.nombre || 'este evento';
+        if (!confirm(`¿Estás seguro de REACTIVAR el evento "${nombre}"? Volverá a aparecer en la página pública y permitirá nuevas inscripciones.`)) {
+            return; 
+        }
+
+        try {
+            mostrarMensaje('Reactivando evento...', 'success'); 
+            const data = await api.reactivarEvento(id); // Llama al nuevo API
+            mostrarMensaje(data.mensaje, data.success ? 'success' : 'error');
+            if (data.success) {
+                // Si se reactivó bien, recarga la lista
+                todosLosEventos = await api.cargarEventos(true);
+                aplicarFiltrosAdmin(); 
+            }
+        } catch (error) {
+            mostrarMensaje('Error de conexión al reactivar el evento.', 'error');
+            console.error(error);
+        }
+    }
 
     // --- Acción: Editar ---
     if (accion === 'editar') {
@@ -275,22 +334,30 @@ function handleTipoRegistroChange(e) {
 function aplicarFiltrosAdmin() {
     // 1. Leer valores de los filtros
     const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
-    const facultad = document.getElementById('filtro-facultad-admin').value; // Leemos la facultad
+    const facultad = document.getElementById('filtro-facultad-admin').value;
     const categoria = document.getElementById('filtro-categoria-admin').value;
     const tipo = document.getElementById('filtro-tipo-admin').value;
-    // Simplemente lee el valor seleccionado del <select>
     const periodo = document.getElementById('filtro-periodo-admin').value;
+    const estado = document.getElementById('filtro-estado-admin').value; // <-- NUEVA VARIABLE
 
     // 2. Filtrar el array global 'todosLosEventos'
     const eventosFiltrados = todosLosEventos.filter(evento => {
+        
+        // Filtro de estado (Activo/Inactivo/Todos)
+        let coincideEstado = true;
+        if (estado === 'activo') {
+            coincideEstado = evento.activo == 1; // Solo activos
+        } else if (estado === 'inactivo') {
+            coincideEstado = evento.activo == 0; // Solo inactivos (finalizados)
+        } 
+        // Si es 'todos', coincideEstado = true (se muestra todo)
+
         // Filtro de búsqueda (nombre o lugar)
         const coincideBusqueda = !busqueda || 
             evento.nombre.toLowerCase().includes(busqueda) ||
-            (evento.lugar && evento.lugar.toLowerCase().includes(busqueda)); // Prevenir error si lugar es null
+            (evento.lugar && evento.lugar.toLowerCase().includes(busqueda)); 
         
         // Filtro de Facultades
-        // El 'evento.facultades_ids' viene de 'obtenerEventos.php' como un string "1,2,5"
-        // Lo convertimos en array para buscar
         const eventoFacultades = (evento.facultades_ids || '').split(',');
         const coincideFacultad = !facultad || eventoFacultades.includes(facultad);
         
@@ -300,11 +367,11 @@ function aplicarFiltrosAdmin() {
         // Filtro de tipo
         const coincideTipo = !tipo || evento.tipo_actividad === tipo;
         
-        // Compara el valor exacto del select (ej: "2025-1" == "2025-1")
+        // Filtro de periodo
         const coincidePeriodo = !periodo || evento.periodo == periodo;
         
         // Devolver true solo si CUMPLE TODOS los filtros
-        return coincideBusqueda && coincideFacultad && coincideCategoria && coincideTipo && coincidePeriodo;
+        return coincideBusqueda && coincideFacultad && coincideCategoria && coincideTipo && coincidePeriodo && coincideEstado;
     });
 
     // 3. Mostrar los eventos filtrados en la UI
