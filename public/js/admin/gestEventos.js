@@ -62,6 +62,7 @@ async function inicializarPaginaGestionEventos() {
         // Poblar selects del MODAL
         ui.poblarFiltroFacultades(facultades);
         ui.poblarSelectActividades(actividades);
+        ui.poblarCheckboxesCampus(campus);
         ui.poblarCheckboxesFacultades(facultades);
         
         // Poblar el nuevo filtro de periodos
@@ -106,13 +107,16 @@ async function inicializarPaginaGestionEventos() {
 function configurarListenersEventos() {
     // Botón para abrir el modal en modo "Crear"
     document.getElementById('btnNuevoEvento').addEventListener('click', handleNuevoEventoClick);
-
+    
     // Botón "Cancelar" dentro del modal
     document.getElementById('btnCancelar').addEventListener('click', ui.cerrarModal);
 
     // Envío del formulario (Crear o Editar)
     document.getElementById('formEvento').addEventListener('submit', handleFormSubmit);
     document.getElementById('evento-tipo-registro').addEventListener('change', handleTipoRegistroChange);
+
+    // === NUEVO LISTENER AÑADIDO ===
+    document.getElementById('evento-categoria').addEventListener('change', handleCategoriaChange);
 
     // --- Delegación de eventos para la lista ---
     document.getElementById('lista-eventos').addEventListener('click', handleListaEventosClick);
@@ -136,6 +140,45 @@ function configurarListenersEventos() {
         document.getElementById('filtro-estado-admin').value = 'activo'; // Resetea el select de estado a "Activos" por defecto
         aplicarFiltrosAdmin(); // Vuelve a mostrar todos los eventos
     });
+    // === NUEVO LISTENER PARA FILTRADO DE FACULTADES POR CAMPUS ===
+    document.getElementById('campus-checkbox').addEventListener('change', handleCampusChange);
+}
+
+/**
+ * Muestra u oculta el campo de texto para "Otra Categoría"
+ */
+function handleCategoriaChange(e) {
+    const categoriaSeleccionada = e.target.value;
+    const contenedor = document.getElementById('contenedor-otra-categoria');
+    const inputOtraCategoria = document.getElementById('otra-categoria');
+    
+    if (!contenedor || !inputOtraCategoria) return;
+
+    if (categoriaSeleccionada === 'Otro') {
+        contenedor.style.display = 'block';
+        inputOtraCategoria.required = true; // Hacer el campo obligatorio si se selecciona "Otro"
+    } else {
+        contenedor.style.display = 'none';
+        inputOtraCategoria.required = false;
+        inputOtraCategoria.value = ''; // Limpiar el valor si se oculta
+    }
+}
+/**
+ * Maneja el evento de cambio en los checkboxes de Campus/Unidades.
+ * Esto dispara el filtro de Facultades en el modal.
+ */
+function handleCampusChange(e) {
+    // 1. Obtener todos los IDs de campus actualmente seleccionados
+    const campusCheckboxes = document.querySelectorAll('#campus-checkbox input[type="checkbox"]:checked');
+    const campusIdsSeleccionados = Array.from(campusCheckboxes).map(cb => cb.value);
+
+    // 2. Obtener los IDs de las facultades que están MARCADAS en este momento
+    // Esto es crucial para mantener la selección cuando se filtra el listado.
+    const facultadesCheckboxesMarcadas = document.querySelectorAll('#facultades-checkbox input[type="checkbox"]:checked');
+    const facultadesIdsMarcadas = Array.from(facultadesCheckboxesMarcadas).map(cb => cb.value);
+
+    // 3. Llamar a la función de la UI para recargar las facultades filtradas
+    ui.renderizarFacultadesFiltradas(campusIdsSeleccionados, facultadesIdsMarcadas);
 }
 
 // 5. --- MANEJADORES DE EVENTOS (HANDLERS) ---
@@ -253,9 +296,15 @@ async function handleListaEventosClick(e) {
         }
     }
 
-    // --- Acción: Ver QR ---
+    // --- Acción: Ver QR ---  Modificada para pasar tipo_actividad
     if (accion === 'qr') {
-        modalQR.generarQR(id); // Llama a la función del módulo qrModal
+        const evento = todosLosEventos.find(e => e.id == id);
+        if (evento) {
+            // PASA EL NUEVO PARÁMETRO: evento.tipo_actividad
+            modalQR.generarQR(id, evento.tipo_actividad); 
+        } else {
+            mostrarMensaje('Error: No se encontró el tipo de evento.', 'error');
+        }
     }
 }
 
@@ -269,6 +318,25 @@ async function handleFormSubmit(e) {
     const form = e.target;
     const formData = new FormData(form);
     
+    // === LÓGICA DE CATEGORÍA AÑADIDA ===
+    const categoriaSeleccionada = formData.get('categoria_deporte');
+    if (categoriaSeleccionada === 'Otro') {
+        const otraCategoria = formData.get('otra_categoria');
+        if (!otraCategoria || otraCategoria.trim() === '') {
+            mostrarMensaje('Debes especificar el nombre de la categoría en el campo adicional.', 'error');
+            // Revertir deshabilitado si ya se aplicó
+            const btnSubmit = form.querySelector('button[type="submit"]');
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Guardar Evento';
+            return;
+        }
+        // Reemplazar "Otro" con el valor personalizado antes de enviarlo al PHP
+        formData.set('categoria_deporte', otraCategoria); 
+    }
+    
+    // Obtener el tipo de actividad para el QR (Solo es necesario si es nuevo)
+    const nuevoTipoActividad = formData.get('tipo_actividad');
+
     // Asegurarse de que el ID del promotor (usuario logueado) esté presente
     if (!usuarioId) {
         mostrarMensaje('Error: No se pudo identificar al usuario. Refresca la página.', 'error');
@@ -301,7 +369,7 @@ async function handleFormSubmit(e) {
 
             // Si fue una CREACIÓN exitosa, muestra el modal con el QR
             if (!modoEdicion && data.datos && data.datos.evento_id) {
-                modalQR.mostrarModalExitoConQR(data.datos.evento_id, data.mensaje);
+                modalQR.mostrarModalExitoConQR(data.datos.evento_id, data.mensaje, nuevoTipoActividad);
             }
         } else {
             // Si el API devolvió success: false, muestra el mensaje de error del PHP

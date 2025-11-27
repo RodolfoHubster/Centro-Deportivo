@@ -175,6 +175,7 @@
                 <option value="Carrera">Evento</option>
               </select>
             </div>
+            
             <div class="form-group">
               <label for="evento-categoria">Categoria Deportiva <span class="required">*</span></label>
               <select name="categoria_deporte" id="evento-categoria" required>
@@ -189,28 +190,37 @@
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label for="evento-tipo-registro">Tipo de Registro <span class="required">*</span></label>
-            <select name="tipo_registro" id="evento-tipo-registro" required>
-              <option value="">Selecciona...</option>  
-              <option value="Individual">Individual (Inscripcion por persona)</option>  
-              <option value="Por equipos">Por equipos (Inscripcion por equipo)</option>  
-            </select>
-                        <div id="campos-equipo-admin" style="display: none; background: #f4f4f4; padding: 15px; border-radius: 6px; margin-top: 15px;">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="evento-integrantes-min">Integrantes Mínimos</label>
-                  <input type="number" name="integrantes_min" id="evento-integrantes-min" min="1" placeholder="Ej: 8" class="form-control">
-                  <p class="help-text">Mínimo de jugadores por equipo</p>
-                </div>
-                <div class="form-group">
-                  <label for="evento-integrantes-max">Integrantes Máximos</label>
-                  <input type="number" name="integrantes_max" id="evento-integrantes-max" min="1" placeholder="Ej: 15" class="form-control">
-                  <p class="help-text">Dejar vacío para sin límite</p>
-                </div>
-              </div>
-            </div>
-                      </div>
+
+          <!-- Campo "Otro" FUERA del grid, ocupando ancho completo -->
+          <div class="form-group" id="contenedor-otra-categoria" style="display: none; margin-top: 15px;">
+            <label for="otra-categoria">Especificar otra categoría <span class="required">*</span></label>
+            <input type="text" id="otra-categoria" name="otra_categoria" placeholder="Ej: Ajedrez, Béisbol, etc.">
+            <p class="help-text">Este valor será el que se guarde como categoría.</p>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="evento-tipo-registro">Tipo de Registro <span class="required">*</span></label>
+            <select name="tipo_registro" id="evento-tipo-registro" required>
+              <option value="">Selecciona...</option>
+              <option value="Individual">Individual (Inscripcion por persona)</option>  
+              <option value="Por equipos">Por equipos (Inscripcion por equipo)</option>  
+            </select>
+            
+            <div id="campos-equipo-admin" style="display: none; background: #f4f4f4; padding: 15px; border-radius: 6px; margin-top: 15px;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="evento-integrantes-min">Integrantes Mínimos</label>
+                  <input type="number" name="integrantes_min" id="evento-integrantes-min" min="1" placeholder="Ej: 8" class="form-control">
+                  <p class="help-text">Mínimo de jugadores por equipo</p>
+                </div>
+                <div class="form-group">
+                  <label for="evento-integrantes-max">Integrantes Máximos</label>
+                  <input type="number" name="integrantes_max" id="evento-integrantes-max" min="1" placeholder="Ej: 15" class="form-control">
+                  <p class="help-text">Dejar vacío para sin límite</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="form-section">
@@ -229,6 +239,16 @@
               placeholder="Ej: 50">
               <p class="help-text">Dejar vacío para sin límite</p>
             </div>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h3>Unidades Académicas Participantes</h3>
+          <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+            Selecciona los Campus/Unidades que pueden participar en este evento. Si no seleccionas ninguno, se asignarán todos automáticamente.
+          </p>
+          <div id="campus-checkbox" class="facultadres-grid">
+            <p>Cargando Unidades...</p>
           </div>
         </div>
 

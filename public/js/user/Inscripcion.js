@@ -78,6 +78,8 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
 
 function agregarBotonesInscripcion() {
     const tarjetasEvento = document.querySelectorAll('.evento-card, .event-card, .card-evento');
+    // NUEVA LÍNEA: Identificar la página actual
+    const paginaActual = window.location.pathname.split('/').pop();
 
     tarjetasEvento.forEach((tarjeta) => {
         
@@ -113,25 +115,24 @@ function agregarBotonesInscripcion() {
 
         // --- FIN DE CAMBIOS ---
         
-        const btnInscribir = document.createElement('button');
-        btnInscribir.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="8.5" cy="7" r="4"/>
-                <line x1="20" y1="8" x2="20" y2="14"/>
-                <line x1="23" y1="11" x2="17" y2="11"/>
-            </svg>
-            Registrarse al Evento
-        `;
-        btnInscribir.className = 'btn-inscribir';
-        btnInscribir.style.cssText = `
+        const contenedorBotones = tarjeta.querySelector('.card-actions, .evento-actions, .btn-container');
+        if (!contenedorBotones) return;
+
+
+        // =========================================================
+        // ===== LÓGICA CONDICIONAL DE BOTONES (MODIFICADO) =====
+        // =========================================================
+        
+        const esTorneoEquipo = paginaActual === 'torneos.html' && tipoRegistro === 'Por equipos';
+
+        // Estilos base para el botón principal (crear equipo / registro individual)
+        const estilosBaseBoton = `
             background: linear-gradient(135deg, #00843D 0%, #00a651 100%);
             color: white;
             padding: 14px 28px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 15px;
             font-weight: 600;
             font-size: 16px;
             display: inline-flex;
@@ -142,37 +143,102 @@ function agregarBotonesInscripcion() {
             width: 100%;
         `;
         
-        btnInscribir.addEventListener('mouseover', () => {
-            btnInscribir.style.transform = 'translateY(-2px)';
-            btnInscribir.style.boxShadow = '0 6px 16px rgba(0, 132, 61, 0.4)';
-        });
-        
-        btnInscribir.addEventListener('mouseout', () => {
-            btnInscribir.style.transform = 'translateY(0)';
-            btnInscribir.style.boxShadow = '0 4px 12px rgba(0, 132, 61, 0.3)';
-        });
-        
-        // --- INICIO DE CAMBIOS ---
-        
-        // 3. Lógica en el click
-        btnInscribir.addEventListener('click', () => {
-            if (tipoRegistro === 'Por equipos') {
-                // Llama a la NUEVA función para equipos
+        if (esTorneoEquipo) {
+            // Caso 1: Torneos por equipo -> Dos botones
+            
+            // 1. Botón Principal: Registrar Mi Equipo
+            const btnCrearEquipo = document.createElement('button');
+            btnCrearEquipo.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Registrar Mi Equipo
+            `;
+            btnCrearEquipo.className = 'btn-inscribir btn-crear-equipo';
+            btnCrearEquipo.style.cssText = estilosBaseBoton + `margin-bottom: 10px;`;
+            
+            btnCrearEquipo.addEventListener('click', () => {
                 mostrarFormularioEquipo(eventoId, nombreEvento, min, max);
-            } else {
-                // Llama a la función individual (que ya recibe el nombre)
-                mostrarFormularioInscripcion(eventoId, nombreEvento);
-            }
-        });
+            });
 
-        // --- FIN DE CAMBIOS ---
-        
-        const contenedorBotones = tarjeta.querySelector('.card-actions, .evento-actions, .btn-container');
-        if (contenedorBotones) {
-            contenedorBotones.appendChild(btnInscribir);
+            // 2. Botón Secundario: Unirme a Equipo Existente
+            const btnUnirseEquipo = document.createElement('button');
+            btnUnirseEquipo.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                Unirme a Equipo
+            `;
+            btnUnirseEquipo.className = 'btn-unirse-equipo';
+            // Estilo diferente para el segundo botón
+            btnUnirseEquipo.style.cssText = `
+                background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+                color: white;
+                padding: 14px 28px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 16px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+                width: 100%;
+            `;
+
+            btnUnirseEquipo.addEventListener('click', () => {
+                // Llama a la nueva función
+                mostrarFormularioUnirseEquipo(eventoId, nombreEvento);
+            });
+
+            contenedorBotones.appendChild(btnCrearEquipo);
+            contenedorBotones.appendChild(btnUnirseEquipo);
+
         } else {
-            tarjeta.appendChild(btnInscribir);
+            // Caso 2: Eventos Individuales (incluyendo torneos individuales) -> Un solo botón
+            const btnInscribir = document.createElement('button');
+            btnInscribir.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                Registrarse al Evento
+            `;
+            btnInscribir.className = 'btn-inscribir';
+            btnInscribir.style.cssText = estilosBaseBoton + `margin-top: 15px;`;
+
+            btnInscribir.addEventListener('click', () => {
+                mostrarFormularioInscripcion(eventoId, nombreEvento);
+            });
+            
+            contenedorBotones.appendChild(btnInscribir);
         }
+
+        // Agregar efectos hover una sola vez para ambos botones
+        const botones = contenedorBotones.querySelectorAll('button');
+        botones.forEach(btn => {
+            btn.addEventListener('mouseover', () => {
+                btn.style.transform = 'translateY(-2px)';
+                btn.style.boxShadow = '0 6px 16px rgba(0, 132, 61, 0.4)';
+            });
+            
+            btn.addEventListener('mouseout', () => {
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = btn.classList.contains('btn-unirse-equipo') 
+                    ? '0 4px 12px rgba(0, 123, 255, 0.3)'
+                    : '0 4px 12px rgba(0, 132, 61, 0.3)';
+            });
+        });
     });
 }
 
@@ -1162,6 +1228,588 @@ function enviarInscripcionEquipo(form, modal) {
         mostrarToast(error.message || 'Error de conexión al inscribir el equipo. Intenta de nuevo.', 'error');
         btnEnviar.disabled = false;
         btnEnviar.textContent = 'Registrar Equipo';
+    });
+}
+
+
+/**
+ * Muestra el modal con la lista de equipos disponibles para unirse
+ * Se añade al archivo Inscripcion.js después de la función enviarInscripcionEquipo
+ */
+function mostrarFormularioUnirseEquipo(eventoId, nombreEvento) {
+    const modalExistente = document.getElementById('modal-unirse-equipo');
+    if(modalExistente) modalExistente.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'modal-unirse-equipo';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center;
+        align-items: flex-start; z-index: 10000; overflow-y: auto; 
+        padding: 20px 10px; animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div class="modal-contenido-responsive" style="background: white; border-radius: 16px; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; position: relative; max-width: 900px; width: 100%; padding: 40px;">
+            
+            <button type="button" class="btnCerrarXUnirse" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666; z-index: 1;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unirse a un Equipo</h2>
+                <p style="color: #666; margin: 0; font-size: 15px;">Selecciona un equipo existente para unirte</p>
+                <h3 style="color: #007bff; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${nombreEvento}</h3>
+            </div>
+
+            <div id="loading-equipos" style="text-align: center; padding: 40px;">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" style="animation: spin 1s linear infinite;">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                <p style="color: #666; margin-top: 15px;">Cargando equipos disponibles...</p>
+            </div>
+
+            <div id="lista-equipos" style="display: none;"></div>
+
+            <div style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                <button type="button" id="btnCerrarUnirse" 
+                        style="padding: 14px 32px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+
+    // Cargar equipos
+fetch(`../php/public/obtenerEquipo.php?evento_id=${eventoId}`)
+        .then(response => {
+            console.log('Estado de respuesta:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos:', data);
+            document.getElementById('loading-equipos').style.display = 'none';
+            const listaContainer = document.getElementById('lista-equipos');
+            listaContainer.style.display = 'block';
+
+            if (data.success && data.equipos && data.equipos.length > 0) {
+                mostrarListaEquipos(data.equipos, listaContainer, eventoId, nombreEvento);
+            } else {
+                listaContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 12px;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="1.5" style="margin-bottom: 15px;">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <p style="color: #666; font-size: 16px; margin: 0;">No hay equipos registrados para este evento aún.</p>
+                        <p style="color: #999; font-size: 14px; margin: 10px 0 0 0;">Sé el primero en crear un equipo.</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error completo:', error);
+            document.getElementById('loading-equipos').style.display = 'none';
+            const listaContainer = document.getElementById('lista-equipos');
+            listaContainer.style.display = 'block';
+            listaContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px;">
+                    <p style="color: #856404; margin: 0;">Error al cargar los equipos: ${error.message}</p>
+                    <p style="color: #856404; margin: 10px 0 0 0; font-size: 14px;">Verifica la consola para más detalles.</p>
+                </div>
+            `;
+        });
+
+    // Cerrar modal
+    modal.querySelector('.btnCerrarXUnirse').addEventListener('click', () => modal.remove());
+    document.getElementById('btnCerrarUnirse').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+}
+
+/**
+ * Renderiza la lista de equipos disponibles
+ */
+function mostrarListaEquipos(equipos, container, eventoId, nombreEvento) {
+    let html = '<div style="display: grid; gap: 20px;">';
+
+    equipos.forEach(equipo => {
+        const porcentajeLlenado = equipo.integrantes_max > 0 
+            ? (equipo.total_integrantes / equipo.integrantes_max) * 100 
+            : (equipo.total_integrantes / equipo.integrantes_min) * 100;
+        
+        const colorBarra = porcentajeLlenado >= 90 ? '#dc3545' : porcentajeLlenado >= 70 ? '#ffc107' : '#28a745';
+        
+        const maxTexto = equipo.integrantes_max > 0 ? equipo.integrantes_max : 'Sin límite';
+        const estadoCupo = equipo.tiene_cupo 
+            ? '<span style="color: #28a745; font-weight: 600;">✓ Cupo disponible</span>' 
+            : '<span style="color: #dc3545; font-weight: 600;">✕ Equipo lleno</span>';
+
+        html += `
+            <div class="equipo-card" style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; background: white; transition: all 0.3s; cursor: ${equipo.tiene_cupo ? 'pointer' : 'not-allowed'}; opacity: ${equipo.tiene_cupo ? '1' : '0.6'};" 
+                 data-equipo-id="${equipo.id}" 
+                 data-tiene-cupo="${equipo.tiene_cupo}">
+                
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <h3 style="margin: 0 0 5px 0; color: #003366; font-size: 20px; font-weight: 700;">
+                            ${equipo.nombre_equipo}
+                        </h3>
+                        <p style="margin: 0; color: #666; font-size: 14px;">
+                            Registrado el ${new Date(equipo.fecha_registro).toLocaleDateString('es-MX', { 
+                                day: '2-digit', 
+                                month: 'long', 
+                                year: 'numeric' 
+                            })}
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        ${estadoCupo}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 14px; font-weight: 600; color: #666;">Integrantes</span>
+                        <span style="font-size: 14px; font-weight: 700; color: #003366;">
+                            ${equipo.total_integrantes} / ${maxTexto}
+                        </span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 10px; overflow: hidden;">
+                        <div style="width: ${Math.min(porcentajeLlenado, 100)}%; height: 100%; background: ${colorBarra}; transition: width 0.3s;"></div>
+                    </div>
+                    ${equipo.total_integrantes < equipo.integrantes_min ? `
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #ffc107;">
+                            ⚠ Mínimo requerido: ${equipo.integrantes_min} integrantes
+                        </p>
+                    ` : ''}
+                </div>
+
+                ${equipo.integrantes_preview ? `
+                    <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                        <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase;">Integrantes actuales:</p>
+                        <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.4;">
+                            ${equipo.integrantes_preview.substring(0, 100)}${equipo.integrantes_preview.length > 100 ? '...' : ''}
+                        </p>
+                    </div>
+                ` : ''}
+
+                ${equipo.tiene_cupo ? `
+                    <button class="btn-seleccionar-equipo" data-equipo-id="${equipo.id}" data-nombre-equipo="${equipo.nombre_equipo}"
+                            style="width: 100%; padding: 12px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Unirme a este equipo
+                    </button>
+                ` : `
+                    <button disabled 
+                            style="width: 100%; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: not-allowed; font-weight: 600; font-size: 15px; opacity: 0.6;">
+                        Equipo completo
+                    </button>
+                `}
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Agregar efectos hover y click a las tarjetas
+    container.querySelectorAll('.equipo-card').forEach(card => {
+        const tieneCupo = card.getAttribute('data-tiene-cupo') === 'true';
+        
+        if (tieneCupo) {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = '#007bff';
+                card.style.boxShadow = '0 4px 12px rgba(0, 123, 255, 0.2)';
+                card.style.transform = 'translateY(-2px)';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = '#e0e0e0';
+                card.style.boxShadow = 'none';
+                card.style.transform = 'translateY(0)';
+            });
+        }
+    });
+
+    // Agregar listeners a los botones de selección
+    container.querySelectorAll('.btn-seleccionar-equipo').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const equipoId = btn.getAttribute('data-equipo-id');
+            const nombreEquipo = btn.getAttribute('data-nombre-equipo');
+            mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nombreEvento);
+        });
+    });
+}
+
+/**
+ * Muestra el formulario para que un participante se una a un equipo específico
+ */
+function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nombreEvento) {
+    // Cerrar el modal de lista de equipos
+    document.getElementById('modal-unirse-equipo')?.remove();
+
+    // Crear el modal del formulario
+    const modal = document.createElement('div');
+    modal.id = 'modal-unirse-integrante';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center;
+        align-items: center; z-index: 10000; overflow-y: auto; padding: 20px;
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; position: relative;">
+            
+            <button type="button" class="btnCerrarXUnirseIntegrante" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                </div>
+                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unirse al Equipo</h2>
+                <p style="color: #666; margin: 0 0 15px 0; font-size: 15px;">Completa tus datos para unirte</p>
+                <h3 style="color: #00843D; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">${nombreEvento}</h3>
+                <div style="padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%); border-radius: 10px; border-left: 4px solid #007bff;">
+                    <p style="margin: 0; color: #007bff; font-weight: 700; font-size: 18px;">${nombreEquipo}</p>
+                </div>
+            </div>
+            
+            <form id="formUnirseIntegrante">
+                <input type="hidden" name="equipo_id" value="${equipoId}">
+                <input type="hidden" name="evento_id" value="${eventoId}">
+                
+                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #00843D;">
+                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">
+                        Tipo de Participante <span style="color: #dc3545;">*</span>
+                    </label>
+                    <div style="display: grid; gap: 12px;">
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Estudiante" checked style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Estudiante</span>
+                        </label>
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Docente" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Docente / Personal Académico</span>
+                        </label>
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Externo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Externo</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Apellido Paterno <span style="color: #dc3545;">*</span></label>
+                        <input type="text" name="apellido_paterno" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Apellido Materno <span style="color: #dc3545;">*</span></label>
+                        <input type="text" name="apellido_materno" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Nombre(s) <span style="color: #dc3545;">*</span></label>
+                    <input type="text" name="nombres" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div id="matricula-container">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                            <span id="label-matricula">Matrícula</span> <span style="color: #dc3545;" id="required-matricula">*</span>
+                        </label>
+                        <input type="text" name="matricula" id="input-matricula" placeholder="12345678" required class="form-input" pattern="[0-9]{6,10}" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <small style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Solo números (6-10 dígitos)</small>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Género <span style="color: #dc3545;">*</span></label>
+                        <select name="genero" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                            <option value="">Selecciona</option>
+                            <option value="Hombre">Hombre</option>
+                            <option value="Mujer">Mujer</option>
+                            <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Correo Electrónico UABC <span style="color: #dc3545;">*</span></label>
+                    <input type="email" name="correo" id="input-correo" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    <small id="correo-hint" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
+                </div>
+
+                <div style="margin-bottom: 20px;" id="facultad-container">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                        <span id="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" id="required-facultad">*</span>
+                    </label>
+                    <select name="facultad" id="select-facultad" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <option value="">Cargando facultades...</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 25px;" id="carrera-container">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                        <span id="label-carrera">Carrera</span> <span style="color: #dc3545;" id="required-carrera">*</span>
+                    </label>
+                    <select name="carrera" id="select-carrera" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <option value="">Selecciona primero una facultad</option>
+                    </select>
+                    <small style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área</small>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
+                    <button type="button" id="btnVolverListaEquipos" style="padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px;">
+                        ← Volver
+                    </button>
+                    <button type="submit" id="btnSubmitUnirse" style="padding: 15px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);">
+                        Unirme al Equipo
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+
+    // Función para validar campo en tiempo real
+    function validarCampo(input, forzarValidacion = false) {
+        const tipo = document.querySelector('input[name="tipo_participante"]:checked').value;
+        let esValido = true;
+
+        // Si el campo está vacío y es requerido
+        if (input.value.trim() === '' && input.required) {
+            input.style.borderColor = '#dc3545';
+            input.style.backgroundColor = 'white';
+            return;
+        }
+
+        // Si el campo no está vacío, validar según el tipo
+        if (input.value.trim() !== '') {
+            // Validaciones específicas
+            if (input.name === 'matricula') {
+                const pattern = /^[0-9]{6,10}$/;
+                esValido = pattern.test(input.value);
+            }
+
+            if (input.name === 'correo') {
+                // Solo validar para estudiantes y docentes
+                if (tipo === 'Estudiante' || tipo === 'Docente') {
+                    const pattern = /^[a-zA-Z0-9._+\-]+@uabc\.(edu\.)?mx$/;
+                    esValido = pattern.test(input.value);
+                } else {
+                    // Para externos, validar que sea un email válido
+                    const pattern = /^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    esValido = pattern.test(input.value);
+                }
+            }
+
+            // Aplicar estilos según validación
+            if (esValido) {
+                input.style.borderColor = '#28a745';
+                input.style.backgroundColor = 'white';
+            } else {
+                input.style.borderColor = '#dc3545';
+                input.style.backgroundColor = 'white';
+            }
+        } else if (!input.required) {
+            // Si no es requerido y está vacío, estilo normal
+            input.style.borderColor = '#e0e0e0';
+            input.style.backgroundColor = 'white';
+        }
+    }
+
+    // Agregar validación en tiempo real a todos los inputs
+    const inputs = modal.querySelectorAll('input[type="text"], input[type="email"], select');
+    
+    // Marcar todos los campos requeridos como inválidos al inicio
+    inputs.forEach(input => {
+        if (input.required && input.value.trim() === '') {
+            input.style.borderColor = '#dc3545';
+            input.style.backgroundColor = 'white';
+        }
+        
+        input.addEventListener('input', () => {
+            validarCampo(input);
+        });
+        
+        input.addEventListener('blur', () => {
+            validarCampo(input);
+        });
+    });
+
+    // Cargar facultades y carreras
+    const selectFacultad = document.getElementById('select-facultad');
+    const selectCarrera = document.getElementById('select-carrera');
+    cargarFacultades(selectFacultad, '../php/public/');
+
+    selectFacultad.addEventListener('change', (e) => {
+        const facultadId = e.target.value;
+        cargarCarreras(facultadId, selectCarrera, '../php/public/');
+        validarCampo(e.target);
+    });
+
+    selectCarrera.addEventListener('change', (e) => {
+        validarCampo(e.target);
+    });
+
+    // Manejar cambio de tipo de participante
+    document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
+        // Marcar el seleccionado inicialmente
+        const label = radio.closest('.radio-option');
+        if (radio.checked) {
+            label.style.borderColor = '#28a745';
+            label.style.backgroundColor = 'white';
+        }
+        
+        radio.addEventListener('change', function() {
+            const tipo = this.value;
+            
+            // Actualizar estilos de todos los radio buttons
+            document.querySelectorAll('.radio-option').forEach(opt => {
+                opt.style.borderColor = '#e0e0e0';
+                opt.style.backgroundColor = 'white';
+            });
+            
+            // Marcar el seleccionado en verde
+            label.style.borderColor = '#28a745';
+            label.style.backgroundColor = 'white';
+            
+            actualizarCamposSegunTipo(tipo, document);
+            
+            // Actualizar hint del correo según tipo
+            const correoHint = document.getElementById('correo-hint');
+            const inputCorreo = document.getElementById('input-correo');
+            
+            if (tipo === 'Externo') {
+                correoHint.style.display = 'none';
+                inputCorreo.removeAttribute('pattern');
+                inputCorreo.placeholder = 'ejemplo@correo.com';
+            } else {
+                correoHint.style.display = 'block';
+                inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+                inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+            }
+            
+            // Re-validar campos
+            inputs.forEach(input => {
+                validarCampo(input);
+            });
+        });
+    });
+
+    // Botón volver
+    document.getElementById('btnVolverListaEquipos').addEventListener('click', () => {
+        modal.remove();
+        mostrarFormularioUnirseEquipo(eventoId, nombreEvento);
+    });
+
+    // Cerrar modal
+    modal.querySelector('.btnCerrarXUnirseIntegrante').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    // Enviar formulario
+    document.getElementById('formUnirseIntegrante').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Validar todos los campos antes de enviar
+        let todosValidos = true;
+        inputs.forEach(input => {
+            validarCampo(input);
+            if (input.required && input.value.trim() === '') {
+                todosValidos = false;
+                input.style.borderColor = '#dc3545';
+                input.style.backgroundColor = 'white';
+            }
+        });
+        
+        if (todosValidos) {
+            enviarUnirseEquipo(e.target, modal);
+        } else {
+            mostrarToast('Por favor completa todos los campos requeridos correctamente', 'error');
+        }
+    });
+}
+
+/**
+ * Envía los datos para unir un participante a un equipo existente
+ */
+function enviarUnirseEquipo(form, modal) {
+    const formData = new FormData(form);
+    const btnEnviar = document.getElementById('btnSubmitUnirse');
+    
+    // Validar campos requeridos según tipo
+    const tipo = formData.get('tipo_participante');
+    if (tipo === 'Estudiante') {
+        if (!formData.get('matricula') || !formData.get('carrera')) {
+            mostrarToast('Los estudiantes deben proporcionar matrícula y carrera', 'error');
+            return;
+        }
+    }
+    
+    btnEnviar.disabled = true;
+    btnEnviar.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px;">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+        </svg>
+        Enviando...
+    `;
+    
+    fetch('../php/public/unirseEquipo.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarModalExito(data.mensaje || '¡Te has unido al equipo exitosamente!', modal);
+        } else {
+            mostrarToast(data.mensaje || 'Error al unirse al equipo', 'error');
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = 'Unirme al Equipo';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarToast('Error de conexión. Intenta de nuevo.', 'error');
+        btnEnviar.disabled = false;
+        btnEnviar.innerHTML = 'Unirme al Equipo';
     });
 }
 // ==========================================

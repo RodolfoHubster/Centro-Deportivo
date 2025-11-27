@@ -31,13 +31,30 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
             mostrarFormularioInscripcion(eventoId, 'Evento');
         });
 }
+
+// Función auxiliar para determinar la página de destino
+function getTargetPage(tipoActividad) {
+    if (tipoActividad === 'Torneo') {
+        return 'torneos.html';
+    }
+    // Para cualquier otro tipo (Carrera, Exhibición, Taller, etc.), usar eventos.html
+    return 'eventos.html';
+}
+
 /**
- * Muestra el modal con el QR de un evento existente.
+* Muestra el modal con el QR de un evento existente.
+ * @param {number} id_evento - ID del evento.
+ * @param {string} tipo_actividad - El tipo de actividad (ej: 'Torneo'). // NUEVO PARÁMETRO
  */
-export function generarQR(id_evento) {
+export function generarQR(id_evento, tipo_actividad) { // MODIFICADO
    // Construye la URL dinámicamente en lugar de usar una ruta fija
     const currentURL = window.location.href; // Ej: .../public/admin/gestionar-eventos.html
-    const baseURL = currentURL.split('?')[0].replace('admin/gestionar-eventos.html', 'eventos.html');
+    
+    // Determina la página de destino (eventos.html o torneos.html)
+    const targetPage = getTargetPage(tipo_actividad);
+    
+    // Modificado para usar la página dinámica
+    const baseURL = currentURL.split('?')[0].replace('admin/gestionar-eventos.html', targetPage);
     const enlaceEvento = `${baseURL}?id_evento=${encodeURIComponent(id_evento)}`;
     const modalQR = document.createElement('div');
     
@@ -127,17 +144,24 @@ export function generarQR(id_evento) {
         if (e.target === modalQR) modalQR.remove();
     });
 }
-
 /**
- * Muestra el modal de éxito (con QR) después de crear un evento.
+* Muestra el modal de éxito (con QR) después de crear un evento.
+ * @param {number} id_evento - ID del evento.
+ * @param {string} mensaje - Mensaje de éxito.
+ * @param {string} tipo_actividad - El tipo de actividad (ej: 'Torneo'). // NUEVO PARÁMETRO
  */
-export function mostrarModalExitoConQR(id_evento, mensaje) {
+export function mostrarModalExitoConQR(id_evento, mensaje, tipo_actividad) { // MODIFICADO
+    
+    // Determina la página de destino (eventos.html o torneos.html)
+    const targetPage = getTargetPage(tipo_actividad);
+    
     const currentURL = window.location.href; // Ej: .../public/admin/gestionar-eventos.html
-    const baseURL = currentURL.split('?')[0].replace('admin/gestionar-eventos.html', 'eventos.html');
+    
+    // Modificado para usar la página dinámica
+    const baseURL = currentURL.split('?')[0].replace('admin/gestionar-eventos.html', targetPage);
     const enlaceEvento = `${baseURL}?id_evento=${encodeURIComponent(id_evento)}`;
     
-    const modalExito = document.createElement('div');
-    modalExito.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
+    const modalExito = document.createElement('div'); 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
     
     modalExito.innerHTML = `
         <div style="max-width: 650px; background: white; padding: 35px; border-radius: 10px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">

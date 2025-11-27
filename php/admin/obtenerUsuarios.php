@@ -1,4 +1,7 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', 0);
+
 session_start();
 header('Content-Type: application/json');
 include '../includes/conexion.php';
