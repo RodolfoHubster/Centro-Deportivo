@@ -7,6 +7,8 @@
 
 import { formatearFecha } from '../utils/utilidades.js';
 
+let todasLasFacultades = [];
+
 /**
  * Rellena los select de campus en el formulario (MODAL)
  * @param {Array} campus - Lista campus
@@ -26,17 +28,167 @@ export function poblarSelectActividades(actividades) {
 }
 
 /**
- * Rellena el div de checkboxes de las facultades
- * @param {Array} facultades - Lista facultades
+ * Rellena el div de checkboxes de las UNIDADES/CAMPUS
+ * @param {Array} campus - Lista de campus (Ej: Otay, Mexicali, etc.)
  */
+export function poblarCheckboxesCampus(campus) { 
+    const container = document.getElementById('campus-checkbox');
+    if (!container) return;
+    
+    // Convertir a minúsculas para una búsqueda sin distinción de mayúsculas
+    const filtroBusqueda = ['tijuana', 'valle', 'palmas']; 
 
-export function poblarCheckboxesFacultades(facultades) {
-    const container = document.getElementById('facultades-checkbox');
+    // 1. FILTRAR CAMPUS: Solo Tijuana y Valle de las Palmas
+    const campusFiltrado = campus.filter(c => {
+        const nombre = (c.nombre || '').toLowerCase();
+        const codigo = (c.codigo || '').toLowerCase();
+        
+        // Retorna true si el nombre o el código incluye 'tijuana' O 'valle'/'palmas'
+        return filtroBusqueda.some(term => nombre.includes(term) || codigo.includes(term));
+    });
+
+    if (!campusFiltrado || campusFiltrado.length === 0) {
+        container.innerHTML = '<p style="color: red; font-weight: bold;">Error: No se pudo cargar la lista filtrada de Campus/Unidades.</p>';
+        return;
+    }
+
     container.innerHTML = '';
-    facultades.forEach(facultad => {
+    
+    // 2. APLICAR ESTILO DE CUADRO Y SCROLL (replicando estilos de facultades)
+    container.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 10px;
+        max-height: 180px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        background: #f9f9f9;
+    `;
+    
+    campusFiltrado.forEach(c => {
         container.innerHTML += `
         <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
-                <input type="checkbox" name="facultades[]" value="${facultad.id}" style="margin-right: 10px;">
+                <input type="checkbox" name="campus[]" value="${c.id}" style="margin-right: 10px;">
+                <span style="font-weight: 500;">${c.nombre}</span> 
+                <span style="color: #666; margin-left: 5px;">(${c.codigo || 'N/A'})</span>
+            </label>
+            `;
+    });
+}
+
+
+/**
+ * Guarda la lista original de facultades y la usa para el llenado inicial.
+ * @param {Array} facultades - Lista completa de facultades.
+ */
+export function poblarCheckboxesFacultades(facultades) {
+    todasLasFacultades = facultades;
+    // NO llenar automáticamente, dejar vacío hasta que se seleccione un campus
+    const container = document.getElementById('facultades-checkbox');
+    if (container) {
+        container.innerHTML = '<p style="color: #666; font-style: italic; padding: 15px; text-align: center;">Primero selecciona una o más Unidades Académicas para ver sus facultades.</p>';
+    }
+}
+
+/**
+ * Función de FILTRADO DINÁMICO: Renderiza las facultades en el modal,
+ * aplicando el filtro por campus seleccionado y manteniendo la selección anterior.
+ * @param {Array} campusIds - Array de IDs de campus seleccionados (ej: [1, 3]).
+ * @param {Array} [facultadesSeleccionadas=[]] - IDs de facultades que deben permanecer marcadas (al editar o cambiar filtro).
+ */
+export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas = []) { 
+    const container = document.getElementById('facultades-checkbox');
+    if (!container) return;
+    
+    if (todasLasFacultades.length === 0) {
+        container.innerHTML = '<p style="color: red; font-weight: bold;">Error: No se pudo cargar la lista de Facultades.</p>';
+        return;
+    }
+    
+    // Si NO hay campus seleccionados, mostrar mensaje
+    if (!campusIds || campusIds.length === 0) {
+        container.innerHTML = '<p style="color: #666; font-style: italic; padding: 15px; text-align: center;">Selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
+        return;
+    }
+
+    // Filtrar facultades por los campus seleccionados
+    let facultadesMostrar = todasLasFacultades.filter(f => 
+        campusIds.includes(String(f.campus_id))
+    );
+
+    if (facultadesMostrar.length === 0) {
+        container.innerHTML = '<p style="color: #003366; font-style: italic; padding: 10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    
+    container.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 10px;
+        max-height: 180px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        background: #f9f9f9;
+    `;
+
+    facultadesMostrar.forEach(facultad => {
+        const isChecked = facultadesSeleccionadas.includes(String(facultad.id)) ? 'checked' : '';
+        
+        container.innerHTML += `
+            <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
+                <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right: 10px;">
+                <span style="font-weight: 500;">${facultad.nombre}</span> 
+                <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
+            </label>
+        `;
+    });
+}
+
+/**
+ * Rellena el div de checkboxes de las facultades, aplicando filtros de Campus.
+ * @param {Array} campusIds - Array de IDs de campus seleccionados (ej: [1, 3]).
+ * @param {Array} [facultadesSeleccionadas=[]] - IDs de facultades que deben permanecer marcadas.
+ */
+export function recargarCheckboxesFacultades(campusIds, facultadesSeleccionadas = []) { // <--- Modificación de la función original
+    const container = document.getElementById('facultades-checkbox');
+    if (!container) return;
+    
+    // Si no hay facultades cargadas (error en carga inicial), salimos
+    if (todasLasFacultades.length === 0) {
+        container.innerHTML = '<p style="color: red; font-weight: bold;">Error: No se pudo cargar la lista de Facultades inicialmente.</p>';
+        return;
+    }
+    
+    let facultadesMostrar = todasLasFacultades;
+
+    // Aplicar filtro si hay IDs de campus seleccionados
+    if (campusIds && campusIds.length > 0) {
+        // Filtramos las facultades cuyo campus_id esté en la lista de campusIds
+        facultadesMostrar = todasLasFacultades.filter(f => 
+            campusIds.includes(String(f.campus_id))
+        );
+    } 
+    // Nota: Si campusIds está vacío, se muestran todas (comportamiento por defecto)
+
+    if (facultadesMostrar.length === 0) {
+         container.innerHTML = '<p style="color: #003366; font-style: italic; padding: 10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
+         return;
+    }
+
+    container.innerHTML = '';
+    facultadesMostrar.forEach(facultad => {
+        // Determinar si el checkbox debe estar marcado (útil al editar)
+        const isChecked = facultadesSeleccionadas.includes(String(facultad.id)) ? 'checked' : '';
+        
+        container.innerHTML += `
+        <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
+                <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right: 10px;">
                 <span style="font-weight: 500;">${facultad.nombre}</span> 
                 <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
             </label>
@@ -169,7 +321,17 @@ export function prepararModalParaCrear(periodoActivoNombre) {
     document.getElementById('evento-id').value = '';
     document.getElementById('evento-periodo').value = periodoActivoNombre || 'Sin Periodo Activo';
     mostrarCamposEquipo('Individual'); // Oculta los campos por defecto
+
+    // LIMPIAR CHECKBOXES DE CAMPUS
+    document.querySelectorAll('input[name="campus[]"]').forEach(cb => cb.checked = false);
     document.querySelectorAll('input[name="facultades[]"]').forEach(cb => cb.checked = false);
+
+    // MOSTRAR MENSAJE INICIAL EN FACULTADES (vacío hasta seleccionar campus)
+    const containerFacultades = document.getElementById('facultades-checkbox');
+    if (containerFacultades) {
+        containerFacultades.innerHTML = '<p style="color: #666; font-style: italic; padding: 15px; text-align: center;">Primero selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
+    }
+
     document.getElementById('modalEvento').style.display = 'block';
 }
 

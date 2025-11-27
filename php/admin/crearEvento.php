@@ -1,6 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', 0);
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
@@ -20,6 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'mensaje' => 'Método no permitido']);
     exit;
 }
+
+// Esto evita que cualquier error de PHP se imprima y rompa el JSON
+ob_start();
+ob_clean();
 
 // Iniciar transacción
 mysqli_begin_transaction($conexion);
@@ -51,11 +56,31 @@ try {
     $fecha_termino = mysqli_real_escape_string($conexion, $_POST['fecha_termino']);
     $lugar = mysqli_real_escape_string($conexion, trim($_POST['lugar']));
     $tipo_registro = mysqli_real_escape_string($conexion, $_POST['tipo_registro']);
+    
+    // La categoría es el valor final (ya sea el predefinido o el escrito por el usuario, gracias al JS)
     $categoria_deporte = mysqli_real_escape_string($conexion, $_POST['categoria_deporte']);
+    
     $tipo_actividad = mysqli_real_escape_string($conexion, $_POST['tipo_actividad']);
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
-    $campus_id = isset($_POST['campus_id']) && !empty($_POST['campus_id']) ? intval($_POST['campus_id']) : 1;
+    
     $id_promotor = intval($_POST['id_promotor']);
+    
+    // === MANEJO SEGURO DE CAMPUS ID (para la columna única) ===
+    $campus_id = 1; // Valor predeterminado seguro
+
+    // 1. Si el nuevo array de checkboxes está presente, tomamos el primer ID seleccionado
+    if (isset($_POST['campus']) && is_array($_POST['campus']) && !empty($_POST['campus'])) {
+        $campus_id = intval($_POST['campus'][0]); 
+    } 
+    // 2. Si se está usando el campo oculto anterior (campus_id)
+    elseif (isset($_POST['campus_id']) && !empty($_POST['campus_id'])) {
+        $campus_id = intval($_POST['campus_id']);
+    }
+
+    if ($campus_id === 0) {
+        $campus_id = 1; 
+    }
+    // === FIN DE CORRECCIÓN DE CAMPUS ID ===
     
     // PERIODO
     $periodo = isset($_POST['periodo']) ? mysqli_real_escape_string($conexion, trim($_POST['periodo'])) : '';
@@ -77,7 +102,7 @@ try {
     $codigo_qr = 'QR_EVT_' . time() . '_' . rand(1000000000, 9999999999);
     $token_registro = 'TKN_' . md5(uniqid($nombre . time(), true));
     
-    // 5. INSERTAR (CORREGIDO: AHORA LOS SIGNOS '?' COINCIDEN CON LAS COLUMNAS)
+    // 5. INSERTAR
     
     if ($id_actividad !== null) {
         // CASO 1: CON ACTIVIDAD
@@ -103,7 +128,7 @@ try {
             $cupo_maximo, $integrantes_min, $integrantes_max
         );
     } else {
-        // CASO 2: SIN ACTIVIDAD (AQUÍ FALTABA UN ?)
+        // CASO 2: SIN ACTIVIDAD
         $sqlEvento = "INSERT INTO evento (
                         nombre, descripcion, fecha_inicio, fecha_termino, periodo, lugar,
                         tipo_registro, categoria_deporte, tipo_actividad,
@@ -117,7 +142,6 @@ try {
         $stmt = mysqli_prepare($conexion, $sqlEvento);
         if (!$stmt) throw new Exception('Error preparar consulta: ' . mysqli_error($conexion));
         
-        // Ahora hay 17 signos '?' antes de los valores fijos (0, 1, NOW())
         mysqli_stmt_bind_param(
             $stmt,
             'ssssssssssiissiii', // 17 tipos de datos
@@ -149,6 +173,8 @@ try {
     // 7. CONFIRMAR
     mysqli_commit($conexion);
     
+    // CERRAR BUFFER ANTES DE ENVIAR JSON
+    ob_end_clean(); 
     echo json_encode([
         'success' => true,
         'mensaje' => "Evento '{$nombre}' creado exitosamente",
@@ -157,6 +183,9 @@ try {
     
 } catch (Exception $e) {
     mysqli_rollback($conexion);
+    
+    // CERRAR BUFFER TAMBIÉN EN CASO DE ERROR
+    ob_end_clean(); 
     http_response_code(400);
     echo json_encode(['success' => false, 'mensaje' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
 }

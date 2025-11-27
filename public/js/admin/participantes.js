@@ -169,6 +169,8 @@ async function cargarParticipantes(eventoId) {
     const subtitulo = document.getElementById("subtitulo-evento");
     
     try {
+        // ... (fetch y manejo de errores)
+
         const url = `../../php/admin/obtenerParticipantes.php?evento_id=${eventoId}`;
         const response = await fetch(url);
         if(!response.ok) throw new Error(`Error HTTP: ${response.status}`);
@@ -180,25 +182,80 @@ async function cargarParticipantes(eventoId) {
             subtitulo.textContent = `Total registrados: ${data.participantes.length}`;
 
             if (data.participantes.length > 0) {
+                
+                // === NUEVA LÓGICA DE AGRUPACIÓN POR EQUIPO ===
+                const primerParticipante = data.participantes[0];
+                const esPorEquipo = primerParticipante.equipo_id !== null;
+                
                 tbody.innerHTML = ""; 
-                data.participantes.forEach(p => {
-                    const fila = document.createElement("tr");
-                    const usuarioObj = encodeURIComponent(JSON.stringify(p));
-                    const etiquetaCapitan = p.es_capitan == 1 ? '<span class="tag-capitan" style="background:#ffd700; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.8em;">Capitán</span>' : '';
 
-                    fila.innerHTML = `
-                        <td>${p.matricula}</td>
-                        <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
-                        <td>${p.correo}</td>
-                        <td>${p.genero || 'No especificado'}</td>
-                        <td>${p.rol} ${etiquetaCapitan}</td>
-                        <td style="display:flex; gap:5px;">
-                            <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
-                            <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
-                        </td>
-                    `;
-                    tbody.appendChild(fila);
-                });
+                if (esPorEquipo) {
+                    let equipoActualId = null;
+                    let equipoActualNombre = '';
+                    let contadorEquipo = 1;
+
+                    data.participantes.forEach(p => {
+                        // 1. Detectar cambio de equipo y agregar encabezado
+                        if (p.equipo_id !== equipoActualId) {
+                            equipoActualId = p.equipo_id;
+                            equipoActualNombre = p.nombre_equipo;
+                            
+                            const encabezadoEquipo = document.createElement('tr');
+                            encabezadoEquipo.innerHTML = `
+                                <td colspan="6" style="padding: 10px; background: #e8f5e9; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid #003366;">
+                                    ${equipoActualNombre ? `EQUIPO ${contadorEquipo}: ${equipoActualNombre}` : 'EQUIPO SIN NOMBRE'}
+                                </td>
+                            `;
+                            tbody.appendChild(encabezadoEquipo);
+                            contadorEquipo++;
+                        }
+                        
+                        // 2. Renderizar fila del participante
+                        const fila = document.createElement("tr");
+                        const usuarioObj = encodeURIComponent(JSON.stringify(p));
+                        
+                        const etiquetaCapitan = p.es_capitan == 1 
+                            ? '<span class="tag-capitan" style="background:#f9b233; color:#333; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.8em;">CAPITÁN</span>' 
+                            : '';
+                        
+                        // Nuevo: Mostrar el rol (Estudiante/Docente/Externo) + etiqueta de Capitán
+                        const rolDisplay = `${p.rol} ${etiquetaCapitan}`;
+
+                        fila.innerHTML = `
+                            <td>${p.matricula}</td>
+                            <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
+                            <td>${p.correo}</td>
+                            <td>${p.genero || 'No especificado'}</td>
+                            <td>${rolDisplay}</td>
+                            <td style="display:flex; gap:5px;">
+                                <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
+                                <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
+                            </td>
+                        `;
+                        tbody.appendChild(fila);
+                    });
+                } else {
+                    // === LÓGICA ORIGINAL (Individual) ===
+                    data.participantes.forEach(p => {
+                        const fila = document.createElement("tr");
+                        const usuarioObj = encodeURIComponent(JSON.stringify(p));
+                        const etiquetaCapitan = p.es_capitan == 1 ? '<span class="tag-capitan" style="background:#ffd700; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.8em;">Capitán</span>' : '';
+
+                        fila.innerHTML = `
+                            <td>${p.matricula}</td>
+                            <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
+                            <td>${p.correo}</td>
+                            <td>${p.genero || 'No especificado'}</td>
+                            <td>${p.rol} ${etiquetaCapitan}</td>
+                            <td style="display:flex; gap:5px;">
+                                <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
+                                <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
+                            </td>
+                        `;
+                        tbody.appendChild(fila);
+                    });
+                }
+                
             } else {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay participantes inscritos.</td></tr>';
             }

@@ -22,11 +22,14 @@ try {
                 u.correo,
                 u.rol,
                 i.id AS inscripcion_id,
-                i.es_capitan
+                i.es_capitan,
+                i.equipo_id,
+                e.nombre AS nombre_equipo  /* <--- CAMBIO 1: Obtener nombre del equipo */
             FROM inscripcion i
             JOIN usuario u ON i.usuario_id = u.id
+            LEFT JOIN equipo e ON i.equipo_id = e.id /* <--- CAMBIO 2: Unir con tabla equipo */
             WHERE i.evento_id = ?
-            ORDER BY u.apellido_paterno, u.apellido_materno, u.nombre";
+            ORDER BY e.id, i.es_capitan DESC, u.apellido_paterno, u.apellido_materno, u.nombre"; /* <--- CAMBIO 3: Ordenar por equipo y capitán */
             
     $stmt = mysqli_prepare($conexion, $sql);
     mysqli_stmt_bind_param($stmt, 'i', $evento_id);
