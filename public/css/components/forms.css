@@ -44,3 +44,40 @@
     background-color: var(--color-dorado-hover);
 }
 
+/* Estilo base más limpio */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0; /* Borde gris suave por defecto */
+    border-radius: 8px; /* Coherencia con tus tarjetas */
+    background-color: #fafafa;
+    font-family: inherit; /* Hereda la nueva fuente */
+    font-size: 1rem;
+    transition: all 0.3s ease; /* Transición suave */
+    outline: none; /* Quitamos el outline azul feo del navegador */
+}
+
+/* Estado Focus: El usuario hizo clic */
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--color-verde-uabc); /* Se ilumina con tu color */
+    background-color: #fff; /* Se vuelve blanco puro */
+    box-shadow: 0 4px 10px rgba(0, 102, 51, 0.1); /* Sombra verde sutil */
+    transform: translateY(-1px); /* Sutil elevación */
+}
+
+/* Validación visual rápida */
+input:not(:placeholder-shown):valid {
+    border-color: #28a745; /* Verde éxito sutil si está lleno y válido */
+}
+
+input:not(:placeholder-shown):invalid {
+    border-color: #dc3545; /* Rojo error sutil */
+}

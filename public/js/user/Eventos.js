@@ -79,38 +79,43 @@ function cargarEventos(filtros = {}) {
         });
 }
 
+/* public/js/user/Eventos.js */
+
 function mostrarEventos(eventos) {
     const main = document.querySelector("main");
 
-    // Limpiar solo los eventos anteriores, no el título/descripción/filtros
+    // Limpiar eventos anteriores
     const tarjetasViejas = main.querySelectorAll('.evento-card');
     tarjetasViejas.forEach(tarjeta => tarjeta.remove());
     
-    // Si no existe el contenedor, lo creamos
+    // Crear o seleccionar contenedor
     let contenedor = document.getElementById('lista-eventos');
     if (!contenedor) {
         contenedor = document.createElement('div');
         contenedor.id = 'lista-eventos';
+        contenedor.className = 'eventos-container'; // Clase necesaria para el grid en CSS
         main.appendChild(contenedor);
     }
 
     eventos.forEach(evento => {
         const tarjeta = document.createElement("div");
         tarjeta.className = "evento-card";
+
+        // ============================================================
+        // 1. ATRIBUTOS CRÍTICOS (No eliminar, Inscripcion.js los requiere)
+        // ============================================================
         tarjeta.setAttribute('data-evento-id', evento.id);
         tarjeta.setAttribute('data-tipo-registro', evento.tipo_registro || 'Individual');
         tarjeta.setAttribute('data-integrantes-min', evento.integrantes_min || 8); 
         tarjeta.setAttribute('data-integrantes-max', evento.integrantes_max || 0);
+        
+        // NOTA: Se eliminaron los estilos inline (tarjeta.style...) para que 
+        // cards.css controle el diseño.
 
-        tarjeta.style.border = "1px solid #ccc";
-        tarjeta.style.borderRadius = "8px";
-        tarjeta.style.padding = "15px";
-        tarjeta.style.margin = "10px 0";
-        tarjeta.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
-        tarjeta.style.backgroundColor = "#f9f9f9";
-
-        // --- LÓGICA DE CUPO ---
-        let cupoInfo = '';
+        // ============================================================
+        // 2. LÓGICA DE ESTADO Y CUPO
+        // ============================================================
+        let badgeHTML = '';
         let lleno = false;
         
         const cupoMaximo = parseInt(evento.cupo_maximo, 10);
@@ -118,62 +123,75 @@ function mostrarEventos(eventos) {
 
         if (cupoMaximo > 0) {
             const disponibles = cupoMaximo - registrosActuales;
-            const cupoColor = disponibles > 0 ? '#28a745' : '#dc3545';
-            cupoInfo = `
-                <p><strong>Cupo:</strong> 
-                    <span style="color: ${cupoColor}; font-weight: bold;">
-                        ${disponibles > 0 ? `${registrosActuales} / ${cupoMaximo}` : 'CUPO LLENO'}
-                    </span>
-                </p>
-            `;
+            
             if (disponibles <= 0) {
                 lleno = true;
+                badgeHTML = `<span class="badge-status lleno">Cupo Lleno</span>`;
+            } else if (disponibles < 3) {
+                // Aviso de últimos lugares (Amarillo/Dorado)
+                badgeHTML = `<span class="badge-status" style="color:#856404; background-color:#fff3cd; border: 1px solid #ffeeba;">¡Últimos Lugares!</span>`;
+            } else {
+                badgeHTML = `<span class="badge-status disponible">Disponible (${disponibles})</span>`;
             }
         } else {
-            cupoInfo = `<p><strong>Cupo:</strong> ${registrosActuales} (Sin límite)</p>`;
+            badgeHTML = `<span class="badge-status disponible">Entrada Libre</span>`;
         }
 
-        // ===== ¡MARCAMOS LA TARJETA SI ESTÁ LLENA! =====
+        // Marca para JS: Si está lleno, ponemos el atributo data-lleno
         if (lleno) {
             tarjeta.setAttribute('data-lleno', 'true');
         }
 
-        // --- LÓGICA DE FACULTADES (CORREGIDO) ---
+        // Lógica de facultades (Visualización)
         const facultadInfo = evento.facultades_nombres
-            ? `<p><strong>Facultades:</strong> ${evento.facultades_nombres}</p>` 
-            : '<p><strong>Facultades:</strong> Abierto a todas</p>';
-
-        // --- (Otros campos info) ---
-        const tipoRegistroInfo = evento.tipo_registro 
-            ? `<p><strong>Tipo de registro:</strong> ${evento.tipo_registro}</p>` 
-            : '';
-        const categoriaInfo = evento.categoria_deporte 
-            ? `<p><strong>Categoría:</strong> ${evento.categoria_deporte}</p>` 
-            : '';
-        const tipoActividadInfo = evento.tipo_actividad 
-            ? `<p><strong>Tipo:</strong> ${evento.tipo_actividad}</p>` 
+            ? `<div class="meta-row" style="margin-top: 8px;">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                 <span style="font-size: 0.9rem; color: #555; margin-left: 8px;"><strong>Facultad:</strong> ${evento.facultades_nombres}</span>
+               </div>`
             : '';
 
-        // --- HTML de la tarjeta ---
+        // ============================================================
+        // 3. HTML ESTRUCTURADO (Con iconos SVG)
+        // ============================================================
         tarjeta.innerHTML = `
-            <h2>${evento.nombre}</h2>
-            <p><strong>Descripción:</strong> ${evento.descripcion || 'Sin descripción'}</p>
-            <p><strong>Fecha inicio:</strong> ${formatearFecha(evento.fecha_inicio)}</p>
-            <p><strong>Fecha término:</strong> ${formatearFecha(evento.fecha_termino)}</p>
-            <p><strong>Lugar:</strong> ${evento.lugar}</p>
-            ${facultadInfo} ${tipoActividadInfo}
-            ${categoriaInfo}
-            ${tipoRegistroInfo}
-            ${cupoInfo}
-            <p><strong>Actividad:</strong> ${evento.actividad || 'No especificada'}</p>
+            <div class="card-header">
+                ${badgeHTML}
+                <h2>${evento.nombre}</h2>
+            </div>
             
+            <div class="card-body">
+                <p class="description">${evento.descripcion || 'Sin descripción disponible.'}</p>
+                
+                <div class="meta-info" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006633" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span style="font-size: 0.9rem; color: #444; margin-left: 8px;">${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006633" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span style="font-size: 0.9rem; color: #444; margin-left: 8px;">${evento.lugar}</span>
+                    </div>
+                    
+                    ${facultadInfo}
+                    
+                    <div style="display: flex; align-items: center; margin-top: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span style="font-size: 0.9rem; color: #555; margin-left: 8px;">
+                            <strong>Tipo:</strong> ${evento.tipo_actividad || 'General'} 
+                            ${evento.categoria_deporte ? `• ${evento.categoria_deporte}` : ''}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
             <div class="card-actions"></div>
         `;
 
         contenedor.appendChild(tarjeta);
     });
 
-    // Esta función SIEMPRE se llama
+    // Llamada necesaria para activar los botones
     if (typeof agregarBotonesInscripcion === 'function') {
         agregarBotonesInscripcion();
     }

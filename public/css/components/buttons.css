@@ -1,30 +1,59 @@
 /* css/components/buttons.css */
 
-/* .btn { */
-    /* Estilos base para todos los botones */
-    /* padding: 10px 20px; */
-    /* border: none; */
-    /* border-radius: 5px; */
-    /* cursor: pointer; */
-    /* font-weight: bold; */
-    /* transition: background-color 0.3s ease; */
-/* } */
+button, .btn {
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Espacio para iconos */
+}
 
-/* .btn-primary { */
-    /* background-color: var(--color-verde-uabc); */
-    /* color: var(--color-blanco); */
-/* } */
+/* Botón Primario (Inscribirse/Acción Principal) */
+button.btn-primary, 
+.btn-inscribir {
+    background-color: var(--color-verde-uabc);
+    color: var(--color-blanco);
+    box-shadow: 0 4px 10px rgba(0, 102, 51, 0.2);
+}
 
-/* .btn-primary:hover { */
-    /* background-color: #004d26; */ /* Verde más oscuro */
-/* } */
+button.btn-primary:hover,
+.btn-inscribir:hover {
+    background-color: #00552b; /* Un poco más oscuro */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 102, 51, 0.3);
+}
 
-/* .btn-secondary { */
-    /* background-color: var(--color-dorado-uabc); */
-    /* color: var(--color-texto); */
-/* } */
+button.btn-primary:active {
+    transform: translateY(0);
+}
 
-/* .btn-secondary:hover { */
-    /* background-color: var(--color-dorado-hover); */
-/* } */
+/* Botón Secundario (Detalles/Cancelar) */
+button.btn-secondary {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    border: 1px solid var(--color-gris-claro);
+}
 
+button.btn-secondary:hover {
+    background-color: #e2e6ea;
+    border-color: #adb5bd;
+    color: var(--color-verde-uabc);
+}
+
+/* Botón de Acción Especial (Dorado) */
+.btn-gold {
+    background-color: var(--color-dorado-uabc);
+    color: #333; /* Contraste mejor con dorado */
+}
+
+.btn-gold:hover {
+    background-color: var(--color-dorado-hover);
+    transform: translateY(-2px);
+}

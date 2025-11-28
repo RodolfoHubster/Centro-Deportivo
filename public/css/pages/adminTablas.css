@@ -22,20 +22,20 @@
 .admin-table thead tr {
     background-color: var(--color-verde-uabc); /* #006633 */
     color: var(--color-blanco);
-    text-align: left;
-}
-
-.admin-table th, 
-.admin-table td {
-    padding: 15px 20px;
-    border-bottom: 1px solid #eee;
 }
 
 .admin-table th {
-    font-weight: bold;
-    text-transform: uppercase;
+
+    padding: 12px 10px; 
+    vertical-align: middle !important;
+    text-align: center !important;
+    border-bottom: 3px solid rgba(0, 0, 0, 0.1); 
+    font-weight: 800;
     font-size: 0.85rem;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
+    height: 55px; 
+    white-space: nowrap;
 }
 
 /* FILAS */
@@ -64,6 +64,107 @@
 .btn-volver:hover {
     background-color: #e8f5e9;
     text-decoration: none;
+}
+
+/* Tarjetas de Resumen (Estadísticas pequeñas) */
+.stats-summary-card {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    color: var(--color-blanco) !important; /* Fuerza texto blanco general */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+/* Encabezados ordenables */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+th.sortable:hover {
+    background-color: #004d26;
+}
+
+/* Icono de ordenamiento */
+.sort-icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 5px;
+    font-size: 0.9em;
+    line-height: 1; 
+    position: relative;
+    top: -1px;    
+    opacity: 0.5;    
+}
+
+/* Estado activo (cuando esa columna está ordenando) */
+th.active-asc,
+th.active-desc {
+    background-color: #003e1f;
+    color: #fff;
+    border-bottom-color: var(--color-dorado-uabc); 
+}
+
+th.active-asc .sort-icon,
+th.active-desc .sort-icon {
+    opacity: 1;
+    color: var(--color-dorado-uabc);
+}
+
+th.sortable:hover {
+    background-color: #004d26;
+    cursor: pointer;
+}
+
+.stats-summary-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Forzar blanco en el número (H3) */
+.stats-summary-card h3 {
+    color: var(--color-blanco) !important; /* <--- CRÍTICO: Gana a la regla global verde */
+    margin: 0 0 5px 0;
+    font-size: 32px;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15); /* Sombra para mejor lectura */
+}
+
+/* Forzar blanco en la etiqueta (P) */
+.stats-summary-card p {
+    color: var(--color-blanco) !important;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.95;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Estilos para botones de paginación */
+.btn-paginacion {
+    padding: 8px 16px;
+    background-color: var(--color-blanco);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-texto);
+    transition: all 0.3s ease;
+}
+
+.btn-paginacion:hover:not(:disabled) {
+    background-color: var(--color-verde-uabc);
+    color: white;
+    border-color: var(--color-verde-uabc);
+}
+
+.btn-paginacion:disabled {
+    background-color: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #eee;
 }
 
 /* TAGS (Etiquetas de roles o estados) */
@@ -118,4 +219,41 @@
     background-color: #dc3545;
     /* Opcional: Gradiente */
     background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+}
+
+/* Alineación inteligente de columnas */
+
+/* 1. Columnas de texto largo a la izquierda (Nombre, Correo, Carrera, Evento) */
+.admin-table td:nth-child(2), /* Nombre */
+.admin-table td:nth-child(3), /* Correo */
+.admin-table td:nth-child(6), /* Carrera */
+.admin-table td:nth-child(7)  /* Evento */ {
+    text-align: left;
+    padding-left: 20px;
+}
+
+/* 2. Columnas de datos cortos al centro (Matrícula, Género, Tipo, Fecha) */
+.admin-table td:nth-child(1), /* Matrícula */
+.admin-table td:nth-child(4), /* Género */
+.admin-table td:nth-child(5), /* Tipo */
+.admin-table td:nth-child(8)  /* Fecha */ {
+    text-align: center;
+}
+/* ESTILO DE LAS CELDAS DEL CUERPO (Filas de datos) */
+.admin-table td {
+    padding: 22px 15px;
+    line-height: 1.6;
+    vertical-align: middle;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.admin-table tbody tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
+
+.admin-table tbody tr:hover {
+    background-color: rgba(0, 102, 51, 0.08);
+    transform: scale(1); 
 }

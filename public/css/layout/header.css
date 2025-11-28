@@ -1,4 +1,18 @@
 /* public/css/layout/header.css - HEADER FIJO */
+.main-header h1,
+.main-header h2,
+.main-header h3,
+.main-header p,
+.main-header a, 
+.main-header span {
+    color: var(--color-blanco);
+}
+
+.main-header .user-info-desktop .user-role-badge,
+.main-header .user-role-badge { 
+    color: var(--color-dorado-uabc) !important;
+    border-color: var(--color-dorado-uabc); /* Si tiene borde, también dorado */
+}
 
 .main-header {
   background-color: var(--color-verde-uabc);
@@ -176,7 +190,7 @@
   background-color: rgba(255, 255, 255, 0.15);
   padding: 2px 8px;
   border-radius: 10px;
-  color: var(--color-dorado-uabc);
+  color: var(--color-dorado-uabc); 
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.5px;

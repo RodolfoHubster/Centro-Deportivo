@@ -140,7 +140,10 @@ try {
         'evento_nombre', 
         'participante_matricula',
         'facultad_nombre',
-        'carrera_nombre'
+        'carrera_nombre',
+        'correo_institucional',
+        'genero',            
+        'tipo_participante'
     ];
     
     if (!in_array($ordenamiento, $ordenamientos_validos)) {

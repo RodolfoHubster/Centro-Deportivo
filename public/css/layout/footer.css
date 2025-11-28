@@ -7,6 +7,20 @@
     font-family: Arial, sans-serif;
 }
 
+.main-footer h1,
+.main-footer h2,
+.main-footer h3,
+.main-footer h4 {
+    color: var(--color-blanco);
+    border-color: #6a6a6a;
+}
+
+.main-footer p, 
+.main-footer li, 
+.main-footer span {
+    color: #f0f0f0;
+}
+
 .footer-content-wrapper {
     max-width: 1000px;
     margin: 0 auto;

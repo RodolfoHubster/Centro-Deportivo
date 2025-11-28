@@ -10,7 +10,7 @@
 
 /* TARJETAS DE ESTADÍSTICAS */
 .admin-stat-card {
-    color: var(--color-blanco);
+    color: var(--color-blanco) !important;
     padding: 30px;
     border-radius: 12px; /* Bordes más suaves */
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
@@ -25,6 +25,7 @@
 }
 
 .admin-stat-card h3 {
+    color: var(--color-blanco) !important;
     margin: 0 0 10px 0;
     font-size: 1.1rem;
     text-transform: uppercase;
@@ -52,6 +53,7 @@
     border-radius: 20px;
     margin-top: 10px;
     transition: background 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .admin-stat-card .stat-link:hover {
