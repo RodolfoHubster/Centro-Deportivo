@@ -3,7 +3,7 @@
 // 1. IMPORTS
 import { mostrarMensaje, mostrarModalExito } from '../utils/utilidades.js';
 // Importamos las funciones para la lógica de los formularios (cargar facultades, etc.)
-import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras } from '../utils/formLogica.js';
+import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras, cargarCampus } from '../utils/formLogica.js';
 
 // 2. VARIABLES GLOBALES
 let eventoIdActual = null;
@@ -201,9 +201,21 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Docente" 
                                     style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Docente / Personal Académico</span>
+                            <span style="font-size: 15px; font-weight: 500;">Docente</span>
                         </label>
                         
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal Académico" 
+                                    style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                        </label>
+
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal de Servicio" 
+                                    style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal de Servicio</span>
+                        </label>
+
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Externo" 
                                     style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
@@ -273,9 +285,19 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
                 </div>
 
+                <div style="margin-bottom: 20px;" id="campus-container">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                        <span id="label-campus">Unidad Académica</span> <span style="color: #dc3545;" id="required-campus">*</span>
+                    </label>
+                    <select name="campus" id="select-campus" required class="form-input"
+                            style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; background: white; box-sizing: border-box;">
+                        <option value="">Cargando Unidades Academicas...</option>
+                    </select>
+                </div>
+
                 <div style="margin-bottom: 20px;" id="facultad-container">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        <span id="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" id="required-facultad">*</span>
+                        <span id="label-facultad">Facultad</span> <span style="color: #dc3545;" id="required-facultad">*</span>
                     </label>
                     <select name="facultad" id="select-facultad" required class="form-input"
                             style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; background: white; box-sizing: border-box;">
@@ -324,12 +346,24 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
     // Configurar lógica del formulario
     const form = document.getElementById('formInscripcionAdmin');
     // FIX: Usar form.querySelector para asegurar el scope.
+    const selectCampus = document.getElementById('select-campus');
     const selectFacultad = form.querySelector('#select-facultad');
     const selectCarrera = form.querySelector('#select-carrera');
     
+
     // Le pasamos el select y la ruta relativa al PHP desde 'public/admin/ver-participantes.html'
-    if (selectFacultad) {
-        cargarFacultades(selectFacultad, '../../php/public/');
+    if (selectCampus) {
+        cargarCampus(selectCampus, '../../php/public/');
+    }
+
+    // Cargar carreras cuando cambie la facultad (FIX aplicado)
+    if (selectCampus && selectFacultad) {
+        selectCampus.addEventListener('change', (e) => {
+            const campusId = e.target.value;
+            cargarFacultades(selectFacultad, campusId, '../../php/public/');
+        });
+    } else {
+        console.error("Error: No se encontró el elemento selectFacultad o selectCarrera en el modal individual.");
     }
 
     document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
@@ -344,7 +378,12 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
     if (selectFacultad && selectCarrera) {
         selectFacultad.addEventListener('change', (e) => {
             const facultadId = e.target.value;
-            cargarCarreras(facultadId, selectCarrera, '../../php/public/');
+            if (facultadId) {
+                cargarCarreras(facultadId, selectCarrera, '../../php/public/');
+            } else {
+                selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+                selectCarrera.disabled = true;
+            }
         });
     } else {
         console.error("Error: No se encontró el elemento selectFacultad o selectCarrera en el modal individual.");
@@ -583,7 +622,15 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                         </label>
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Docente" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Docente / Personal Académico</span>
+                            <span style="font-size: 15px; font-weight: 500;">Docente</span>
+                        </label>
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal Académico" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                        </label>
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal de Servicio" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal de Servicio</span>
                         </label>
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Externo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
@@ -633,9 +680,18 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                     <small id="correo-hint" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Debe ser correo institucional (@uabc.edu.mx o @uabc.edu.mx)</small>
                 </div>
 
+                <div style="margin-bottom: 20px;" id="campus-container">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                        <span id="label-campus">Unidad Académica</span> <span style="color: #dc3545;" id="required-campus">*</span>
+                    </label>
+                    <select name="campus" id="select-campus" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <option value="">Cargando Unidades Académicas...</option>
+                    </select>
+                </div>
+
                 <div style="margin-bottom: 20px;" id="facultad-container">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        <span id="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" id="required-facultad">*</span>
+                        <span id="label-facultad">Facultad</span> <span style="color: #dc3545;" id="required-facultad">*</span>
                     </label>
                     <select name="facultad" id="select-facultad" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
                         <option value="">Cargando facultades...</option>
@@ -672,13 +728,14 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
     // Configurar lógica del formulario
     const form = document.getElementById('formAnadirIntegrante');
     // FIX: Usar form.querySelector para asegurar el scope.
+    const selectCampus = form.querySelector('#select-campus');
     const selectFacultad = form.querySelector('#select-facultad');
     const selectCarrera = form.querySelector('#select-carrera');
     
     // Adjuntar listeners de forma robusta
     if (form) {
-        if (selectFacultad) { // CHECK DE SEGURIDAD
-             cargarFacultades(selectFacultad, '../../php/public/');
+        if (selectCampus) { // CHECK DE SEGURIDAD
+            cargarCampus(selectCampus, '../../php/public/');
         }
 
         document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
@@ -688,11 +745,46 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
         });
         
         // FIX del error: envuelto en un chequeo
-        if (selectFacultad && selectCarrera) { // CHECK DE SEGURIDAD
-            selectFacultad.addEventListener('change', (e) => {
-                cargarCarreras(e.target.value, selectCarrera, '../../php/public/');
-            });
+        if (selectCampus && selectFacultad) { // CHECK DE SEGURIDAD
+            selectCampus.addEventListener('change', (e) => {
+                const campusId = e.target.value;
+
+                if (campusId) {
+                //Pasar parámetros en el orden correcto: (selectElement, campusId, rutaBase)
+                cargarFacultades(selectFacultad, campusId, '../../php/public/');
+                } else {
+                    selectFacultad.innerHTML = '<option value="">Selecciona primero una Unidad</option>';
+                    selectFacultad.disabled = true;
+                }
+                // Limpiar carrera al cambiar campus
+                selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+                selectCarrera.disabled = true;
+                });
+
+                if (selectFacultad && selectCarrera) {
+                    selectFacultad.addEventListener('change', (e) => {
+                        const facultadId = e.target.value;
+                        if (facultadId) {
+                            cargarCarreras(facultadId, selectCarrera, '../../php/public/');
+                        } else {
+                            selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+                            selectCarrera.disabled = true;
+                        }
+                    });
+                }
+
+                // 4.Cuando cambie la facultad → cargar carreras
+                selectFacultad.addEventListener('change', (e) => {
+                    const facultadId = e.target.value;
+                    if (facultadId) {
+                        cargarCarreras(facultadId, selectCarrera, '../../php/public/');
+                    } else {
+                        selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+                        selectCarrera.disabled = true;
+                    }
+                });
         }
+
         
         // Ajuste inicial de campos
         actualizarCamposSegunTipo('Estudiante', form);
@@ -989,22 +1081,22 @@ async function cargarParticipantes(eventoId) {
 
 // 13. RESTO DE FUNCIONES GLOBALES (Editadas y Limpias)
 
-window.cerrarModal = function() {
-    const modal = document.getElementById('modalEditarParticipante');
-    if(modal) modal.style.display = 'none';
-    document.getElementById('generic-modal-container').innerHTML = ''; 
-}
-
+// =========================================================
+// FUNCIÓN CORREGIDA PARA ABRIR EL MODAL DE EDICIÓN
+// =========================================================
 window.abrirModalEditar = async function(usuarioString) {
     try {
+        // 1. Decodificar datos del usuario
         const u = JSON.parse(decodeURIComponent(usuarioString));
-        usuarioIdEditando = u.usuario_id;
+        usuarioIdEditando = u.usuario_id; // Variable global definida arriba
 
+        // 2. Obtener referencias del HTML padre (ver-participantes.html)
         const contenedor = document.getElementById('contenedor-formulario-externo');
         const modal = document.getElementById('modalEditarParticipante');
         
         if(!contenedor || !modal) return;
 
+        // 3. Mostrar modal y cargar el formulario HTML (form_inscripcion_partial.html)
         modal.style.display = 'flex';
         contenedor.innerHTML = '<p style="text-align:center; padding:20px;">Cargando formulario...</p>';
 
@@ -1014,20 +1106,40 @@ window.abrirModalEditar = async function(usuarioString) {
         const html = await response.text();
         contenedor.innerHTML = html;
 
-        // Llenado y lógica del formulario de edición (se omiten las funciones de carga de facultades/carreras
-        // del formulario de edición ya que no eran parte del error reportado)
+        // 4. Obtener referencias a los elementos recién inyectados
         const form = contenedor.querySelector('#formDatosParticipante');
-        // FIX: Se usa form.querySelector para asegurar el scope.
+        const selectCampus = form.querySelector('#select-campus');
         const selectFacultad = form.querySelector('#select-facultad');
         const selectCarrera = form.querySelector('#select-carrera');
-        const rutaPHP = '../../php/public/';
+        const rutaPHP = '../../php/public/'; // Ajusta si tu ruta es diferente
 
-        // 1. Cargar Facultades
-        if (selectFacultad) {
-            cargarFacultades(selectFacultad, rutaPHP);
+        // ============================================================
+        // LÓGICA DE CARGA EN CASCADA (Wait -> Fill)
+        // ============================================================
+
+        // A) Cargar CAMPUS y asignar valor
+        if (selectCampus) {
+            // Esperamos a que el fetch traiga las opciones...
+            await cargarCampus(selectCampus, rutaPHP); 
+            // ...y ahora sí asignamos el valor
+            selectCampus.value = u.campus_id; 
         }
 
-        // 2. Llenar campos de usuario
+        // B) Cargar FACULTADES (si hay campus) y asignar valor
+        if (selectFacultad && u.campus_id) {
+            await cargarFacultades(selectFacultad, u.campus_id, rutaPHP);
+            selectFacultad.value = u.facultad_id;
+        }
+
+        // C) Cargar CARRERAS (si hay facultad) y asignar valor
+        if (selectCarrera && u.facultad_id) {
+            await cargarCarreras(u.facultad_id, selectCarrera, rutaPHP);
+            selectCarrera.value = u.carrera_id;
+        }
+
+        // ============================================================
+        // LLENADO DE DATOS PERSONALES
+        // ============================================================
         if(form.elements['matricula']) form.elements['matricula'].value = u.matricula;
         if(form.elements['nombres']) form.elements['nombres'].value = u.nombre;
         if(form.elements['apellido_paterno']) form.elements['apellido_paterno'].value = u.apellido_paterno;
@@ -1035,33 +1147,55 @@ window.abrirModalEditar = async function(usuarioString) {
         if(form.elements['correo']) form.elements['correo'].value = u.correo;
         if(form.elements['genero']) form.elements['genero'].value = u.genero;
 
-        // 3. Tipo de usuario y manejo de campos dinámicos
+        // ============================================================
+        // MANEJO DE TIPO DE PARTICIPANTE Y CAMPOS VISIBLES
+        // ============================================================
         const radios = form.querySelectorAll('input[name="tipo_participante"]');
-        let tipoUsuario = 'Estudiante';
+        let tipoUsuario = 'Estudiante'; // Default
+        
         radios.forEach(r => {
             if (r.value === u.rol) {
                 r.checked = true;
                 tipoUsuario = u.rol;
             }
+            // Reactivar el listener para que funcione si el admin cambia el tipo manualmente
             r.addEventListener('change', () => actualizarCamposSegunTipo(r.value, form));
         });
+        
+        // Ejecutar una vez para ocultar/mostrar campos según el rol cargado (ej. ocultar carrera si es docente)
         actualizarCamposSegunTipo(tipoUsuario, form);
         
-        // 4. Configurar listeners de carrera (después de cargar inicial y llenar)
+        // ============================================================
+        // LISTENERS PARA CAMBIOS MANUALES (Si el admin edita los selects)
+        // ============================================================
+        if (selectCampus && selectFacultad) {
+            selectCampus.addEventListener('change', (e) => {
+                cargarFacultades(selectFacultad, e.target.value, rutaPHP);
+                // Limpiar carrera si cambia el campus
+                if(selectCarrera) {
+                    selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+                    selectCarrera.disabled = true;
+                }
+            });
+        }
+
         if (selectFacultad && selectCarrera) {
-             selectFacultad.addEventListener('change', (e) => {
+            selectFacultad.addEventListener('change', (e) => {
                 cargarCarreras(e.target.value, selectCarrera, rutaPHP);
             });
         }
 
-        // 5. Interceptar envío
+        // ============================================================
+        // GUARDAR CAMBIOS
+        // ============================================================
         form.onsubmit = function(e) {
             e.preventDefault();
-            guardarEdicion(form);
+            guardarEdicion(form); // Tu función existente para enviar el POST
         };
 
     } catch (error) {
-        alert("Error al abrir edición: " + error.message);
+        console.error("Error en abrirModalEditar:", error);
+        alert("Error al cargar los datos de edición. Revisa la consola.");
     }
 }
 
@@ -1110,5 +1244,20 @@ async function guardarEdicion(form) {
         }
     } catch (error) {
         mostrarMensaje("Error de conexión", 'error');
+    }
+}
+// =========================================================
+// FUNCIÓN PARA CERRAR EL MODAL (EXPUESTA A WINDOW)
+// =========================================================
+window.cerrarModal = function() {
+    const modal = document.getElementById('modalEditarParticipante');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Limpiamos el contenedor para que no se acumule basura HTML
+    const contenedor = document.getElementById('contenedor-formulario-externo');
+    if (contenedor) {
+        contenedor.innerHTML = ''; 
     }
 }

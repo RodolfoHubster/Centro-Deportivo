@@ -3,7 +3,7 @@
  * Actualizado para nueva estructura de BD con tabla participante
  */
 
-import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras } from '../utils/formLogica.js';
+import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras, cargarCampus } from '../utils/formLogica.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     // Verificar si viene desde un QR (parámetro id_evento en URL)
@@ -306,7 +306,19 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Docente" 
                                     style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Docente / Personal Académico</span>
+                            <span style="font-size: 15px; font-weight: 500;">Docente</span>
+                        </label>
+
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal Académico" checked 
+                                    style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                        </label>
+
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal de Servicio" checked 
+                                    style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal de Servicio</span>
                         </label>
                         
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
@@ -378,13 +390,23 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
                 </div>
 
+                <div style="margin-bottom: 10px;", id="campus-container">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                        <span id="label-campus">Unidad Académica (Campus)</span> <span style="color: #dc3545;" id="required-campus">*</span>
+                    </label>
+                    <select name="campus" id="select-campus" required class="form-input" 
+                            style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; background: white; box-sizing: border-box;">
+                        <option value="">Cargando unidades academicas...</option>
+                    </select>
+                </div>
+
                 <div style="margin-bottom: 20px;" id="facultad-container">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        <span id="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" id="required-facultad">*</span>
+                        <span id="label-facultad">Facultad</span> <span style="color: #dc3545;" id="required-facultad">*</span>
                     </label>
                     <select name="facultad" id="select-facultad" required class="form-input"
                             style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; background: white; box-sizing: border-box;">
-                        <option value="">Cargando facultades...</option>
+                        <option value="">Selecciona primero una Unidad Academica</option>
                     </select>
                 </div>
 
@@ -462,15 +484,19 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
         }
     `;
     document.head.appendChild(style);
-    
     document.body.appendChild(modal);
     
     // Cargar facultades (Versión nueva usando formLogica)
+    const selectCampus = document.getElementById('select-campus');
     const selectFacultad = document.getElementById('select-facultad');
     const selectCarrera = document.getElementById('select-carrera');
     
     // Le pasamos el select y la ruta relativa al PHP desde 'public/'
-    cargarFacultades(selectFacultad, '../php/public/');
+    cargarCampus(selectCampus, '../php/public/');
+    const campusSeleccionado = selectCampus?.value;
+    if (campusSeleccionado) {
+        cargarFacultades(selectFacultad, campusSeleccionado, '../php/public/');
+    }
 
     // Manejar cambio de tipo de participante
     document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
@@ -480,6 +506,11 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
         });
     });
     
+    selectCampus.addEventListener('change', (e) => {
+        const campusId = e.target.value;
+        cargarFacultades(selectFacultad, campusId, '../php/public/');
+    });
+
     // Cargar carreras cuando cambie la facultad
     selectFacultad.addEventListener('change', (e) => {
         const facultadId = e.target.value;
@@ -857,6 +888,12 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                         <input type="radio" name="${nombreBase}[tipo_participante]" value="Docente"> Docente
                     </label>
                     <label class="radio-option">
+                        <input type="radio" name="${nombreBase}[tipo_participante]" value="Personal Académico"> Personal Académico
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="${nombreBase}[tipo_participante]" value="Personal de Servicio"> Personal de Servicio
+                    </label>
+                    <label class="radio-option">
                         <input type="radio" name="${nombreBase}[tipo_participante]" value="Externo"> Externo
                     </label>
                 </div>
@@ -901,9 +938,18 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                 <input type="email" name="${nombreBase}[correo]" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
             </div>
 
+            <div class="campus-container-equipo" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">
+                    <span class="label-campus">Unidad Académica</span> <span style="color: #dc3545;" class="required-campus">*</span>
+                </label>
+                <select name="${nombreBase}[campus_id]" required class="form-input select-campus" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; box-sizing: border-box;">
+                    <option value="">Cargando Unidades Académicas...</option>
+                </select>
+            </div>
+
             <div class="facultad-container-equipo" style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">
-                    <span class="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" class="required-facultad">*</span>
+                    <span class="label-facultad">Facultad</span> <span style="color: #dc3545;" class="required-facultad">*</span>
                 </label>
                 <select name="${nombreBase}[facultad]" required class="form-input select-facultad" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; box-sizing: border-box;">
                     <option value="">Cargando facultades...</option>
@@ -930,16 +976,34 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             document.getElementById('contador-integrantes').textContent = contadorIntegrantes;
         });
 
+        const selectCampus = divIntegrante.querySelector('.select-campus');
         const selectFacultad = divIntegrante.querySelector('.select-facultad');
-        cargarFacultadesEquipo(selectFacultad);
-
         const selectCarrera = divIntegrante.querySelector('.select-carrera');
+        
+        cargarCampusEquipo(selectCampus);
+        
+        // 2. Cuando cambie el campus → cargar facultades
+        selectCampus.addEventListener('change', (e) => {
+            const campusId = e.target.value;
+            if (campusId) {
+                cargarFacultadesEquipo(selectFacultad, campusId);
+            } else {
+                selectFacultad.innerHTML = '<option value="">Selecciona primero una Unidad</option>';
+                selectFacultad.disabled = true;
+            }
+            // Limpiar carrera al cambiar campus
+            selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+            selectCarrera.disabled = true;
+        });
+
+        // 3. Cuando cambie la facultad → cargar carreras
         selectFacultad.addEventListener('change', (e) => {
             const facultadId = e.target.value;
             if (facultadId) {
                 cargarCarrerasEquipo(facultadId, selectCarrera);
             } else {
                 selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+                selectCarrera.disabled = true;
             }
         });
 
@@ -989,23 +1053,59 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
 }
 
 /**
- * Carga facultades en un select específico.
- * (Versión adaptada de 'cargarFacultades' para el form de equipo)
+ * Carga campus/unidades académicas en un select específico.
+ * (Versión adaptada de 'cargarCampus' para el form de equipo)
  */
-function cargarFacultadesEquipo(selectElement) {
+function cargarCampusEquipo(selectElement) {
     if (!selectElement) return;
-    selectElement.innerHTML = '<option value="">Cargando facultades...</option>';
+    selectElement.innerHTML = '<option value="">Cargando...</option>';
     
-    // Reutiliza el fetch de la función original
-    fetch('../php/public/obtenerFacultades.php')
+    fetch('../php/public/obtenerCampus.php')
         .then(response => response.json())
         .then(data => {
-            if (data.error) throw new Error(data.mensaje);
+            selectElement.innerHTML = '<option value="">Selecciona tu Unidad</option>';
+            const lista = Array.isArray(data) ? data : (data.campus || []);
+            lista.forEach(campus => {
+                selectElement.innerHTML += `<option value="${campus.id}">${campus.nombre}</option>`;
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            selectElement.innerHTML = '<option value="">Error al cargar</option>';
+        });
+}
+
+/**
+ * Carga facultades en un select específico con filtro de campus.
+ * (Versión adaptada de 'cargarFacultades' para el form de equipo)
+ */
+function cargarFacultadesEquipo(selectElement, campusId = null) {
+    if (!selectElement) return;
+    
+    // Si no hay campus seleccionado, bloquear
+    if (!campusId) {
+        selectElement.innerHTML = '<option value="">Selecciona primero una unidad</option>';
+        selectElement.disabled = true;
+        return;
+    }
+
+    selectElement.innerHTML = '<option value="">Cargando...</option>';
+    selectElement.disabled = true;
+    
+    fetch(`../php/public/obtenerFacultades.php?campus_id=${campusId}`)
+        .then(response => response.json())
+        .then(data => {
             selectElement.innerHTML = '<option value="">Selecciona tu facultad</option>';
             const facultades = data.success ? data.facultades : data;
-            facultades.forEach(facultad => {
-                selectElement.innerHTML += `<option value="${facultad.id}">${facultad.nombre} (${facultad.siglas || ''})</option>`;
-            });
+            
+            if (Array.isArray(facultades) && facultades.length > 0) {
+                facultades.forEach(facultad => {
+                    selectElement.innerHTML += `<option value="${facultad.id}">${facultad.nombre} (${facultad.siglas || ''})</option>`;
+                });
+                selectElement.disabled = false;
+            } else {
+                selectElement.innerHTML = '<option value="">No hay facultades</option>';
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -1019,23 +1119,31 @@ function cargarFacultadesEquipo(selectElement) {
  */
 function cargarCarrerasEquipo(facultadId, selectElement) {
     if (!selectElement) return;
-    selectElement.innerHTML = '<option value="">Cargando carreras...</option>';
     
     if (!facultadId) {
         selectElement.innerHTML = '<option value="">Selecciona primero una facultad</option>';
+        selectElement.disabled = true;
         return;
     }
-    // Reutiliza el fetch de la función original
+    
+    selectElement.innerHTML = '<option value="">Cargando carreras...</option>';
+    selectElement.disabled = true;
+    
     fetch(`../php/public/obtenerCarreras.php?facultad_id=${facultadId}`)
         .then(response => response.json())
         .then(data => {
-            if (data.error) throw new Error(data.mensaje);
             selectElement.innerHTML = '<option value="">Selecciona tu carrera</option>';
             const carreras = data.success ? data.carreras : data;
-            carreras.forEach(carrera => {
-                const nombreMostrar = carrera.nombre_completo || carrera.nombre;
-                selectElement.innerHTML += `<option value="${carrera.id}" style="${carrera.es_tronco_comun ? 'font-weight: 600; color: #00843D;' : ''}">${nombreMostrar}</option>`;
-            });
+            
+            if (Array.isArray(carreras) && carreras.length > 0) {
+                carreras.forEach(carrera => {
+                    const nombreMostrar = carrera.nombre_completo || carrera.nombre;
+                    selectElement.innerHTML += `<option value="${carrera.id}" style="${carrera.es_tronco_comun ? 'font-weight: 600; color: #00843D;' : ''}">${nombreMostrar}</option>`;
+                });
+                selectElement.disabled = false;
+            } else {
+                selectElement.innerHTML = '<option value="">No hay carreras</option>';
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -1521,10 +1629,22 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                             <input type="radio" name="tipo_participante" value="Estudiante" checked style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
                             <span style="font-size: 15px; font-weight: 500;">Estudiante</span>
                         </label>
+
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Docente" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Docente / Personal Académico</span>
+                            <span style="font-size: 15px; font-weight: 500;">Docente</span>
                         </label>
+
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal Académico" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                        </label>
+
+                        <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
+                            <input type="radio" name="tipo_participante" value="Personal de Servicio" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal de Servicio</span>
+                        </label>
+
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Externo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
                             <span style="font-size: 15px; font-weight: 500;">Externo</span>
@@ -1573,12 +1693,21 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                     <small id="correo-hint" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
                 </div>
 
+                <div style="margin-bottom: 20px;" id="campus-container">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                        <span id="label-campus">Unidad Académica</span> <span style="color: #dc3545;" id="required-campus">*</span>
+                    </label>
+                    <select name="campus" id="select-campus" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <option value="">Cargando Unidades Académicas...</option>
+                    </select>
+                </div>
+
                 <div style="margin-bottom: 20px;" id="facultad-container">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        <span id="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" id="required-facultad">*</span>
+                        <span id="label-facultad">Facultad</span> <span style="color: #dc3545;" id="required-facultad">*</span>
                     </label>
                     <select name="facultad" id="select-facultad" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
-                        <option value="">Cargando facultades...</option>
+                        <option value="">Selecciona primero una Unidad Academica</option>
                     </select>
                 </div>
 
@@ -1673,10 +1802,22 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
     });
 
     // Cargar facultades y carreras
+    const selectCampus = document.getElementById('select-campus');
     const selectFacultad = document.getElementById('select-facultad');
     const selectCarrera = document.getElementById('select-carrera');
-    cargarFacultades(selectFacultad, '../php/public/');
+    
+    // Le pasamos el select y la ruta relativa al PHP desde 'public/'
+    cargarCampus(selectCampus, '../php/public/');
+    const campusSeleccionado = selectCampus?.value;
+    if (campusSeleccionado) {
+        cargarFacultades(selectFacultad, campusSeleccionado, '../php/public/');
+    }
 
+    selectCampus.addEventListener('change', (e) => {
+        const campusId = e.target.value;
+        cargarFacultades(selectFacultad, campusId, '../php/public/');
+    });
+    
     selectFacultad.addEventListener('change', (e) => {
         const facultadId = e.target.value;
         cargarCarreras(facultadId, selectCarrera, '../php/public/');
