@@ -28,3 +28,61 @@
 /* Puedes añadir más imports de páginas aquí si es necesario */
 /* @import url('pages/eventos.css'); */
 /*  */
+
+/* =========================================
+   ANIMACIONES GLOBALES PARA MODALES
+   ========================================= */
+
+/* 1. Definición de las animaciones (Keyframes) */
+
+/* Aparición suave del fondo oscuro */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Efecto de "rebote" suave para la caja blanca */
+@keyframes scaleUp {
+    from { 
+        opacity: 0; 
+        transform: scale(0.95) translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
+}
+
+/* 2. Aplicar al CONTENEDOR (Fondo Oscuro) */
+/* Agrupamos todos los IDs de tus modales aquí */
+#modalEvento,
+#modalUsuario,
+#modal-inscripcion,
+#modal-inscripcion-equipo,
+#modal-unirse-equipo,
+#modal-unirse-integrante,
+.nav-overlay,
+.modal-overlay {
+    /* Aseguramos que la animación se ejecute al aparecer */
+    animation: fadeIn 0.3s ease-out forwards;
+    
+    /* Efecto moderno: desenfoca el fondo detrás del modal */
+    backdrop-filter: blur(4px); 
+    -webkit-backdrop-filter: blur(4px); /* Soporte para Safari */
+    
+    /* Aseguramos que cubra toda la pantalla si faltaba algún estilo */
+    background-color: rgba(0, 0, 0, 0.6) !important; 
+}
+
+/* 3. Aplicar al CONTENIDO (Caja Blanca) */
+/* Agrupamos las clases de las cajas de contenido */
+.admin-modal-contenido,
+.modal-contenido,
+.modal-contenido-responsive,
+#overlayModal {
+    /* Aplicamos la animación de escala con un rebote suave */
+    animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    
+    /* Aseguramos que se vea limpio */
+    will-change: transform, opacity; /* Optimización de rendimiento */
+}
