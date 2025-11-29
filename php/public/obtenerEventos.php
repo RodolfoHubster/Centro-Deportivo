@@ -116,6 +116,7 @@ try {
                 e.registros_actuales,
                 e.codigo_qr,
                 e.activo,
+                e.campus_id,
                 a.nombre AS actividad,
                 c.nombre AS campus_nombre,
                 c.codigo AS campus_codigo,
