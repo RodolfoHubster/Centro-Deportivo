@@ -12,7 +12,6 @@ include '../includes/conexion.php';
 // **************************************************
 // ***** 1. ERROR DE SESIÓN CORREGIDO AQUÍ *****
 // **************************************************
-// Tu login.php usa 'user_logged'. Este script debe usar lo mismo.
 if (!isset($_SESSION['user_logged']) || $_SESSION['user_logged'] !== true) {
     http_response_code(401); // No autorizado
     echo json_encode([
@@ -72,9 +71,24 @@ try {
     $categoria_deporte = mysqli_real_escape_string($conexion, $_POST['categoria_deporte']);
     $tipo_actividad = mysqli_real_escape_string($conexion, $_POST['tipo_actividad']);
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
-    $campus_id = isset($_POST['campus_id']) && !empty($_POST['campus_id']) ? intval($_POST['campus_id']) : 1;
     $id_promotor = intval($_POST['id_promotor']);
     
+    // ---------------------------------------------------------
+    // CAMBIO IMPORTANTE: LOGICA PARA LEER CHECKBOXES DE CAMPUS
+    // ---------------------------------------------------------
+    $campus_id = 1; // Valor por defecto seguro (Tijuana)
+
+    // 1. Revisar si viene del array de checkboxes (campus[]) - ESTO ES LO NUEVO
+    if (isset($_POST['campus']) && is_array($_POST['campus']) && !empty($_POST['campus'])) {
+        // Tomamos el primer campus seleccionado como el principal para la base de datos
+        $campus_id = intval($_POST['campus'][0]); 
+    } 
+    // 2. Fallback: Revisar si viene como variable simple (por compatibilidad)
+    elseif (isset($_POST['campus_id']) && !empty($_POST['campus_id'])) {
+        $campus_id = intval($_POST['campus_id']);
+    }
+    // ---------------------------------------------------------
+
     // 'actividad' es el ID de la actividad, no el nombre
     $id_actividad = isset($_POST['actividad']) && !empty($_POST['actividad']) ? intval($_POST['actividad']) : NULL;
     
@@ -85,7 +99,7 @@ try {
     $facultades = isset($_POST['facultades']) && is_array($_POST['facultades']) ? $_POST['facultades'] : [];
     
     // ===================================
-    // 3. VALIDACIONES (Igual que en crearEvento)
+    // 3. VALIDACIONES
     // ===================================
     
     $fecha_termino_obj = DateTime::createFromFormat('Y-m-d', $fecha_termino);
@@ -93,8 +107,6 @@ try {
     if ($fecha_termino_obj < $fecha_inicio_obj) {
         throw new Exception('La fecha de término no puede ser anterior a la fecha de inicio');
     }
-    
-    // ... (Puedes añadir más validaciones de enums si lo deseas, como en crearEvento.php) ...
     
     // ===================================
     // 4. ACTUALIZAR EVENTO

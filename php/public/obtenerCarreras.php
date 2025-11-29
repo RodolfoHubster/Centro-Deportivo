@@ -1,7 +1,7 @@
 <?php
 /**
  * Obtener Carreras - ACTUALIZADO
- * Incluye soporte para Tronco Común y áreas
+ * Incluye soporte para Tronco Común, áreas y filtro por CAMPUS
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -19,7 +19,8 @@ try {
                 c.es_tronco_comun,
                 c.area_tronco_comun,
                 f.nombre AS facultad_nombre,
-                f.siglas AS facultad_siglas
+                f.siglas AS facultad_siglas,
+                f.campus_id
             FROM carrera c
             INNER JOIN facultad f ON c.facultad_id = f.id";
     
@@ -27,7 +28,7 @@ try {
     $params = [];
     $types = '';
     
-    // Filtro por facultad (opcional)
+    // Filtro por facultad (opcional - mantenemos tu funcionalidad original)
     if (isset($_GET['facultad_id']) && !empty($_GET['facultad_id'])) {
         $whereClause = " WHERE c.facultad_id = ?";
         $params[] = intval($_GET['facultad_id']);
@@ -52,7 +53,7 @@ try {
     
     $carreras = [];
     while ($row = mysqli_fetch_assoc($resultado)) {
-        // Formatear nombre para tronco común
+        // Formatear nombre para tronco común (Tu lógica original)
         if ($row['es_tronco_comun']) {
             $row['nombre_completo'] = "Tronco Común - " . $row['area_tronco_comun'];
             $row['etiqueta'] = "TC"; // Etiqueta visual
@@ -63,6 +64,9 @@ try {
         
         // Convertir boolean a formato más amigable
         $row['es_tronco_comun'] = (bool)$row['es_tronco_comun'];
+        
+        // Asegurar que campus_id sea número (útil para JS)
+        $row['campus_id'] = intval($row['campus_id']);
         
         $carreras[] = $row;
     }

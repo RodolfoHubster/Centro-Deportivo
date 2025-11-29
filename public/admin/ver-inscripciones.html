@@ -17,10 +17,31 @@
     <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
         
-        <div>
+        <div style="grid-column: 1 / -1;">
           <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Buscar:</label>
           <input type="text" id="buscarInscripcion" placeholder="Nombre, matrícula, correo..." 
                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Campus:</label>
+          <select id="filtroCampus" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Cargando...</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Facultad:</label>
+          <select id="filtroFacultad" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todas las facultades</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Carrera:</label>
+          <select id="filtroCarrera" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">Todas las carreras</option>
+          </select>
         </div>
 
         <div>
@@ -49,13 +70,6 @@
             <option value="Externo">Externo</option>
           </select>
         </div>
-
-        <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Carrera:</label>
-          <select id="filtroCarrera" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-            <option value="">Todas</option>
-          </select>
-        </div>
       </div>
 
       <button id="btnLimpiarFiltros" style="margin-top: 15px; padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
@@ -64,78 +78,49 @@
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
-  
       <div class="stats-summary-card" style="background: linear-gradient(135deg, #007bff, #0056b3);">
         <h3 id="total-inscripciones">0</h3>
         <p>Total Inscripciones</p>
       </div>
-    
       <div class="stats-summary-card" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
         <h3 id="total-hombres">0</h3>
         <p>Hombres</p>
       </div>
-    
       <div class="stats-summary-card" style="background: linear-gradient(135deg, #dc3545, #bd2130);">
         <h3 id="total-mujeres">0</h3>
         <p>Mujeres</p>
       </div>
-    
       <div class="stats-summary-card" style="background: linear-gradient(135deg, #6c757d, #495057);">
         <h3 id="total-otros">0</h3>
         <p>Otros</p>
       </div>
-    
       <div class="stats-summary-card" style="background: linear-gradient(135deg, #ffc107, #e0a800);">
         <h3 id="mostrando">0</h3>
         <p>Mostrando</p>
       </div>
-    
     </div>
 
     <div class="tabla-container">
       <table id="tabla-inscripciones" class="admin-table">
         <thead>
           <tr>
-            <th class="sortable" data-col="participante_matricula">
-                Matrícula <span class="sort-icon"></span>
-            </th>
-            <th class="sortable" data-col="nombre_completo">
-                Nombre Completo <span class="sort-icon"></span>
-            </th>
-            <th class="sortable" data-col="correo_institucional">
-                Correo <span class="sort-icon"></span>
-            </th>
-            <th class="sortable" data-col="genero">
-                Género <span class="sort-icon"></span>
-            </th>
-            <th class="sortable" data-col="tipo_participante">
-                Tipo <span class="sort-icon"></span>
-            </th>
-            <th class="sortable" data-col="carrera_nombre">
-                Carrera/Facultad <span class="sort-icon"></span>
-            </th>
-            <th class="sortable" data-col="evento_nombre">
-                Evento <span class="sort-icon"></span>
-            </th>
-            <th class="sortable active-desc" data-col="fecha_inscripcion">
-                Fecha Inscripción <span class="sort-icon">▼</span>
-            </th>
+            <th class="sortable" data-col="participante_matricula">Matrícula <span class="sort-icon"></span></th>
+            <th class="sortable" data-col="nombre_completo">Nombre Completo <span class="sort-icon"></span></th>
+            <th class="sortable" data-col="correo_institucional">Correo <span class="sort-icon"></span></th>
+            <th class="sortable" data-col="genero">Género <span class="sort-icon"></span></th>
+            <th class="sortable" data-col="tipo_participante">Tipo <span class="sort-icon"></span></th>
+            <th class="sortable" data-col="carrera_nombre">Carrera/Facultad <span class="sort-icon"></span></th>
+            <th class="sortable" data-col="evento_nombre">Evento <span class="sort-icon"></span></th>
+            <th class="sortable active-desc" data-col="fecha_inscripcion">Fecha Inscripción <span class="sort-icon">▼</span></th>
           </tr>
         </thead>
         <tbody id="tbody-inscripciones">
-          <tr>
-            <td colspan="8" style="text-align: center; padding: 30px; color: #666;">
-              Cargando inscripciones...
-            </td>
-          </tr>
+          <tr><td colspan="8" style="text-align: center; padding: 30px; color: #666;">Cargando...</td></tr>
         </tbody>
       </table>
     </div> 
 
-  </div> 
-
-  <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-      
+    <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
       <div style="display: flex; align-items: center; gap: 10px;">
           <label for="limiteRegistros" style="font-weight: bold; color: #333;">Mostrar:</label>
           <select id="limiteRegistros" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
@@ -145,295 +130,22 @@
               <option value="100">100 registros</option>
           </select>
       </div>
-
       <div style="display: flex; align-items: center; gap: 15px;">
           <span id="infoPaginacion" style="color: #666; font-size: 0.9rem;">Página 1 de 1</span>
-          
           <div style="display: flex; gap: 5px;">
               <button id="btnPrevPage" class="btn-paginacion" disabled>&lt; Anterior</button>
               <button id="btnNextPage" class="btn-paginacion">Siguiente &gt;</button>
           </div>
       </div>
-  </div>
+    </div>
     
     <div style="text-align: right; margin-top: 20px; margin-bottom: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-        <button id="btnGenerarExcel" class="btn-reporte btn-excel">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            Exportar a Excel
-        </button>
-        
-        <button id="btnGenerarPDF" class="btn-reporte btn-pdf">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            Generar PDF
-        </button>
+        <button id="btnGenerarExcel" class="btn-reporte btn-excel">Exportar a Excel</button>
+        <button id="btnGenerarPDF" class="btn-reporte btn-pdf">Generar PDF</button>
     </div>
   </main>
 
-  <script>
-    // Variables de estado
-    let paginaActual = 1;
-    let limiteActual = 10;
-    let totalPaginas = 1;
-    
-    // VARIABLES NUEVAS PARA ORDENAMIENTO
-    let columnaOrden = 'fecha_inscripcion'; // Columna por defecto
-    let direccionOrden = 'DESC';            // Dirección por defecto (Más reciente primero)
-
-    // Inicialización
-    window.addEventListener('DOMContentLoaded', () => {
-        verificarSesion();
-        configurarListeners();
-        configurarOrdenamiento(); // <--- Nueva función
-        cargarDatos();
-    });
-
-    function verificarSesion() {
-        fetch('../../php/admin/verificarSesion.php')
-            .then(r => r.json())
-            .then(data => { if (!data.loggedin) window.location.href = '../login.html'; });
-    }
-
-    function configurarListeners() {
-        // Paginación y Límite (igual que antes)
-        document.getElementById('limiteRegistros').addEventListener('change', (e) => {
-            limiteActual = parseInt(e.target.value);
-            paginaActual = 1;
-            cargarDatos();
-        });
-
-        document.getElementById('btnPrevPage').addEventListener('click', () => {
-            if (paginaActual > 1) {
-                paginaActual--;
-                cargarDatos();
-            }
-        });
-
-        document.getElementById('btnNextPage').addEventListener('click', () => {
-            if (paginaActual < totalPaginas) {
-                paginaActual++;
-                cargarDatos();
-            }
-        });
-
-        // Filtros (igual que antes)
-        ['buscarInscripcion', 'filtroEvento', 'filtroGenero', 'filtroTipo', 'filtroCarrera'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', () => {
-                if(el.tagName === 'INPUT') {
-                    clearTimeout(el.timeout);
-                    el.timeout = setTimeout(() => { paginaActual = 1; cargarDatos(); }, 500);
-                } else {
-                    paginaActual = 1; 
-                    cargarDatos();
-                }
-            });
-        });
-
-        document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
-            // ... (limpiar inputs) ...
-            document.getElementById('buscarInscripcion').value = '';
-            document.getElementById('filtroEvento').value = '';
-            // ... resetea los demás selects a vacio ...
-            
-            // Resetear orden al default también
-            columnaOrden = 'fecha_inscripcion';
-            direccionOrden = 'DESC';
-            actualizarIconosOrden();
-            
-            paginaActual = 1;
-            cargarDatos();
-        });
-    }
-
-    // === NUEVA FUNCIÓN: CONFIGURAR CLICS EN ENCABEZADOS ===
-    function configurarOrdenamiento() {
-        const headers = document.querySelectorAll('th.sortable');
-        
-        headers.forEach(th => {
-            th.addEventListener('click', () => {
-                const columnaClickeada = th.getAttribute('data-col');
-
-                // Lógica de toggle:
-                // Si clickeo la misma columna, invierto la dirección.
-                // Si clickeo una nueva, la pongo ascendente por defecto.
-                if (columnaOrden === columnaClickeada) {
-                    direccionOrden = (direccionOrden === 'ASC') ? 'DESC' : 'ASC';
-                } else {
-                    columnaOrden = columnaClickeada;
-                    direccionOrden = 'ASC'; // Default al cambiar de columna (A-Z)
-                }
-
-                actualizarIconosOrden();
-                cargarDatos();
-            });
-        });
-    }
-
-    // === NUEVA FUNCIÓN: ACTUALIZAR FLECHITAS VISUALES ===
-    function actualizarIconosOrden() {
-        const headers = document.querySelectorAll('th.sortable');
-        
-        headers.forEach(th => {
-            // Limpiar clases y contenido previo
-            th.classList.remove('active-asc', 'active-desc');
-            const spanIcon = th.querySelector('.sort-icon');
-            spanIcon.textContent = ''; // Borrar flecha
-
-            // Si es la columna activa, poner flecha y clase
-            if (th.getAttribute('data-col') === columnaOrden) {
-                if (direccionOrden === 'ASC') {
-                    th.classList.add('active-asc');
-                    spanIcon.textContent = '▲'; // Flecha arriba (A-Z / 0-9)
-                } else {
-                    th.classList.add('active-desc');
-                    spanIcon.textContent = '▼'; // Flecha abajo (Z-A / 9-0)
-                }
-            }
-        });
-    }
-
-    function cargarDatos() {
-        const params = new URLSearchParams();
-        params.append('pagina', paginaActual);
-        params.append('limite', limiteActual);
-        
-        // Parámetros de ordenamiento
-        params.append('orden', columnaOrden);
-        params.append('direccion', direccionOrden);
-
-        // === AQUÍ ESTABA EL ERROR: CAPTURAR TODOS LOS FILTROS ===
-        const buscar = document.getElementById('buscarInscripcion').value;
-        const evento = document.getElementById('filtroEvento').value;
-        const genero = document.getElementById('filtroGenero').value; // Faltaba capturar esto
-        const tipo = document.getElementById('filtroTipo').value;     // Faltaba capturar esto
-        const carrera = document.getElementById('filtroCarrera').value; // Faltaba capturar esto
-
-        // Enviar al PHP solo si tienen valor
-        if (buscar) params.append('buscar', buscar);
-        if (evento) params.append('evento_id', evento);
-        
-        // ¡Estos son los que hacían falta enviar!
-        if (genero) params.append('genero', genero);
-        if (tipo) params.append('tipo_participante', tipo); // Nota: PHP espera 'tipo_participante'
-        if (carrera) params.append('carrera_id', carrera);
-
-        // Mostrar indicador de carga
-        document.getElementById('tbody-inscripciones').innerHTML = 
-            '<tr><td colspan="8" style="text-align: center; padding: 20px;">Cargando datos...</td></tr>';
-
-        // Petición al servidor
-        fetch(`../../php/admin/verInscripciones.php?${params.toString()}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    mostrarInscripciones(data.inscripciones);
-                    actualizarControlesPaginacion(data.estadisticas);
-                    actualizarEstadisticasCards(data.estadisticas);
-                    
-                    // Lógica para poblar filtros la primera vez (Opcional)
-                    if (document.getElementById('filtroEvento').options.length <= 1) {
-                        // Aquí podrías llamar a una función para llenar el select de eventos si está vacío
-                        // poblarFiltrosAuxiliares(data); 
-                    }
-                } else {
-                    console.error("Error backend:", data.mensaje);
-                    document.getElementById('tbody-inscripciones').innerHTML = 
-                        `<tr><td colspan="8" style="text-align: center; color: red;">Error: ${data.mensaje}</td></tr>`;
-                }
-            })
-            .catch(err => {
-                console.error("Error fetch:", err);
-                document.getElementById('tbody-inscripciones').innerHTML = 
-                        `<tr><td colspan="8" style="text-align: center; color: red;">Error de conexión</td></tr>`;
-            });
-    }
-    function actualizarControlesPaginacion(stats) {
-        totalPaginas = stats.total_paginas;
-        
-        // Actualizar texto
-        document.getElementById('infoPaginacion').textContent = 
-            `Página ${stats.pagina_actual} de ${stats.total_paginas} (Total: ${stats.total_inscripciones})`;
-
-        // Actualizar estado botones
-        document.getElementById('btnPrevPage').disabled = (paginaActual <= 1);
-        document.getElementById('btnNextPage').disabled = (paginaActual >= totalPaginas);
-    }
-
-    function mostrarInscripciones(lista) {
-        const tbody = document.getElementById('tbody-inscripciones');
-        tbody.innerHTML = '';
-
-        if (lista.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No se encontraron registros.</td></tr>';
-            return;
-        }
-
-        lista.forEach(insc => {
-            const tr = document.createElement('tr');
-            
-            // Lógica de Badges
-            let badgeColor = '#6c757d'; // Default gris
-            if (insc.tipo_participante === 'Estudiante') badgeColor = '#17a2b8'; // Azul
-            if (insc.tipo_participante === 'Docente') badgeColor = '#28a745'; // Verde
-            if (insc.tipo_participante === 'Externo') badgeColor = '#ffc107'; // Amarillo
-
-            const carreraInfo = insc.carrera_display || insc.carrera_nombre || 'N/A';
-            const facultadInfo = insc.facultad_siglas ? ` (${insc.facultad_siglas})` : '';
-
-            tr.innerHTML = `
-              <td><strong>${insc.participante_matricula}</strong></td>
-              <td>${insc.nombre_completo}</td>
-              <td>${insc.correo_institucional}</td>
-              <td>${insc.genero}</td>
-              <td>
-                <span style="background:${badgeColor}; color:${badgeColor === '#ffc107' ? '#333' : '#fff'}; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold;">
-                    ${insc.tipo_participante}
-                </span>
-              </td>
-              <td>${carreraInfo}${facultadInfo}</td>
-              <td><strong>${insc.evento_nombre}</strong></td>
-              <td>${new Date(insc.fecha_inscripcion).toLocaleDateString()}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function actualizarEstadisticasCards(stats) {
-        // Aquí actualizas las tarjetas de colores superiores
-        // Nota: Como estamos paginando, el backend debería devolver los totales GLOBALES
-        // en el objeto 'estadisticas', no solo los de la página actual.
-        // Revisa que tu PHP verInscripciones.php devuelva 'total_inscripciones' global.
-        document.getElementById('total-inscripciones').textContent = stats.total_inscripciones;
-        
-        // Si tu PHP devuelve desglose por género en 'estadisticas', úsalo:
-        if (stats.por_genero) {
-            document.getElementById('total-hombres').textContent = stats.por_genero.Hombre || 0;
-            document.getElementById('total-mujeres').textContent = stats.por_genero.Mujer || 0;
-            document.getElementById('total-otros').textContent = stats.por_genero['Prefiero no decirlo'] || 0;
-        }
-        
-        document.getElementById('mostrando').textContent = stats.mostrando; // Registros en esta página
-    }
-
-    // Función auxiliar simple para poblar filtros si no tienes API dedicada
-    function poblarFiltrosAuxiliares(data) {
-        // Nota: Idealmente deberías tener endpoints separados para cargar filtros completos,
-        // ya que aquí solo verás los eventos de la página 1.
-        // Por ahora lo dejamos simple o puedes llamar a ../php/public/obtenerEventos.php
-    }
-
-  </script>
+  <script src="../js/admin/verInscripciones.js" type="module"></script>
   <script src="../js/headFooter.js"></script>
   <script src="../js/admin/generarReporte.js"></script>
 
