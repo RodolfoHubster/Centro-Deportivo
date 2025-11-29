@@ -99,7 +99,7 @@ try {
         throw new Exception('Género inválido');
     }
     
-    $tipos_validos = ['Estudiante', 'Docente', 'Externo'];
+    $tipos_validos = ['Estudiante', 'Docente', 'Personal académico', 'Personal de servicio', 'Externo'];
     if (!in_array($tipo_participante, $tipos_validos)) {
         throw new Exception('Tipo de participante inválido');
     }

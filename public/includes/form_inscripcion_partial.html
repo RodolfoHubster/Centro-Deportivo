@@ -11,6 +11,12 @@
                 <input type="radio" name="tipo_participante" value="Docente" style="margin-right: 12px; width: 20px; height: 20px; accent-color: #00843D;"> Docente
             </label>
             <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0;">
+                <input type="radio" name="tipo_participante" value="Personal Académico" style="margin-right: 12px; width: 20px; height: 20px; accent-color: #00843D;"> Personal Académico
+            </label>
+            <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0;">
+                <input type="radio" name="tipo_participante" value="Personal de Servicio" style="margin-right: 12px; width: 20px; height: 20px; accent-color: #00843D;"> Personal de Servicio
+            </label>
+            <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0;">
                 <input type="radio" name="tipo_participante" value="Externo" style="margin-right: 12px; width: 20px; height: 20px; accent-color: #00843D;"> Externo
             </label>
         </div>
@@ -55,12 +61,21 @@
         <input type="email" name="correo" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px;">
     </div>
 
+    <div style="margin-bottom: 20px;" id="campus-container">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+            <span id="label-campus">Unidad Académica</span> <span style="color: #dc3545;" id="required-campus">*</span>
+        </label>
+        <select name="campus" id="select-campus" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; background: white;">
+            <option value="">Selecciona una Unidad Académica</option>
+        </select>
+    </div>
+
     <div style="margin-bottom: 20px;" id="facultad-container">
         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
-            <span id="label-facultad">Unidad Académica</span> <span style="color: #dc3545;" id="required-facultad">*</span>
+            <span id="label-facultad">Facultad</span> <span style="color: #dc3545;" id="required-facultad">*</span>
         </label>
         <select name="facultad" id="select-facultad" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; background: white;">
-            <option value="">Cargando facultades...</option>
+            <option value="">Selecciona primero una Unidad Académica</option>
         </select>
     </div>
 
