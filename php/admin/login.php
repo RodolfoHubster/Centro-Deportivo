@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ==================================================================
     // 1. PROTECCIÓN CONTRA FUERZA BRUTA
     // ==================================================================
-    // Contamos intentos fallidos de esta IP o Correo en los últimos 15 minutos
     $sqlIntentos = "SELECT COUNT(*) as total 
                     FROM login_attempts 
                     WHERE (ip_address = ? OR email = ?) 
@@ -30,9 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $intentos = $dataCheck['total'];
     mysqli_stmt_close($stmtCheck);
 
-    // Si supera 5 intentos, bloqueamos
     if ($intentos >= 5) {
-        // Pequeño retraso artificial (1 segundo)
         sleep(1); 
         echo json_encode([
             'success' => false,
@@ -45,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 2. LÓGICA DE LOGIN
     // ==================================================================
     
-    // NOTA: Asegúrate de que tu tabla 'usuario' tenga la columna 'ultima_actividad'
     $sql = "SELECT * FROM usuario WHERE correo = ? AND rol IN ('Administrador', 'Promotor') AND activo = 1";
     $stmtUser = mysqli_prepare($conexion, $sql);
     mysqli_stmt_bind_param($stmtUser, 's', $correo);
@@ -57,54 +53,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (password_verify($password, $fila['contrasena'])) {
             
             // ==================================================================
-            // VERIFICACIÓN DE SESIÓN ACTIVA (BLOQUEO INTELIGENTE)
+            // VERIFICACIÓN DE SESIÓN ACTIVA (CORREGIDO)
             // ==================================================================
             
-            $limite_inactividad = 30; // Minutos permitidos de inactividad antes de liberar la cuenta
+            $limite_inactividad = 30; // Minutos
             $bloquear_acceso = false;
 
-            // Si existe un token de sesión guardado...
+            // 1. ¿Tiene un token guardado?
             if (!empty($fila['token_sesion'])) {
                 
-                // Verificamos cuándo fue su última actividad
+                // 2. ¿Tiene fecha de última actividad registrada?
                 if (!empty($fila['ultima_actividad'])) {
                     $fecha_actividad = new DateTime($fila['ultima_actividad']);
                     $ahora = new DateTime();
                     
-                    // Calculamos la diferencia
+                    // Calculamos diferencia
                     $diferencia = $ahora->diff($fecha_actividad);
                     $minutos_pasados = ($diferencia->days * 24 * 60) + ($diferencia->h * 60) + $diferencia->i;
                     
-                    // Si la actividad fue hace MENOS de 30 minutos, asumimos que sigue ahí
+                    // Si la actividad fue hace MENOS de 30 minutos, asumimos que sigue activo y bloqueamos.
                     if ($minutos_pasados < $limite_inactividad) {
                         $bloquear_acceso = true;
                     }
-                    // Si pasaron MÁS de 30 minutos, no bloqueamos (permitimos "robar" la sesión muerta)
-                } else {
-                    // Si tiene token pero no fecha (caso raro), bloqueamos por seguridad
-                    $bloquear_acceso = true;
-                }
+                } 
+                // 3. SI TIENE TOKEN PERO NO FECHA (NULL):
+                // Asumimos que es una sesión "vieja" o rota por la actualización de la BD.
+                // NO BLOQUEAMOS. Permitimos entrar para que se "autocorrija" el registro.
             }
 
             if ($bloquear_acceso) {
                 echo json_encode([
                     'success' => false,
-                    'mensaje' => 'Acceso denegado: Ya existe una sesión activa reciente en esta cuenta. Cierra la sesión anterior o espera unos minutos.'
+                    'mensaje' => 'Acceso denegado: Ya existe una sesión activa reciente en esta cuenta.'
                 ]);
-                exit; // <-- IMPORTANTE: Detener ejecución aquí
+                exit; 
             }
 
             // ==================================================================
-            // LOGIN EXITOSO (Si pasamos el bloqueo)
+            // LOGIN EXITOSO
             // ==================================================================
 
-            // A. Limpiar intentos fallidos previos
+            // A. Limpiar intentos fallidos
             $sqlDel = "DELETE FROM login_attempts WHERE ip_address = ? OR email = ?";
             $stmtDel = mysqli_prepare($conexion, $sqlDel);
             mysqli_stmt_bind_param($stmtDel, 'ss', $ip_actual, $correo);
             mysqli_stmt_execute($stmtDel);
 
-            // B. Generar y Guardar Token + Actualizar hora de actividad
+            // B. Guardar Token y Fecha Actual
             session_regenerate_id(true);
             $nuevo_token = session_id();
 
@@ -114,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             mysqli_stmt_execute($stmtUpdate);
             mysqli_stmt_close($stmtUpdate);
 
-            // C. Guardar variables de Sesión PHP
+            // C. Variables de Sesión
             $_SESSION['user_logged'] = true;
             $_SESSION['user_id'] = $fila['id'];
             $_SESSION['user_nombre'] = $fila['nombre'];
@@ -129,22 +124,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
 
         } else {
-            // --- CONTRASEÑA INCORRECTA ---
+            // Contraseña incorrecta
             registrarIntentoFallido($conexion, $ip_actual, $correo);
-
-            echo json_encode([
-                'success' => false,
-                'mensaje' => 'Contraseña incorrecta'
-            ]);
+            echo json_encode([ 'success' => false, 'mensaje' => 'Contraseña incorrecta' ]);
         }
     } else {
-        // --- USUARIO NO ENCONTRADO O INACTIVO ---
+        // Usuario no encontrado
         registrarIntentoFallido($conexion, $ip_actual, $correo);
-
-        echo json_encode([
-            'success' => false,
-            'mensaje' => 'Usuario no encontrado o no tiene permisos'
-        ]);
+        echo json_encode([ 'success' => false, 'mensaje' => 'Usuario no encontrado o no tiene permisos' ]);
     }
     mysqli_stmt_close($stmtUser);
 
@@ -154,8 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 mysqli_close($conexion);
 
-
-// FUNCIÓN AUXILIAR PARA REGISTRAR FALLOS
 function registrarIntentoFallido($conn, $ip, $email) {
     $sql = "INSERT INTO login_attempts (ip_address, email) VALUES (?, ?)";
     $stmt = mysqli_prepare($conn, $sql);
