@@ -148,10 +148,11 @@
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #eee;
+    flex-wrap: wrap;
 }
 
 .admin-modal-btn-guardar {
-    flex: 1;
+    flex: 1 1 200px;
     padding: 14px;
     background-color: var(--color-verde-uabc);
     color: white;
@@ -161,11 +162,13 @@
     font-size: 16px;
     cursor: pointer;
     transition: background 0.3s;
+    white-space: nowrap; 
+    text-align: center;
 }
 .admin-modal-btn-guardar:hover { background-color: #004d26; }
 
 .admin-modal-btn-cancelar {
-    flex: 1;
+    flex: 1 1 200px;
     padding: 14px;
     background-color: #6c757d;
     color: white;
@@ -175,10 +178,29 @@
     font-size: 16px;
     cursor: pointer;
     transition: background 0.3s;
+    white-space: nowrap; 
+    text-align: center;
 }
 .admin-modal-btn-cancelar:hover { background-color: #545b62; }
 
-/* Responsive */
+@media (max-width: 600px) {
+    .admin-modal-botones {
+        flex-direction: column; 
+    }
+    
+    .admin-modal-btn-guardar,
+    .admin-modal-btn-cancelar {
+        width: 100%;
+        flex: none;
+        margin-bottom: 10px;
+    }
+    
+    .admin-modal-btn-cancelar {
+        margin-bottom: 0;
+    }
+}
+
+
 @media (max-width: 700px) {
     .form-grid { grid-template-columns: 1fr; gap: 0; }
     .admin-modal-contenido { padding: 20px; width: 95%; }
