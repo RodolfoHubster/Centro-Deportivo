@@ -11,7 +11,7 @@
 .main-header .user-info-desktop .user-role-badge,
 .main-header .user-role-badge { 
     color: var(--color-dorado-uabc) !important;
-    border-color: var(--color-dorado-uabc); /* Si tiene borde, también dorado */
+    border-color: var(--color-dorado-uabc);
 }
 
 .main-header {
@@ -79,16 +79,15 @@
 
 /* --- Logout / Admin Link (Escritorio) --- */
 .main-header .logout {
-  display: flex;            /* Alineación flexible */
-  align-items: center;      /* Centrado vertical */
-  gap: 8px;                 /* Espacio entre texto e icono */
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
   color: var(--color-blanco);
   transition: color 0.3s ease, transform 0.2s ease;
-  min-width: auto;          /* Ajuste automático */
+  min-width: auto;
 }
 
-/* Estilo para el enlace (Solo en el header público) */
 .main-header .logout a.header-btn {
   display: flex;
   align-items: center;
@@ -98,14 +97,12 @@
   transition: color 0.3s ease, transform 0.2s ease;
 }
 
-/* Estilo para el div (Solo en el header admin que no tiene <a>) */
 .main-header .logout:not(:has(a)) {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Texto del botón */
 .main-header .logout .logout-text {
   font-weight: bold;
   font-size: 1rem;
@@ -113,14 +110,12 @@
   text-transform: uppercase;
 }
 
-/* Iconos SVG */
 .main-header .logout svg {
-  width: 22px;              /* Tamaño del icono */
+  width: 22px;
   height: 22px;
   display: block;
 }
 
-/* Efecto Hover (Al pasar el mouse) */
 .main-header .logout:hover a.header-btn,
 .main-header .logout:hover {
   color: var(--color-dorado-uabc); 
@@ -168,9 +163,9 @@
 .user-info-desktop {
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Alineado a la derecha */
-  margin-left: auto;     /* Empuja todo hacia la derecha */
-  margin-right: 20px;    /* Espacio antes del botón salir */
+  align-items: flex-end;
+  margin-left: auto;
+  margin-right: 20px;
   line-height: 1.2;
 }
 
@@ -198,19 +193,17 @@
 }
 
 /* === CORRECCIÓN DE TRASLAPE (Pantallas medianas 980px - 1150px) === */
-/* Ocultamos info de usuario antes de tiempo para dar espacio al título */
 @media (max-width: 1150px) {
     .user-info-desktop {
         display: none !important;
     }
     
-    /* Reducimos un poco el título para ganar espacio */
     .main-header .title h1 { font-size: 1.2rem; }
     .main-header .title p { font-size: 0.8rem; }
 }
 
-/* --- RESPONSIVIDAD MÓVIL (< 845px) --- */
-@media (max-width: 845px) {
+/* --- RESPONSIVIDAD MÓVIL (< 1020px) --- */
+@media (max-width: 1020px) {
   .header-content-wrapper {
       padding: 12px 15px;
       align-items: center;
@@ -242,7 +235,7 @@
       font-size: 0.65rem;
   }
 
-  /* Ocultar logout de escritorio en móvil (IMPORTANTE) */
+  /* Ocultar logout de escritorio en móvil */
   .main-header .logout {
       display: none !important;
   }
