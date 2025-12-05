@@ -1,31 +1,41 @@
 // public/js/admin/gestUsuarios.js
 import { mostrarMensaje } from '../utils/utilidades.js';
 
-// === VARIABLES GLOBALES ===
 let todosLosUsuarios = [];
 let modoEdicion = false;
 let editandoId = null;
 
-// === INICIALIZACIÓN ===
 document.addEventListener('DOMContentLoaded', () => {
     cargarUsuarios();
     configurarListeners();
 });
 
 function configurarListeners() {
+    const modal = document.getElementById('modalUsuario');
+
+    // Botones existentes
     document.getElementById('btnNuevoUsuario').addEventListener('click', prepararModalParaCrear);
-    document.getElementById('btnCancelar').addEventListener('click', cerrarModal);
+    document.getElementById('btnCancelar').addEventListener('click', cerrarModal); // Este es el botón "Cancelar" explícito (podemos hacer que este sí borre el formulario si quieres)
     document.getElementById('btnCerrarModalX').addEventListener('click', cerrarModal);
     document.getElementById('formUsuario').addEventListener('submit', guardarUsuario);
-    
-    // --- NUEVO LISTENER AÑADIDO ---
     document.getElementById('btnEliminarPermanente').addEventListener('click', handleEliminarPermanenteClick);
-    
-    // Listener para la lista (delegación de eventos)
     document.getElementById('lista-usuarios').addEventListener('click', handleListaClick);
-}
 
-// === FUNCIONES PRINCIPALES ===
+    // --- CERRAR AL DAR CLICK AFUERA ---
+    window.addEventListener('click', (e) => {
+        // Si el elemento clickeado es el fondo oscuro (modalUsuario) y no el contenido blanco
+        if (e.target === modal) {
+            cerrarModal(); // Cierra sin borrar los datos
+        }
+    });
+
+    // --- CERRAR CON TECLA ESC ---
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            cerrarModal(); // Cierra sin borrar los datos
+        }
+    });
+}
 
 async function cargarUsuarios() {
     try {
@@ -37,9 +47,6 @@ async function cargarUsuarios() {
             mostrarUsuarios(todosLosUsuarios);
         } else {
             mostrarMensaje(data.mensaje, 'error');
-            if (response.status === 403) {
-                setTimeout(() => window.location.href = 'admin.html', 2000);
-            }
         }
     } catch (error) {
         mostrarMensaje('Error de conexión al cargar usuarios', 'error');
@@ -53,58 +60,59 @@ function mostrarUsuarios(usuarios) {
         return;
     }
 
-    container.innerHTML = ''; // Limpiar
+    container.innerHTML = ''; 
     usuarios.forEach(user => {
         
-        // --- LÓGICA DE BOTONES DINÁMICOS ---
-        let botonAccion = '';
+        // 1. Lógica de Roles y Colores
+        let colorRol = user.rol === 'Administrador' ? '#f9b233' : '#003366'; 
         let estadoLabel = '';
-        let colorBorde = user.rol === 'Administrador' ? '#f9b233' : '#003366';
+        let botonAccion = '';
 
-        if (user.activo == 1) {
-            // Usuario ACTIVO
-            estadoLabel = `<span style="font-weight: bold; color: #28a745;">Activo</span>`;
-            botonAccion = `<button class="btn-eliminar-usuario" data-id="${user.id}" data-nombre="${user.nombre}" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Desactivar</button>`;
-        } else {
-            // Usuario INACTIVO
+        if (user.activo == 0) {
+            colorRol = '#6c757d'; 
             estadoLabel = `<span style="font-weight: bold; color: #6c757d;">Inactivo</span>`;
-            botonAccion = `<button class="btn-reactivar-usuario" data-id="${user.id}" data-nombre="${user.nombre}" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Reactivar</button>`;
-            colorBorde = '#6c757d'; // Gris si está inactivo
+            // Botón REACTIVAR (Verde forzado)
+            botonAccion = `<button class="btn-reactivar-usuario" data-id="${user.id}" data-nombre="${user.nombre}" style="background-color: #28a745 !important; color: white !important;">Reactivar</button>`;
+        } else {
+            estadoLabel = `<span style="font-weight: bold; color: #28a745;">Activo</span>`;
+            // Botón DESACTIVAR (Rojo forzado)
+            botonAccion = `<button class="btn-eliminar-usuario" data-id="${user.id}" data-nombre="${user.nombre}" style="background-color: #dc3545 !important; color: white !important;">Desactivar</button>`;
         }
-        // --- FIN LÓGICA DE BOTONES ---
 
+        // 2. Generar HTML
         container.innerHTML += `
-            <div class="evento-card" style="background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid ${colorBorde};">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div style="flex: 1;">
-                        <h3 style="margin: 0 0 10px 0; color: #003366;">${user.apellido_paterno} ${user.apellido_materno || ''} ${user.nombre}</h3>
-                        <p style="margin: 5px 0; color: #666;"><strong>Correo:</strong> ${user.correo}</p>
-                        <p style="margin: 5px 0; color: #666;"><strong>Matrícula:</strong> ${user.matricula}</p>
-                        <p style="margin: 5px 0; color: #666;"><strong>Rol:</strong> <span style="font-weight: bold; color: ${user.rol === 'Administrador' ? '#f9b233' : '#003366'};">${user.rol}</span></p>
-                        <p style="margin: 5px 0; color: #666;"><strong>Estado:</strong> ${estadoLabel}</p>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 10px; margin-left: 20px;">
-                        <button class="btn-editar-usuario" data-id="${user.id}" style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Editar</button>
-                        ${botonAccion}
-                    </div>
+            <div class="usuario-card" style="--color-rol: ${colorRol};">
+                
+                <div class="info-usuario">
+                    <h3 style="color: #003366;">${user.apellido_paterno} ${user.apellido_materno || ''} ${user.nombre}</h3>
+                    <p><strong>Correo:</strong> ${user.correo}</p>
+                    <p><strong>Matrícula:</strong> ${user.matricula}</p>
+                    <p><strong>Rol:</strong> <span style="font-weight: bold; color: var(--color-rol);">${user.rol}</span></p>
+                    <p><strong>Estado:</strong> ${estadoLabel}</p>
                 </div>
+
+                <div class="acciones-usuario">
+                    <button class="btn-editar-usuario" data-id="${user.id}" style="background-color: #ffc107 !important; color: #333 !important;">Editar</button>
+                    ${botonAccion}
+                </div>
+
             </div>
         `;
     });
 }
+
+// ... (MANTÉN EL RESTO DE TUS FUNCIONES: guardarUsuario, handleListaClick, etc. IGUAL QUE ANTES)
+// Solo asegúrate de cerrar la llave de la función mostrarUsuarios antes de pegar el resto.
 
 async function guardarUsuario(e) {
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
     
+    // Si estamos en modo edición, adjuntamos el ID del usuario
     if (modoEdicion && editandoId) {
         formData.append('id', editandoId);
     }
-
-    const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
 
     try {
         const response = await fetch('../../php/admin/crearUsuario.php', {
@@ -116,15 +124,18 @@ async function guardarUsuario(e) {
         if (data.success) {
             mostrarMensaje(data.mensaje, 'success');
             cerrarModal();
-            cargarUsuarios(); // Recargar la lista
+            
+            // --- CAMBIO CLAVE: ---
+            // Limpiamos el formulario AQUÍ, solo cuando se confirma que se guardó.
+            // Así, si fallara o cancelaras, el texto seguiría intacto.
+            form.reset(); 
+            
+            cargarUsuarios(); // Recargamos la lista
         } else {
             mostrarMensaje(data.mensaje, 'error');
         }
     } catch (error) {
         mostrarMensaje('Error de conexión al guardar', 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Guardar Usuario';
     }
 }
 
@@ -134,108 +145,69 @@ function handleListaClick(e) {
     const nombre = target.dataset.nombre;
 
     if (target.classList.contains('btn-eliminar-usuario')) {
-        if (confirm(`¿Estás seguro de DESACTIVAR al usuario "${nombre}"?`)) {
-            eliminarUsuario(id); // Llama al (soft delete)
-        }
+        if (confirm(`¿Desactivar a "${nombre}"?`)) eliminarUsuario(id);
     }
-    
     if (target.classList.contains('btn-reactivar-usuario')) {
-        if (confirm(`¿Estás seguro de REACTIVAR al usuario "${nombre}"?`)) {
-            reactivarUsuario(id);
-        }
+        if (confirm(`¿Reactivar a "${nombre}"?`)) reactivarUsuario(id);
     }
-    
     if (target.classList.contains('btn-editar-usuario')) {
         prepararModalParaEditar(id);
     }
 }
 
-// --- NUEVO HANDLER ---
 function handleEliminarPermanenteClick() {
     const nombre = document.getElementById('usuario-nombre').value;
-    if (!modoEdicion || !editandoId) return;
-
-    // Doble confirmación
-    if (confirm(`ADVERTENCIA: Estás a punto de eliminar permanentemente a "${nombre}". Esta acción no se puede deshacer.\n\n¿Estás seguro?`)) {
-        if (confirm(`SEGUNDA CONFIRMACIÓN: ¿Realmente deseas BORRAR a "${nombre}" de la base de datos?`)) {
-            eliminarUsuarioPermanente(editandoId);
-        }
+    if (confirm(`¿Eliminar PERMANENTEMENTE a "${nombre}"?`)) {
+        eliminarUsuarioPermanente(editandoId);
     }
 }
 
-async function eliminarUsuario(id) { // (Soft Delete)
-    try {
-        const response = await fetch('../../php/admin/desactivarUsuario.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
-        });
-        const data = await response.json();
-        
-        mostrarMensaje(data.mensaje, data.success ? 'success' : 'error');
-        
-        if (data.success) {
-            cargarUsuarios(); // Recargar la lista
-        }
-    } catch (error) {
-        mostrarMensaje('Error de conexión al desactivar', 'error');
-    }
+async function eliminarUsuario(id) {
+    await fetch('../../php/admin/desactivarUsuario.php', { method: 'POST', body: JSON.stringify({id}) });
+    cargarUsuarios();
 }
 
 async function reactivarUsuario(id) {
-    try {
-        const response = await fetch('../../php/admin/reactivarUsuario.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
-        });
-        const data = await response.json();
-        
-        mostrarMensaje(data.mensaje, data.success ? 'success' : 'error');
-        
-        if (data.success) {
-            cargarUsuarios(); // Recargar la lista
-        }
-    } catch (error) {
-        mostrarMensaje('Error de conexión al reactivar', 'error');
-    }
+    await fetch('../../php/admin/reactivarUsuario.php', { method: 'POST', body: JSON.stringify({id}) });
+    cargarUsuarios();
 }
 
-// --- NUEVA FUNCIÓN ---
 async function eliminarUsuarioPermanente(id) {
-    try {
-        const response = await fetch('../../php/admin/eliminarUsuarios.php', { // <-- Nuevo endpoint
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
-        });
-        const data = await response.json();
-        
-        mostrarMensaje(data.mensaje, data.success ? 'success' : 'error');
-        
-        if (data.success) {
-            cerrarModal(); // Cerrar el modal de edición
-            cargarUsuarios(); // Recargar la lista
-        }
-    } catch (error) {
-        mostrarMensaje('Error de conexión al eliminar permanentemente', 'error');
-    }
+    await fetch('../../php/admin/eliminarUsuarios.php', { method: 'POST', body: JSON.stringify({id}) });
+    cerrarModal();
+    cargarUsuarios();
 }
 
-
-// === FUNCIONES DEL MODAL ===
+// public/js/admin/gestUsuarios.js
 
 function prepararModalParaCrear() {
+    // 1. LÓGICA INTELIGENTE:
+    // Si venimos de "Editar" (modoEdicion === true), limpiamos el formulario para empezar de cero.
+    // Si ya estábamos en "Crear" (modoEdicion === false), NO limpiamos para no perder datos si cerraste por error.
+    if (modoEdicion === true) {
+        document.getElementById('formUsuario').reset();
+        document.getElementById('usuario-id').value = ''; // Aseguramos borrar el ID oculto
+    }
+
+    // 2. Configurar el estado para CREAR
     modoEdicion = false;
     editandoId = null;
-    document.getElementById('formUsuario').reset();
-    document.getElementById('tituloModal').textContent = 'Crear Nuevo Usuario';
-    document.getElementById('password-required').style.display = 'inline';
-    document.querySelector('.help-text').style.display = 'none';
-    document.getElementById('usuario-password').required = true;
     
-    // Oculta la zona peligrosa
-    document.getElementById('danger-zone').style.display = 'none';
+    document.getElementById('tituloModal').textContent = 'Crear Nuevo Usuario';
+    
+    // Configuración de contraseña obligatoria para nuevos usuarios
+    const passReq = document.getElementById('password-required');
+    if(passReq) passReq.style.display = 'inline';
+    
+    const helpText = document.querySelector('.help-text');
+    if(helpText) helpText.style.display = 'none';
+    
+    const passInput = document.getElementById('usuario-password');
+    if(passInput) passInput.required = true;
+    
+    // Ocultar zona de peligro
+    const dangerZone = document.getElementById('danger-zone');
+    if(dangerZone) dangerZone.style.display = 'none';
     
     abrirModal();
 }
@@ -243,35 +215,18 @@ function prepararModalParaCrear() {
 function prepararModalParaEditar(id) {
     const usuario = todosLosUsuarios.find(u => u.id == id);
     if (!usuario) return;
-
     modoEdicion = true;
     editandoId = id;
-    
     document.getElementById('tituloModal').textContent = 'Editar Usuario';
-    document.getElementById('usuario-id').value = usuario.id;
     document.getElementById('usuario-nombre').value = usuario.nombre;
     document.getElementById('usuario-paterno').value = usuario.apellido_paterno;
-    document.getElementById('usuario-materno').value = usuario.apellido_materno || '';
+    document.getElementById('usuario-materno').value = usuario.apellido_materno;
     document.getElementById('usuario-matricula').value = usuario.matricula;
     document.getElementById('usuario-correo').value = usuario.correo;
     document.getElementById('usuario-rol').value = usuario.rol;
-    
-    // Contraseña
-    document.getElementById('password-required').style.display = 'none';
-    document.querySelector('.help-text').style.display = 'block';
-    document.getElementById('usuario-password').value = '';
-    document.getElementById('usuario-password').required = false;
-
-    // Muestra la zona peligrosa
     document.getElementById('danger-zone').style.display = 'block';
-
     abrirModal();
 }
 
-function abrirModal() {
-    document.getElementById('modalUsuario').style.display = 'flex';
-}
-
-function cerrarModal() {
-    document.getElementById('modalUsuario').style.display = 'none';
-}
+function abrirModal() { document.getElementById('modalUsuario').style.display = 'flex'; }
+function cerrarModal() { document.getElementById('modalUsuario').style.display = 'none'; }

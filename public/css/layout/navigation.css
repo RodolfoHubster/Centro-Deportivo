@@ -5,7 +5,8 @@
     padding: 10px 0;
     border-bottom: 1px solid var(--color-dorado-uabc);
     position: fixed;
-    top: calc(var(--header-height) + var(--header-border));
+    /* CORRECCIÓN: Quitamos "+ var(--header-border)" porque el box-sizing ya incluye el borde en la altura */
+    top: var(--header-height); 
     left: 0;
     right: 0;
     width: 100%;
@@ -68,11 +69,11 @@
     display: block;
 }
 
-/* MÓVIL - MENÚ COMPACTO */
-@media (max-width: 845px) {
+/* MÓVIL - MENÚ COMPACTO (Breakpoint actualizado a 1020px) */
+@media (max-width: 1020px) {
     .main-nav {
         position: fixed;
-        top: 70px;
+        top: 70px; /* Ajuste específico para móvil */
         left: auto;
         right: -100%;
         width: auto;
@@ -89,7 +90,7 @@
     .main-nav .mobile-logout {
         display: block;
         border-top: none; /* Separador visual */
-        margin-top: none;
+        margin-top: 0;
     }
 
     .main-nav .mobile-logout a {
@@ -185,8 +186,8 @@
     }
 }
 
-
-@media (min-width: 846px) {
+/* Ocultar overlay en escritorio (mayor a 1020px) */
+@media (min-width: 1021px) {
     .nav-overlay {
         display: none !important;
     }

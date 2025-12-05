@@ -191,12 +191,14 @@ export function mostrarEventos(eventos) {
         }
         
         container.innerHTML += `
-        <div class="evento-card" style="background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #003366;">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
-                <div style="flex: 1;">
+        <div class="evento-card" data-id="${evento.id}">
+            <div class="evento-layout">
+                
+                <div class="evento-info">
                     <h3 style="margin: 0 0 10px 0; color: #003366; display: flex; align-items: center;">
                         ${evento.nombre} 
-                        ${etiquetaFinalizado} </h3>
+                        ${etiquetaFinalizado} 
+                    </h3>
                     <p style="margin: 5px 0; color: #666;">${evento.descripcion || 'Sin descripción'}</p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
                         <div><strong>Fechas:</strong><br>${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}</div>
@@ -208,8 +210,15 @@ export function mostrarEventos(eventos) {
                         <div><strong>Cupo:</strong><br><span style="color: ${cupoColor}; font-weight: bold;">${cupoTexto}</span></div>
                     </div>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 10px; margin-left: 20px;">
-                    ${botonPrincipal} ${botonEditar} ${botonEliminarHTML} ${botonVerQR} ${botonParticipantesHTML} </div>
+
+                <div class="evento-acciones">
+                    ${botonPrincipal} 
+                    ${botonEditar} 
+                    ${botonEliminarHTML} 
+                    ${botonVerQR} 
+                    ${botonParticipantesHTML} 
+                </div>
+
             </div>
         </div>
         `;
