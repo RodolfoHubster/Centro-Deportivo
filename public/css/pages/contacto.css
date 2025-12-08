@@ -1,53 +1,62 @@
-/* css\pages\contacto.css */
+/* ==========================================================================
+   ESTILOS DE LA PÁGINA DE CONTACTO
+   Ruta: public/css/pages/contacto.css
+   Descripción: Estilos específicos para el directorio de contactos por campus.
+   ========================================================================== */
 
-.page-content {
-    border-radius: 8px;
+/* --------------------------------------------------------------------------
+   1. AJUSTES GENERALES DEL CONTENEDOR
+   -------------------------------------------------------------------------- */
+   .page-content {
+    border-radius: 8px; /* Radio específico para esta página si difiere del global */
 }
 
-/* CONTACT-SECTION */
+/* --------------------------------------------------------------------------
+   2. SECCIONES DE CONTACTO (Agrupación por Campus)
+   -------------------------------------------------------------------------- */
 .contact-section {
     margin-bottom: 40px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
-    
+    border-bottom: 1px solid #eee; /* Línea divisoria entre campus */
 }
 
-    /* CONTACT-SECTION:LAST-OF-TYPE */
-
+/* Quitar borde y margen en la última sección para limpieza visual */
 .contact-section:last-of-type {
     border-bottom: none;
     margin-bottom: 0;
     padding-bottom: 0;
 }
 
-    /* H2 */
-
+/* Títulos de sección (Nombre del Campus) */
 .contact-section h2 {
     color: var(--color-verde-uabc);
     margin-bottom: 20px;
     font-size: 1.8rem;
 }
 
-/* CONTACT-GRID */
-
+/* --------------------------------------------------------------------------
+   3. GRID DE TARJETAS DE CONTACTO
+   -------------------------------------------------------------------------- */
 .contact-grid {
     display: grid;
+    /* Diseño responsivo: Tarjetas de mín. 280px que llenan el espacio */
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 25px;
 }
 
-/* CONTACT-CARD */
-
+/* --------------------------------------------------------------------------
+   4. TARJETA DE CONTACTO INDIVIDUAL
+   Descripción: Caja con la información de cada persona/departamento.
+   -------------------------------------------------------------------------- */
 .contact-card {
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* Fondo gris claro para diferenciar del fondo blanco principal */
     padding: 20px;
     border-radius: var(--borde-redondeado);
     border: 1px solid #eee;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra muy sutil */
 }
 
-    /* H3 */
-
+/* Nombre de la persona */
 .contact-card h3 {
     margin-top: 0;
     margin-bottom: 10px;
@@ -55,8 +64,7 @@
     color: var(--color-texto);
 }
 
-    /* P */
-
+/* Detalles (Cargo, Teléfono, Correo) */
 .contact-card p {
     margin-bottom: 8px;
     font-size: 0.95rem;
@@ -64,20 +72,16 @@
     color: var(--color-gris-oscuro);
 }
 
-    /* STRONG */
-
+/* Etiquetas de los datos (Negritas) */
 .contact-card strong {
     color: var(--color-texto);
 }
 
-    /* A */
-
+/* Enlaces (Mailto, Tel) */
 .contact-card a {
     color: var(--color-verde-uabc);
     text-decoration: none;
 }
-
-    /* A:HOVER */
 
 .contact-card a:hover {
     text-decoration: underline;

@@ -23,7 +23,7 @@
 /* =========================================
    TARJETAS DE EVENTOS (Estilo Visual)
    ========================================= */
-.evento-card {
+.evento-card-admin {
     background: white;
     padding: 0; 
     margin: 20px 0;
@@ -43,7 +43,7 @@
 }
 
 /* EFECTO HOVER */
-.evento-card:hover {
+.evento-card-admin:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0, 102, 51, 0.15);
     border-top-color: var(--color-verde-uabc);

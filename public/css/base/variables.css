@@ -1,20 +1,50 @@
-/*css\base\variables.css*/
+/* ==========================================================================
+   VARIABLES GLOBALES (CUSTOM PROPERTIES)
+   Ruta: public/css/base/variables.css
+   Descripción: Definición centralizada de colores, medidas, sombras y fuentes.
+   Uso: var(--nombre-variable)
+   ========================================================================== */
 
-:root {
-    --color-verde-uabc: #006633;
-    --color-dorado-uabc: #f9b233;
-    --color-dorado-hover: #e5a322;
-    --color-fondo: #f4f4f4;
-    --color-texto: #333;
-    --color-blanco: #ffffff;
-    --color-gris-claro: #ccc;
-    --color-gris-oscuro: #666;
-    --color-error: #dc3545;
-    --color-exito: #28a745;
-    --sombra-general: 0 4px 8px rgba(0, 0, 0, 0.102);
-    --sombra-profunda: 0 4px 10px rgba(0 ,0 ,0 , 0.2);
-    --borde-redondeado: 10px;
-    --borde-redondo-grande: 12px;
-    --header-height: 80px;
-    --header-border: 5px;
+   :root {
+    /* ----------------------------------------------------------------------
+       1. IDENTIDAD INSTITUCIONAL (COLORES MARCA)
+       ---------------------------------------------------------------------- */
+    --color-verde-uabc:   #006633;  /* Color principal */
+    --color-dorado-uabc:  #f9b233;  /* Color secundario/acento */
+    --color-dorado-hover: #e5a322;  /* Versión oscura para estados :hover */
+
+    /* ----------------------------------------------------------------------
+       2. INTERFAZ DE USUARIO (UI & TEXTOS)
+       ---------------------------------------------------------------------- */
+    --color-fondo:        #f4f4f4;  /* Fondo general de la página (gris muy suave) */
+    --color-blanco:       #ffffff;  /* Fondo de tarjetas y contenedores */
+    --color-texto:        #333333;  /* Color de texto principal (casi negro) */
+    --color-gris-claro:   #cccccc;  /* Bordes sutiles y placeholders */
+    --color-gris-oscuro:  #666666;  /* Texto secundario o metadatos */
+
+    /* ----------------------------------------------------------------------
+       3. ESTADOS Y FEEDBACK (ALERTA / ÉXITO)
+       ---------------------------------------------------------------------- */
+    --color-error:        #dc3545;  /* Rojo estándar (Bootstrap style) */
+    --color-exito:        #28a745;  /* Verde éxito */
+
+    /* ----------------------------------------------------------------------
+       4. EFECTOS VISUALES (SOMBRAS)
+       ---------------------------------------------------------------------- */
+    /* Sombra suave para elevación baja */
+    --sombra-general:     0 4px 8px rgba(0, 0, 0, 0.102);
+    /* Sombra fuerte para modales o elementos flotantes */
+    --sombra-profunda:    0 4px 10px rgba(0, 0, 0, 0.2);
+
+    /* ----------------------------------------------------------------------
+       5. BORDES Y RADIOS
+       ---------------------------------------------------------------------- */
+    --borde-redondeado:      10px;  /* Radio estándar para botones/cards */
+    --borde-redondo-grande:  12px;  /* Radio mayor para contenedores grandes */
+
+    /* ----------------------------------------------------------------------
+       6. LAYOUT Y DIMENSIONES
+       ---------------------------------------------------------------------- */
+    --header-height:      80px;     /* Altura fija del header */
+    --header-border:      5px;      /* Grosor del borde inferior del header */
 }

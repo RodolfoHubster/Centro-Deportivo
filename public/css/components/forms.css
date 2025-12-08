@@ -1,83 +1,97 @@
-/* css/components/forms.css */
+/* ==========================================================================
+   COMPONENTES DE FORMULARIOS
+   Ruta: public/css/components/forms.css
+   Descripción: Estilos globales para inputs y estilos específicos para formularios.
+   ========================================================================== */
 
-.contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.contact-form label {
-    font-weight: bold;
-    color: var(--color-verde-uabc);
-}
-
-.contact-form input,
-.contact-form textarea {
-    padding: 10px;
-    border: 1px solid var(--color-gris-claro);
-    border-radius: 6px;
-    font-size: 1rem;
-    width: 100%;
-    resize: none;
-}
-
-.contact-form input:focus,
-.contact-form textarea:focus {
-    outline: none;
-    border-color: var(--color-dorado-uabc);
-    box-shadow: 0 0 5px rgba(249, 178, 51, 0.5);
-}
-
-.contact-form button {
-    background-color: var(--color-dorado-uabc);
-    color: var(--color-blanco);
-    font-weight: bold;
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-.contact-form button:hover {
-    background-color: var(--color-dorado-hover);
-}
-
-/* Estilo base más limpio */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="date"],
-input[type="number"],
-select,
-textarea {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e0e0e0; /* Borde gris suave por defecto */
-    border-radius: 8px; /* Coherencia con tus tarjetas */
-    background-color: #fafafa;
-    font-family: inherit; /* Hereda la nueva fuente */
-    font-size: 1rem;
-    transition: all 0.3s ease; /* Transición suave */
-    outline: none; /* Quitamos el outline azul feo del navegador */
-}
-
-/* Estado Focus: El usuario hizo clic */
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: var(--color-verde-uabc); /* Se ilumina con tu color */
-    background-color: #fff; /* Se vuelve blanco puro */
-    box-shadow: 0 4px 10px rgba(0, 102, 51, 0.1); /* Sombra verde sutil */
-    transform: translateY(-1px); /* Sutil elevación */
-}
-
-/* Validación visual rápida */
-input:not(:placeholder-shown):valid {
-    border-color: #28a745; /* Verde éxito sutil si está lleno y válido */
-}
-
-input:not(:placeholder-shown):invalid {
-    border-color: #dc3545; /* Rojo error sutil */
-}
+/* --------------------------------------------------------------------------
+   1. ELEMENTOS DE FORMULARIO GLOBALES
+   Descripción: Estilos base para todos los inputs, selects y textareas.
+   -------------------------------------------------------------------------- */
+   input[type="text"],
+   input[type="email"],
+   input[type="password"],
+   input[type="date"],
+   input[type="number"],
+   select,
+   textarea {
+       width: 100%;
+       padding: 12px 15px;
+       
+       /* Apariencia Base */
+       background-color: #fafafa;
+       border: 2px solid #e0e0e0; /* Borde gris suave por defecto */
+       border-radius: 8px;        /* Coherencia con tus tarjetas (cards.css) */
+       
+       /* Tipografía */
+       font-family: inherit;
+       font-size: 1rem;
+       
+       /* Comportamiento */
+       outline: none; /* Quitamos el outline azul nativo del navegador */
+       resize: none;  /* Evita que el usuario rompa el layout con textareas */
+       transition: all 0.3s ease; /* Transición suave para hover/focus */
+   }
+   
+   /* --------------------------------------------------------------------------
+      2. ESTADOS INTERACTIVOS
+      Descripción: Feedback visual al usuario (Foco, Validación).
+      -------------------------------------------------------------------------- */
+   
+   /* Estado Focus: Cuando el usuario hace clic o navega con tab */
+   input:focus,
+   select:focus,
+   textarea:focus {
+       background-color: #fff; /* Se vuelve blanco puro para resaltar */
+       border-color: var(--color-verde-uabc); /* Color principal de marca */
+       box-shadow: 0 4px 10px rgba(0, 102, 51, 0.1); /* Sombra verde sutil (elevación) */
+       transform: translateY(-1px); /* Micro-interacción de elevación */
+   }
+   
+   /* Validación: Campo válido (y no vacío) */
+   input:not(:placeholder-shown):valid {
+       border-color: #28a745; /* Verde éxito */
+   }
+   
+   /* Validación: Campo inválido (y no vacío) */
+   input:not(:placeholder-shown):invalid {
+       border-color: #dc3545; /* Rojo error */
+   }
+   
+   /* --------------------------------------------------------------------------
+      3. MÓDULO: FORMULARIO DE CONTACTO (.contact-form)
+      Descripción: Layout y botones específicos para la página de contacto.
+      -------------------------------------------------------------------------- */
+   
+   /* Contenedor Flex */
+   .contact-form {
+       display: flex;
+       flex-direction: column;
+       gap: 15px;      /* Espacio vertical entre campos */
+       margin-top: 20px;
+   }
+   
+   /* Etiquetas (Labels) */
+   .contact-form label {
+       font-weight: bold;
+       color: var(--color-verde-uabc);
+   }
+   
+   /* Botón de Envío Específico */
+   .contact-form button {
+       background-color: var(--color-dorado-uabc);
+       color: var(--color-blanco);
+       font-weight: bold;
+       border: none;
+       padding: 12px;
+       border-radius: 6px;
+       cursor: pointer;
+       transition: background 0.3s ease;
+   }
+   
+   .contact-form button:hover {
+       background-color: var(--color-dorado-hover);
+   }
+   
+   /* NOTA: Los inputs dentro de .contact-form herederán los estilos globales 
+      definidos en la sección 1, asegurando consistencia en todo el sitio. */

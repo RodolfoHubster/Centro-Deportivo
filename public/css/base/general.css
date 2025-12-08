@@ -1,38 +1,61 @@
-/* css/base/_general.css */
+/* ==========================================================================
+   ESTILOS GENERALES Y BASE
+   Ruta: public/css/base/general.css
+   Descripción: Configuración global, reset básico y tipografía predeterminada.
+   ========================================================================== */
 
-/* Importacion de las variables disponibles */
+/* --------------------------------------------------------------------------
+   1. IMPORTS Y DEPENDENCIAS
+   -------------------------------------------------------------------------- */
+/* Importación de variables de color, espaciado, etc. */
 @import url(variables.css);
 
-body {
-  margin: 0;
-  font-family: 'Open Sans', sans-serif; 
-  background-color: var(--color-fondo);
-  color: var(--color-texto);
-  min-height: 100vh;
-}
-
+/* --------------------------------------------------------------------------
+   2. RESET BÁSICO (BOX MODEL)
+   -------------------------------------------------------------------------- */
+/* Asegura que padding y border no aumenten el ancho total de los elementos */
 * {
   box-sizing: border-box;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', sans-serif;
-  color: var(--color-verde-uabc); /* Asegura identidad */
-  font-weight: 700; /* Negrita fuerte para jerarquía */
-  letter-spacing: -0.5px; /* Un toque más compacto y moderno */
+/* --------------------------------------------------------------------------
+   3. CUERPO (BODY)
+   -------------------------------------------------------------------------- */
+body {
+  margin: 0; /* Eliminar margen por defecto del navegador */
+  font-family: 'Open Sans', sans-serif; 
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  min-height: 100vh; /* Asegura que el fondo cubra toda la pantalla */
 }
 
+/* --------------------------------------------------------------------------
+   4. TIPOGRAFÍA (ENCABEZADOS)
+   -------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  color: var(--color-verde-uabc); /* Identidad institucional */
+  font-weight: 700; /* Jerarquía visual fuerte */
+  letter-spacing: -0.5px; /* Estilo moderno y compacto */
+}
+
+/* --------------------------------------------------------------------------
+   5. ENLACES (LINKS)
+   -------------------------------------------------------------------------- */
 a {
   color: var(--color-verde-uabc);
-  text-decoration: none;
+  text-decoration: none; /* Sin subrayado por defecto */
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration: underline; /* Feedback visual al pasar el mouse */
 }
 
+/* --------------------------------------------------------------------------
+   6. ELEMENTOS MULTIMEDIA (IMÁGENES)
+   -------------------------------------------------------------------------- */
 img {
-  max-width: 100%;
-  height: auto;
-  display: block;
+  max-width: 100%; /* Responsive: nunca exceder el ancho del contenedor */
+  height: auto;    /* Mantiene la proporción de aspecto */
+  display: block;  /* Evita el espacio en blanco inferior inline */
 }

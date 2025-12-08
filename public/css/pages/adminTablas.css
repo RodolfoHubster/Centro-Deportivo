@@ -1,32 +1,41 @@
-/* public/css/pages/adminTablas.css */
+/* ==========================================================================
+   ESTILOS PARA TABLAS ADMINISTRATIVAS
+   Ruta: public/css/pages/adminTablas.css
+   Descripción: Estilos para tablas de datos (inscripciones, participantes),
+                filtros, paginación y tarjetas de resumen.
+   ========================================================================== */
 
-/* CONTENEDOR PRINCIPAL */
-.tabla-container {
+/* --------------------------------------------------------------------------
+   1. CONTENEDOR PRINCIPAL (.tabla-container)
+   Descripción: Caja que envuelve la tabla y permite scroll horizontal.
+   -------------------------------------------------------------------------- */
+   .tabla-container {
     margin-top: 20px;
-    overflow-x: auto;
+    overflow-x: auto; /* Scroll si la tabla es muy ancha */
     border-radius: var(--borde-redondeado);
     box-shadow: var(--sombra-general);
     background: var(--color-blanco);
     border: 1px solid #eee;
 }
 
-/* ESTILOS GENERALES DE TABLA */
+/* --------------------------------------------------------------------------
+   2. ESTRUCTURA DE LA TABLA (.admin-table)
+   -------------------------------------------------------------------------- */
 .admin-table {
     width: 100%;
     border-collapse: collapse;
     background: var(--color-blanco);
-    min-width: 600px;
+    min-width: 600px; /* Ancho mínimo para evitar que se aplaste */
 }
 
-/* CABECERA */
+/* --- Cabecera (Thead) --- */
 .admin-table thead tr {
-    background-color: var(--color-verde-uabc); /* #006633 */
+    background-color: var(--color-verde-uabc);
     color: var(--color-blanco);
 }
 
 .admin-table th {
-
-    padding: 12px 10px; 
+    padding: 12px 10px;
     vertical-align: middle !important;
     text-align: center !important;
     border-bottom: 3px solid rgba(0, 0, 0, 0.1); 
@@ -35,48 +44,55 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     height: 55px; 
-    white-space: nowrap;
+    white-space: nowrap; /* Evita que el texto se rompa */
 }
 
-/* FILAS */
+/* --- Cuerpo (Tbody) --- */
+.admin-table td {
+    padding: 22px 15px;
+    line-height: 1.6;
+    vertical-align: middle;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+/* Filas alternas (Zebra striping) */
+.admin-table tbody tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
+
+/* Efecto Hover en filas */
 .admin-table tbody tr {
     transition: background-color 0.2s ease;
 }
 
 .admin-table tbody tr:hover {
-    background-color: rgba(0, 102, 51, 0.05); /* Verde muy suave al pasar el mouse */
+    background-color: rgba(0, 102, 51, 0.08); /* Verde muy suave */
+    transform: scale(1); 
 }
 
-/* BOTÓN VOLVER */
-.btn-volver {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 20px;
-    color: var(--color-verde-uabc);
-    text-decoration: none;
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 5px;
-    transition: background 0.3s ease;
+/* Alineación específica de columnas */
+/* Texto a la izquierda (Nombres, Correos, etc.) */
+.admin-table td:nth-child(2), /* Nombre */
+.admin-table td:nth-child(3), /* Correo */
+.admin-table td:nth-child(6), /* Carrera */
+.admin-table td:nth-child(7)  /* Evento */ {
+    text-align: left;
+    padding-left: 20px;
 }
 
-.btn-volver:hover {
-    background-color: #e8f5e9;
-    text-decoration: none;
-}
-
-/* Tarjetas de Resumen (Estadísticas pequeñas) */
-.stats-summary-card {
-    padding: 20px;
-    border-radius: 8px;
+/* Texto centrado (IDs, Fechas, Badges) */
+.admin-table td:nth-child(1), /* Matrícula */
+.admin-table td:nth-child(4), /* Género */
+.admin-table td:nth-child(5), /* Tipo */
+.admin-table td:nth-child(8)  /* Fecha */ {
     text-align: center;
-    color: var(--color-blanco) !important; /* Fuerza texto blanco general */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease;
 }
 
-/* Encabezados ordenables */
+/* --------------------------------------------------------------------------
+   3. ORDENAMIENTO (SORTING)
+   -------------------------------------------------------------------------- */
 th.sortable {
     cursor: pointer;
     user-select: none;
@@ -84,10 +100,10 @@ th.sortable {
 }
 
 th.sortable:hover {
-    background-color: #004d26;
+    background-color: #004d26; /* Verde más oscuro */
 }
 
-/* Icono de ordenamiento */
+/* Icono de flechas */
 .sort-icon {
     display: inline-block;
     vertical-align: middle;
@@ -99,7 +115,7 @@ th.sortable:hover {
     opacity: 0.5;    
 }
 
-/* Estado activo (cuando esa columna está ordenando) */
+/* Estado Activo (Columna ordenada actualmente) */
 th.active-asc,
 th.active-desc {
     background-color: #003e1f;
@@ -113,25 +129,32 @@ th.active-desc .sort-icon {
     color: var(--color-dorado-uabc);
 }
 
-th.sortable:hover {
-    background-color: #004d26;
-    cursor: pointer;
+/* --------------------------------------------------------------------------
+   4. TARJETAS DE RESUMEN (ESTADÍSTICAS RÁPIDAS)
+   -------------------------------------------------------------------------- */
+.stats-summary-card {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    color: var(--color-blanco) !important; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
 }
 
 .stats-summary-card:hover {
     transform: translateY(-3px);
 }
 
-/* Forzar blanco en el número (H3) */
+/* Número grande */
 .stats-summary-card h3 {
-    color: var(--color-blanco) !important; /* <--- CRÍTICO: Gana a la regla global verde */
+    color: var(--color-blanco) !important;
     margin: 0 0 5px 0;
     font-size: 32px;
     font-weight: 800;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.15); /* Sombra para mejor lectura */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
-/* Forzar blanco en la etiqueta (P) */
+/* Etiqueta */
 .stats-summary-card p {
     color: var(--color-blanco) !important;
     margin: 0;
@@ -142,7 +165,11 @@ th.sortable:hover {
     letter-spacing: 0.5px;
 }
 
-/* Estilos para botones de paginación */
+/* --------------------------------------------------------------------------
+   5. COMPONENTES AUXILIARES (PAGINACIÓN Y TAGS)
+   -------------------------------------------------------------------------- */
+
+/* Botones de Paginación */
 .btn-paginacion {
     padding: 8px 16px;
     background-color: var(--color-blanco);
@@ -167,7 +194,7 @@ th.sortable:hover {
     border-color: #eee;
 }
 
-/* TAGS (Etiquetas de roles o estados) */
+/* Etiquetas (Tags) - Ej: Capitán */
 .tag-capitan {
     background-color: var(--color-dorado-uabc);
     color: var(--color-texto);
@@ -179,7 +206,28 @@ th.sortable:hover {
     text-transform: uppercase;
 }
 
-/* === BOTONES DE REPORTE (Excel/PDF) === */
+/* Botón Volver */
+.btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    color: var(--color-verde-uabc);
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+.btn-volver:hover {
+    background-color: #e8f5e9;
+    text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   6. BOTONES DE REPORTE (EXCEL / PDF)
+   -------------------------------------------------------------------------- */
 .btn-reporte {
     color: white;
     border: none;
@@ -207,53 +255,14 @@ th.sortable:hover {
     opacity: 0.95;
 }
 
-/* Color específico para Excel (Verde) */
+/* Variante Excel (Verde) */
 .btn-excel {
     background-color: #28a745; 
-    /* Opcional: Gradiente */
     background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
 }
 
-/* Color específico para PDF (Rojo) */
+/* Variante PDF (Rojo) */
 .btn-pdf {
     background-color: #dc3545;
-    /* Opcional: Gradiente */
     background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
-}
-
-/* Alineación inteligente de columnas */
-
-/* 1. Columnas de texto largo a la izquierda (Nombre, Correo, Carrera, Evento) */
-.admin-table td:nth-child(2), /* Nombre */
-.admin-table td:nth-child(3), /* Correo */
-.admin-table td:nth-child(6), /* Carrera */
-.admin-table td:nth-child(7)  /* Evento */ {
-    text-align: left;
-    padding-left: 20px;
-}
-
-/* 2. Columnas de datos cortos al centro (Matrícula, Género, Tipo, Fecha) */
-.admin-table td:nth-child(1), /* Matrícula */
-.admin-table td:nth-child(4), /* Género */
-.admin-table td:nth-child(5), /* Tipo */
-.admin-table td:nth-child(8)  /* Fecha */ {
-    text-align: center;
-}
-/* ESTILO DE LAS CELDAS DEL CUERPO (Filas de datos) */
-.admin-table td {
-    padding: 22px 15px;
-    line-height: 1.6;
-    vertical-align: middle;
-    border-bottom: 1px solid #e0e0e0;
-    color: #333;
-    font-size: 0.95rem;
-}
-
-.admin-table tbody tr:nth-child(even) {
-    background-color: #fcfcfc;
-}
-
-.admin-table tbody tr:hover {
-    background-color: rgba(0, 102, 51, 0.08);
-    transform: scale(1); 
 }

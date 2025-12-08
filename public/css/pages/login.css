@@ -1,56 +1,63 @@
-/* css/pages/login.css */
+/* ==========================================================================
+   ESTILOS DE LA PÁGINA DE LOGIN
+   Ruta: public/css/pages/login.css
+   Descripción: Estilos específicos para el contenedor de inicio de sesión,
+                tarjeta de credenciales y mensajes de error.
+   ========================================================================== */
 
-/* LOGIN CONTAINER */
-
-.login-container {
+/* --------------------------------------------------------------------------
+   1. LAYOUT PRINCIPAL (CONTENEDOR)
+   Descripción: Centra la tarjeta vertical y horizontalmente en la pantalla.
+   -------------------------------------------------------------------------- */
+   .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 100px); /* altura menos header */
+    /* Altura mínima ajustada: 100vh menos la altura aproximada del header */
+    min-height: calc(100vh - 100px); 
     padding: 20px;
 }
 
-/* LOGIN CARD */
-
+/* --------------------------------------------------------------------------
+   2. TARJETA DE INICIO DE SESIÓN (.login-card)
+   Descripción: Caja blanca central que contiene el formulario.
+   -------------------------------------------------------------------------- */
 .login-card {
     background: var(--color-blanco);
     padding: 30px 40px;
     border-radius: var(--borde-redondeado-grande);
     text-align: center;
-    box-shadow: var(--sombra-profunda);
+    box-shadow: var(--sombra-profunda); /* Sombra más fuerte para destacar */
+    
     max-width: 400px;
     width: 100%;
 }
 
-    /* IMG LOGIN */
-
+/* --- Elementos Visuales (Logo y Títulos) --- */
 .login-card img.login-logo {
     width: 180px;
     margin: 0 auto 20px auto;
 }
-
-    /* H2 */
 
 .login-card h2 {
     color: var(--color-verde-uabc);
     margin-bottom: 10px;
 }
 
-    /* P */
-
 .login-card p {
     color: var(--color-verde-uabc);
     margin-bottom: 10px;
 }
 
-    /* FORM */
-
+/* --------------------------------------------------------------------------
+   3. FORMULARIO Y CONTROLES
+   Descripción: Estilos específicos para los inputs y botones dentro del login.
+   -------------------------------------------------------------------------- */
 .login-card form {
-    margin-bottom: 25px
+    margin-bottom: 25px;
 }
 
-    /* FORM INPUT */
-
+/* Input específico de login */
 .login-card form input {
     display: block;
     width: 100%;
@@ -61,8 +68,7 @@
     font-size: 1rem;
 }
 
-    /* FORM BUTTON */
-
+/* Botón de ingreso */
 .login-card form button {
     background: var(--color-dorado-uabc);
     color: var(--color-blanco);
@@ -76,32 +82,30 @@
     transition: background-color 0.3s ease;
 }
 
-    /* FORM BUTTON:hover */
-
 .login-card form button:hover {
     background: var(--color-dorado-hover);
 }
 
-    /* #mensajeError */
-
+/* --------------------------------------------------------------------------
+   4. MENSAJES DE FEEDBACK
+   -------------------------------------------------------------------------- */
 .login-card #mensajeError {
     color: var(--color-error);
-    display: none;
+    display: none; /* Se activa vía JS */
     text-align: center;
     margin-top: 15px;
     font-size: 0.9rem;
     font-weight: bold;
 }
 
-    /* LOGIN FOOTER */
-
+/* --------------------------------------------------------------------------
+   5. PIE DE TARJETA (LINKS)
+   -------------------------------------------------------------------------- */
 .login-card .login-footer {
     margin-top: 25px;
     padding-top: 20px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eee; /* Separador sutil */
 }
-
-        /* P */
 
 .login-card .login-footer p {
     font-size: 13px;
@@ -109,17 +113,12 @@
     margin-bottom: 0;
 }
 
-        /* a */
-
 .login-card .login-footer a {
     color: var(--color-verde-uabc);
     text-decoration: none;
     font-weight: bold;
 }
 
-        /* a:hover */
-
 .login-card .login-footer a:hover {
     text-decoration: underline;
 }
-

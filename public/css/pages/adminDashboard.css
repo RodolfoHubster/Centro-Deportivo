@@ -1,29 +1,44 @@
-/* public/css/pages/adminDashboard.css */
+/* ==========================================================================
+   ESTILOS DEL DASHBOARD ADMINISTRATIVO
+   Ruta: public/css/pages/adminDashboard.css
+   Descripción: Layout de la pantalla de bienvenida, tarjetas de estadísticas y accesos rápidos.
+   ========================================================================== */
 
-/* GRID PRINCIPAL */
-.admin-stats-grid {
+/* --------------------------------------------------------------------------
+   1. GRID DE ESTADÍSTICAS
+   Descripción: Contenedor para las tarjetas superiores (Eventos, Inscripciones, etc).
+   -------------------------------------------------------------------------- */
+   .admin-stats-grid {
     display: grid;
+    /* Diseño responsivo: columnas de mín. 280px */
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 25px;
     margin-top: 30px;
 }
 
-/* TARJETAS DE ESTADÍSTICAS */
+/* --------------------------------------------------------------------------
+   2. TARJETAS DE ESTADÍSTICAS (.admin-stat-card)
+   Descripción: Caja visual con gradiente, número grande y enlace.
+   -------------------------------------------------------------------------- */
 .admin-stat-card {
     color: var(--color-blanco) !important;
     padding: 30px;
-    border-radius: 12px; /* Bordes más suaves */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px; /* Bordes suaves */
     position: relative;
     overflow: hidden;
+    
+    /* Efectos de profundidad */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Efecto de elevación al pasar el mouse */
 .admin-stat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
 }
 
+/* Título de la tarjeta */
 .admin-stat-card h3 {
     color: var(--color-blanco) !important;
     margin: 0 0 10px 0;
@@ -33,6 +48,7 @@
     opacity: 0.9;
 }
 
+/* Número grande (Dato) */
 .admin-stat-card .stat-number {
     font-size: 3.5rem;
     font-weight: 800;
@@ -41,42 +57,52 @@
     color: white;
 }
 
+/* Enlace "Ver todos" */
 .admin-stat-card .stat-link {
     color: var(--color-blanco);
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: bold;
+    
+    /* Botón semitransparente sobre el gradiente */
     display: inline-flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.2);
     padding: 8px 15px;
     border-radius: 20px;
     margin-top: 10px;
-    transition: background 0.2s;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    transition: background 0.2s;
 }
 
 .admin-stat-card .stat-link:hover {
     background: rgba(255, 255, 255, 0.3);
 }
 
-/* VARIANTES DE COLOR USANDO TUS VARIABLES */
+/* --------------------------------------------------------------------------
+   3. VARIANTES DE COLOR (GRADIENTES)
+   -------------------------------------------------------------------------- */
+
+/* Variante Verde (Eventos) */
 .admin-stat-card.eventos {
-    /* Gradiente basado en Verde UABC */
     background: linear-gradient(135deg, var(--color-verde-uabc) 0%, #0eb662 100%);
 }
 
+/* Variante Dorada (Inscripciones) */
 .admin-stat-card.inscripciones {
-    /* Gradiente basado en Dorado UABC pero ajustado para texto blanco */
     background: linear-gradient(135deg, #d4af37 0%, #b79a42 100%);
 }
-/* Para inscripciones, como el fondo es dorado, mejor texto oscuro o asegurar contraste */
+
+/* Ajuste de contraste para texto sobre fondo dorado */
 .admin-stat-card.inscripciones .stat-number,
 .admin-stat-card.inscripciones h3 {
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* ACCESOS RÁPIDOS */
+/* --------------------------------------------------------------------------
+   4. SECCIÓN DE ACCESOS RÁPIDOS
+   -------------------------------------------------------------------------- */
 .admin-quick-links {
     margin-top: 50px;
 }
@@ -88,22 +114,26 @@
     margin-bottom: 20px;
 }
 
+/* Contenedor Flex para los botones grandes */
 .admin-quick-links-container {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
 }
 
+/* Botones Grandes de Acceso Rápido */
 .admin-quick-link-btn {
     flex: 1;
     min-width: 200px;
     padding: 20px;
     text-align: center;
+    border-radius: 8px;
+    
     color: var(--color-blanco);
     text-decoration: none;
-    border-radius: 8px;
     font-weight: bold;
     font-size: 1.1rem;
+    
     transition: all 0.3s ease;
     box-shadow: var(--sombra-general);
 }
@@ -113,11 +143,11 @@
     box-shadow: var(--sombra-profunda);
 }
 
-/* Colores de botones */
+/* Colores específicos de botones */
 .admin-quick-link-btn.eventos {
     background-color: var(--color-verde-uabc);
 }
 
 .admin-quick-link-btn.inscripciones {
-    background-color: #444; /* Un gris oscuro para variar */
+    background-color: #444; /* Gris oscuro para diferenciar */
 }

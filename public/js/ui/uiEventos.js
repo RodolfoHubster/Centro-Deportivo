@@ -191,7 +191,7 @@ export function mostrarEventos(eventos) {
         }
         
         container.innerHTML += `
-        <div class="evento-card" data-id="${evento.id}">
+        <div class="evento-card-admin" data-id="${evento.id}">
             <div class="evento-layout">
                 
                 <div class="evento-info">
