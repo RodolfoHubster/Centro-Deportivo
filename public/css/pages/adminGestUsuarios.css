@@ -1,7 +1,14 @@
-/* public/css/pages/adminGestEventos.css */
+/* ==========================================================================
+   GESTIÓN DE USUARIOS (ADMINISTRADOR)
+   Ruta: public/css/pages/adminGestUsuarios.css
+   Descripción: Estilos específicos para el CRUD de usuarios (tarjetas, modales).
+   ========================================================================== */
 
-/* === BOTÓN PRINCIPAL === */
-#btnNuevoEvento {
+/* --------------------------------------------------------------------------
+   1. BOTONES DE ACCIÓN PRINCIPAL
+   -------------------------------------------------------------------------- */
+/* Botón para crear nuevo usuario (parte superior) */
+#btnNuevoUsuario {
     padding: 12px 25px;
     background: var(--color-verde-uabc);
     color: var(--color-blanco);
@@ -14,146 +21,170 @@
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     font-size: 1rem;
 }
-#btnNuevoEvento:hover {
+
+#btnNuevoUsuario:hover {
     background: #004d26;
     transform: translateY(-2px);
 }
 
-/* =============================================================
-   1. RESET DE LA TARJETA (Matar interferencia de cards.css)
-   ============================================================= */
-.evento-card {
-    /* [IMPORTANTE] display: block elimina el flexbox que venía de cards.css */
-    display: block !important; 
+/* --------------------------------------------------------------------------
+   2. TARJETA DE USUARIO (LISTADO)
+   -------------------------------------------------------------------------- */
+/* Contenedor principal de cada usuario en la lista */
+.usuario-card {
+    display: flex !important; /* Flexbox para alinear Info (izq) y Botones (der) */
+    justify-content: space-between;
+    align-items: center;
     
     background: white;
-    margin: 20px 0;
-    padding: 0 !important; /* Quitamos padding para que lo maneje el grid interno */
+    margin: 15px 0;
+    padding: 20px 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     position: relative;
-    overflow: hidden;
     
-    /* Bordes */
-    border: 1px solid rgba(0,0,0,0.05);
-    border-left: 6px solid var(--color-verde-uabc) !important;
-    border-top: 6px solid transparent !important;
-    transition: all 0.3s ease;
+    /* Borde lateral de color dinámico según el rol (inyectado por JS) */
+    border-left: 6px solid var(--color-rol, var(--color-verde-uabc));
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.evento-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 102, 51, 0.15);
-    border-top-color: var(--color-verde-uabc) !important;
-    border-left-color: var(--color-verde-uabc) !important;
+.usuario-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* =============================================================
-   2. LAYOUT ESCRITORIO (Texto Izq | Botones Der)
-   ============================================================= */
-.evento-layout {
-    /* Usamos Grid: Columna 1 (Auto) | Columna 2 (200px fijos) */
-    display: grid !important;
-    grid-template-columns: 1fr 200px !important;
-    gap: 30px;
-    padding: 25px;
-    align-items: start;
+/* --- Sección Izquierda: Información del Usuario --- */
+.info-usuario h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: #003366; /* Azul Institucional */
 }
 
-/* Área de Texto */
-.evento-info {
-    min-width: 0; 
-}
-.evento-info h3 {
-    margin-top: 0;
-    color: #003366;
-    font-size: 1.25rem;
+.info-usuario p {
+    margin: 2px 0;
+    font-size: 0.9rem;
+    color: #555;
 }
 
-/* Área de Botones (Columna vertical en PC) */
-.evento-acciones {
-    display: flex !important;
-    flex-direction: column !important;
+.info-usuario p strong {
+    color: #333;
+}
+
+/* --- Sección Derecha: Botones de Acción --- */
+.acciones-usuario {
+    display: flex;
     gap: 10px;
-    width: 100% !important;
 }
 
-/* Estilo forzado de botones para anular estilos en línea del JS */
-.evento-acciones button,
-.evento-acciones a.btn-participantes {
-    width: 100% !important;
-    padding: 10px !important;
-    border-radius: 6px !important;
-    font-size: 0.9rem !important;
-    font-weight: bold !important;
-    text-align: center !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 8px !important;
-    min-height: 42px !important;
-    margin: 0 !important; /* Resetear márgenes */
+.acciones-usuario button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
 
-/* =============================================================
-   3. RESPONSIVE (< 1100px) - TEXTO ARRIBA | BOTONES ABAJO (2x2)
-   ============================================================= */
-@media (max-width: 1100px) {
+.acciones-usuario button:hover {
+    opacity: 0.9;
+}
+
+/* --------------------------------------------------------------------------
+   3. RESPONSIVE DESIGN (Móvil)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    /* En móviles, apilamos la info sobre los botones */
+    .usuario-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
     
-    /* 1. CAMBIO DE ESTRUCTURA: De 2 columnas a 1 sola */
-    .evento-layout {
-        /* Al ser 1 columna, el segundo hijo (botones) cae DEBAJO automáticamente */
-        grid-template-columns: 1fr !important; 
-        gap: 20px;
-    }
-
-    /* 2. CONTENEDOR DE BOTONES (Ahora abajo) */
-    .evento-acciones {
-        width: 100% !important;
-        margin-top: 10px;
-        padding-top: 20px;
-        border-top: 1px solid #eee; /* Línea separadora */
-        
-        /* 3. ACTIVAMOS EL GRID 2x2 */
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important; /* Dos columnas iguales */
-        gap: 15px !important;
-    }
-
-    /* Botones un poco más altos para dedo */
-    .evento-acciones button,
-    .evento-acciones a.btn-participantes {
-        min-height: 50px !important;
+    /* Los botones ocupan todo el ancho o se alinean al final */
+    .acciones-usuario {
+        width: 100%;
+        justify-content: flex-end; 
     }
 }
 
-/* =============================================================
-   4. RESPONSIVE (< 480px) - CELULARES MUY PEQUEÑOS
-   ============================================================= */
-@media (max-width: 480px) {
-    .evento-acciones {
-        /* En pantallas diminutas, 1 sola columna de botones */
-        grid-template-columns: 1fr !important; 
-    }
+/* --------------------------------------------------------------------------
+   4. MODAL DE EDICIÓN / CREACIÓN
+   -------------------------------------------------------------------------- */
+/* Fondo oscuro del modal */
+#modalUsuario { 
+    display: none; /* Oculto por defecto */
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.6); 
+    z-index: 9999; 
+    overflow-y: auto; 
+    padding: 20px; 
+    align-items: center; 
+    justify-content: center; 
+    backdrop-filter: blur(4px); /* Efecto borroso moderno */
 }
 
-/* =============================================================
-   5. ESTILOS DEL MODAL (Conservados)
-   ============================================================= */
-#modalEvento { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 9999; overflow-y: auto; padding: 20px; align-items: center; justify-content: center; }
-.admin-modal-contenido { background: #fff; padding: 35px 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-top: 6px solid var(--color-dorado-uabc); width: 100%; max-width: 800px; margin: auto; position: relative; }
-#modalEvento h2#tituloModal { color: var(--color-verde-uabc); text-align: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-#formEvento .form-section { margin-bottom: 25px; }
-#formEvento .form-section h3 { font-size: 15px; color: #444; background: #f4f4f4; padding: 8px 12px; border-radius: 4px; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; border-left: 4px solid var(--color-verde-uabc); }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-#formEvento label { display: block; font-weight: 600; color: #333; margin-bottom: 6px; font-size: 14px; }
-#formEvento label .required { color: var(--color-error); }
-#formEvento input, #formEvento select, #formEvento textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; transition: all 0.3s; }
-#formEvento input:focus, #formEvento select:focus, #formEvento textarea:focus { outline: none; border-color: var(--color-verde-uabc); box-shadow: 0 0 0 3px rgba(0, 102, 51, 0.1); }
-#facultades-checkbox, #campus-checkbox { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; max-height: 180px; overflow-y: auto; padding: 10px; border: 1px solid #eee; border-radius: 6px; background: #f9f9f9; }
-.admin-modal-botones { display: flex; gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
-.admin-modal-btn-guardar { flex: 1; padding: 14px; background-color: var(--color-verde-uabc); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.admin-modal-btn-guardar:hover { background-color: #004d26; }
-.admin-modal-btn-cancelar { flex: 1; padding: 14px; background-color: #6c757d; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.admin-modal-btn-cancelar:hover { background-color: #545b62; }
-@media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; gap: 0; } .admin-modal-contenido { padding: 20px; width: 95%; } .admin-modal-botones { flex-direction: column; } #facultades-checkbox { grid-template-columns: 1fr; } }
+/* Contenedor blanco del formulario */
+.admin-modal-contenido { 
+    background: #fff; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); 
+    border-top: 6px solid var(--color-dorado-uabc); 
+    width: 100%; 
+    max-width: 600px; 
+    margin: auto; 
+    position: relative; 
+}
+
+/* Grid del formulario (2 columnas) */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+@media (max-width: 600px) {
+    .form-grid-2 { grid-template-columns: 1fr; } /* 1 columna en móvil */
+}
+
+/* Estilos de inputs y labels */
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; }
+.form-group input, .form-group select {
+    width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;
+}
+
+/* Botones del pie del modal */
+.admin-modal-botones {
+    display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;
+}
+.admin-modal-btn-guardar { flex: 1; padding: 12px; background: var(--color-verde-uabc); color: white; border:none; border-radius:5px; font-weight:bold; cursor: pointer; }
+.admin-modal-btn-cancelar { flex: 1; padding: 12px; background: #6c757d; color: white; border:none; border-radius:5px; font-weight:bold; cursor: pointer; }
+
+/* --------------------------------------------------------------------------
+   5. ZONA DE PELIGRO (ELIMINAR)
+   -------------------------------------------------------------------------- */
+#danger-zone {
+    margin-top: 30px;
+    padding: 15px;
+    background: #fff5f5;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+}
+
+#btnEliminarPermanente {
+    width: 100%;
+    padding: 10px;
+    background: #dc3545; /* Rojo peligro */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}

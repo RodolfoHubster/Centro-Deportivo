@@ -1,68 +1,88 @@
-/* css/layout/layout.css */
+/* ==========================================================================
+   LAYOUT GENERAL DE PÁGINA
+   Ruta: public/css/layout/layout.css
+   Descripción: Estilos para el cuerpo, contenedores principales y áreas de contenido.
+   ========================================================================== */
 
-/* Agregar espacio para el header y nav fijos */
-body {
+/* --------------------------------------------------------------------------
+   1. AJUSTE DE CUERPO (BODY)
+   Descripción: Compensación de espacio superior para el header fijo.
+   -------------------------------------------------------------------------- */
+   body {
+    /* Calculamos el espacio exacto sumando altura del header + borde + espacio extra */
     padding-top: calc(var(--header-height) + var(--header-border) + 45px);
 }
 
-/* PAGE CONTENT */
+/* --------------------------------------------------------------------------
+   2. CONTENEDOR DE CONTENIDO (.page-content)
+   Descripción: Caja blanca principal donde va la información de cada página.
+   -------------------------------------------------------------------------- */
 .page-content {
     max-width: 1100px;
     margin: 30px auto;
     padding: 30px 40px;
+    
     background: var(--color-blanco);
     border-radius: var(--borde-redondeado-grande);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave para separar del fondo */
     text-align: left;
 }
 
-/* H1 */
+/* Títulos dentro del contenido */
 .page-content h1 {
     color: var(--color-verde-uabc);
     font-size: 2rem;
     margin-bottom: 15px;
 }
 
-/* P */
+/* Párrafos dentro del contenido */
 .page-content p {
     font-size: 1.1rem;
-    line-height: 1.6;
+    line-height: 1.6; /* Altura de línea para mejorar legibilidad */
     color: var(--color-texto);
     margin-bottom: 1rem;
 }
 
-/* CONTAINTER DE FILTROS */
+/* --------------------------------------------------------------------------
+   3. CONTENEDOR DE FILTROS (.filtros-containter)
+   Descripción: Barra gris para selectores de filtrado (Eventos/Torneos).
+   Nota: Mantenemos el nombre de clase original (containter) por compatibilidad HTML.
+   -------------------------------------------------------------------------- */
 .filtros-containter {
     padding: 20px;
-    background: #f5f5f5;
+    background: #f5f5f5; /* Gris claro diferente al fondo principal */
     text-align: center;
     border-radius: var(--borde-redondeado);
     margin: 20px auto;
     max-width: 1100px;
 }
 
-/* LABEL */
+/* Etiquetas dentro de filtros */
 .filtros-containter label {
     margin-right: 10px;
     font-weight: bold;
 }
 
-/* SELECT */
+/* Selectores (Dropdowns) */
 .filtros-containter select {
     padding: 8px 15px;
     border-radius: 5px;
     border: 1px solid var(--color-gris-claro);
 }
 
-/* MEDIA QUERY PARA AJUSTAR EN MOVILES */
+/* --------------------------------------------------------------------------
+   4. RESPONSIVE DESIGN (ADAPTACIÓN MÓVIL)
+   -------------------------------------------------------------------------- */
+
+/* Breakpoint Intermedio (Tablets grandes / Laptops pequeñas) */
 @media (max-width: 845px) {
     body {
-        padding-top: 85px; /* Aumentado para el header con título visible */
+        padding-top: 85px; /* Ajuste manual para cuando el header cambia de altura */
     }
 
     .page-content {
         padding: 20px;
-        margin: 20px 15px;
+        margin: 20px 15px; /* Márgenes laterales reducidos */
     }
 
     .filtros-containter {
@@ -71,6 +91,7 @@ body {
     }
 }
 
+/* Breakpoint Móvil (Tablets / Celulares) */
 @media (max-width: 768px) {
     .page-content {
         padding: 20px;

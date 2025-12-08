@@ -1,97 +1,208 @@
-/* css/components/cards.css */
+/* public/css/components/cards.css */
 
-/* 1. Contenedor Grid*/
-.eventos-container {
+/* =============================================================
+   1. CONTENEDOR DE LA REJILLA (GRID PRINCIPAL DE LA PÁGINA)
+   ============================================================= */
+   .eventos-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* Tarjetas que llenan el ancho disponible */
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
     gap: 25px;
     margin-top: 30px;
-    padding-bottom: 20px;
+    padding-bottom: 40px;
 }
 
-/* 2. La Tarjeta*/
-.evento-card {
+/* =============================================================
+   2. LA TARJETA (DISEÑO VERTICAL UNIFICADO)
+   ============================================================= */
+/* Usamos .vista-publica para asegurar prioridad */
+.vista-publica .evento-card, 
+.evento-card { 
+    /* Reset de display */
+    display: grid !important;
+    
+    /* CONFIGURACIÓN GRID GLOBAL (Siempre 1 columna) */
+    grid-template-columns: 1fr !important;
+    /* Fila 1: Título, Fila 2: Info, Fila 3: Botones */
+    grid-template-rows: auto 1fr auto !important; 
+    gap: 15px; 
+    
     background-color: var(--color-blanco);
     border-radius: 12px;
+    
+    /* BORDES */
     border: 1px solid rgba(0, 0, 0, 0.08);
-    border-top: 5px solid var(--color-verde-uabc);
-    padding: 25px;
+    border-left: 6px solid var(--color-verde-uabc) !important;
+    border-top: 6px solid transparent !important;
+    
+    /* Espaciado interno */
+    padding: 30px !important; 
+    
     position: relative;
+    overflow: hidden;
+    
+    /* Sombras y transiciones */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, 
+                box-shadow 0.3s ease,
+                border-top-color 0.3s ease;
+}
+
+/* EFECTO HOVER */
+.vista-publica .evento-card:hover,
+.evento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 102, 51, 0.15);
+    border-top-color: var(--color-verde-uabc) !important;
+}
+
+/* =============================================================
+   3. DISTRIBUCIÓN INTERNA
+   ============================================================= */
+
+/* HEADER (Título y Badge) */
+.card-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: 5px;
+}
+
+/* BODY (Descripción y Metadatos) */
+.card-body {
+    grid-column: 1 / -1;
+    grid-row: 2;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    
-    /* Animación Base */
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
-                border-color 0.3s ease;
-    
-    /* Sombra suave inicial */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* 3. Micro-interacción: Hover */
-.evento-card:hover {
-    transform: translateY(-7px); /* Elevación clara */
-    box-shadow: 0 15px 30px rgba(0, 102, 51, 0.15); /* Sombra con tinte verde sutil */
-    border-color: transparent; /* Eliminamos el borde gris al flotar */
+/* ACTIONS (Botones) - SIEMPRE ABAJO Y SIMÉTRICOS */
+.card-actions {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    
+    margin-top: 15px;
+    padding-top: 20px;
+    border-top: 1px solid #eee; /* Línea separadora elegante */
+    
+    /* CONFIGURACIÓN DE LOS BOTONES: GRID 2 COLUMNAS EXACTAS */
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* Dos columnas iguales */
+    gap: 15px;
+    align-items: stretch; /* Estirar altura para que sean iguales */
 }
 
-/* 4. Tipografía y Jerarquía */
+/* CASO ESPECIAL: Si solo hay 1 botón, ocupa todo el ancho */
+.card-actions:not(:has(button:nth-child(2))) {
+    grid-template-columns: 1fr !important;
+}
+
+/* =============================================================
+   4. ESTILOS DE TEXTO Y ELEMENTOS
+   ============================================================= */
 .evento-card h2 {
-    margin-top: 0;
-    margin-bottom: 12px;
+    margin: 5px 0 10px 0;
     font-size: 1.4rem;
-    color: var(--color-verde-uabc);
+    color: #003366; 
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
-.evento-card p {
-    margin-bottom: 10px;
+.description {
     font-size: 0.95rem;
     color: #555;
     line-height: 1.6;
+    margin-bottom: 20px;
 }
 
-.evento-card p strong {
-    color: var(--color-texto); /* #333 */
-    font-weight: 600;
+.meta-info {
+    font-size: 0.9rem;
+    color: #444;
+    display: grid;
+    gap: 8px;
+    margin-top: auto; /* Empuja la info hacia abajo si sobra espacio en el body */
 }
 
-/* 5. Badges de Estado (Cupo, Fechas) */
+/* Badges */
 .badge-status {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
+.badge-status.disponible { background-color: #e8f5e9; color: var(--color-verde-uabc); border: 1px solid rgba(0,102,51,0.2); }
+.badge-status.lleno { background-color: #fcebeb; color: var(--color-error); border: 1px solid rgba(220,53,69,0.2); }
 
-.badge-status.disponible {
-    background-color: rgba(40, 167, 69, 0.15);
-    color: #28a745;
-}
-
-.badge-status.lleno {
-    background-color: rgba(220, 53, 69, 0.15);
-    color: #dc3545;
-}
-
-.badge-status.finalizado {
-    background-color: #e9ecef;
-    color: #6c757d;
-}
-
-/* 6. Separador de Acciones */
-.card-actions {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px dashed var(--color-gris-claro);
+/* =============================================================
+   5. BOTONES (Unificados y Simétricos)
+   ============================================================= */
+.evento-card button,
+.evento-card a.btn-participantes {
+    width: 100% !important; /* Ocupar todo el ancho de su celda */
+    height: 100% !important; /* Ocupar toda la altura de su celda */
+    padding: 12px 10px !important; /* Padding lateral reducido para evitar desbordes */
+    margin: 0 !important; /* Sin márgenes externos */
+    
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important; /* Texto ligeramente más pequeño para asegurar que quepa */
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px; /* Espacio entre icono y texto */
+    min-height: 48px; /* Altura cómoda */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    /* Asegurar que el texto no rompa el botón */
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Botón Verde (Principal) */
+.btn-inscribir {
+    background: var(--color-verde-uabc) !important;
+    color: white !important;
+}
+.btn-inscribir:hover { background: #004d26 !important; transform: translateY(-2px); }
+
+/* Botón Azul (Secundario) */
+.btn-unirse-equipo {
+    background: #007bff !important;
+    color: white !important;
+}
+.btn-unirse-equipo:hover { background: #0056b3 !important; transform: translateY(-2px); }
+
+
+/* =============================================================
+   6. RESPONSIVE (SOLO PARA PANTALLAS MUY PEQUEÑAS)
+   ============================================================= */
+/* Como el diseño base ya es "móvil-friendly" (vertical), 
+   solo necesitamos ajustar para pantallas diminutas (< 480px) */
+
+@media (max-width: 480px) {
+    .card-actions {
+        /* En celulares muy angostos, apilamos los botones uno sobre otro */
+        grid-template-columns: 1fr !important; 
+    }
+    
+    .eventos-container {
+        grid-template-columns: 1fr; /* Una sola tarjeta por fila */
+    }
+    
+    /* Permitir salto de línea en botones en pantallas muy pequeñas */
+    .evento-card button,
+    .evento-card a.btn-participantes {
+        white-space: normal;
+        font-size: 0.85rem !important;
+        padding: 10px !important;
+    }
 }

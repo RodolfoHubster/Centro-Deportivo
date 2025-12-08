@@ -1,25 +1,36 @@
-/* public/css/layout/navigation.css */
+/* ==========================================================================
+   LAYOUT DE NAVEGACIÓN (NAVBAR)
+   Ruta: public/css/layout/navigation.css
+   Descripción: Estilos para la barra de navegación principal y menú móvil.
+   ========================================================================== */
 
-.main-nav {
+/* --------------------------------------------------------------------------
+   1. CONTENEDOR PRINCIPAL (ESTILO BASE / ESCRITORIO)
+   -------------------------------------------------------------------------- */
+   .main-nav {
     background: var(--color-verde-uabc);
     padding: 10px 0;
     border-bottom: 1px solid var(--color-dorado-uabc);
+    
+    /* Posicionamiento Fijo debajo del Header */
     position: fixed;
-    /* CORRECCIÓN: Quitamos "+ var(--header-border)" porque el box-sizing ya incluye el borde en la altura */
-    top: var(--header-height); 
+    top: var(--header-height); /* Altura sincronizada con variables.css */
     left: 0;
     right: 0;
     width: 100%;
     z-index: 1000;
 }
 
+/* --------------------------------------------------------------------------
+   2. LISTA DE ENLACES
+   -------------------------------------------------------------------------- */
 .main-nav ul {
     display: flex;
     justify-content: center;
     list-style: none;
     padding: 0;
     margin: 0;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Permite que los items bajen si no caben */
     gap: 20px;
 }
 
@@ -27,21 +38,26 @@
     margin: 5px 15px;
 }
 
+/* Estilos de los links individuales */
 .main-nav ul li a {
     color: var(--color-blanco);
     text-decoration: none;
     font-weight: bold;
     font-size: 1rem;
-    transition: color 0.3s;
     white-space: nowrap;
     padding: 8px 15px;
     display: inline-block;
+    transition: color 0.3s;
 }
 
 .main-nav ul li a:hover {
     color: var(--color-dorado-uabc);
 }
 
+/* --------------------------------------------------------------------------
+   3. ELEMENTOS UTILITARIOS (OCULTOS POR DEFECTO)
+   Descripción: Elementos que solo aparecen en la vista móvil.
+   -------------------------------------------------------------------------- */
 .main-nav ul li.mobile-only {
     display: none;
 }
@@ -54,6 +70,7 @@
     display: none;
 }
 
+/* Overlay (Fondo oscuro al abrir menú móvil) */
 .nav-overlay {
     display: none;
     position: fixed;
@@ -69,40 +86,40 @@
     display: block;
 }
 
-/* MÓVIL - MENÚ COMPACTO (Breakpoint actualizado a 1020px) */
+/* --------------------------------------------------------------------------
+   4. RESPONSIVE DESIGN (Móvil < 1020px)
+   Descripción: Transformación de la barra horizontal a menú lateral (Off-canvas).
+   -------------------------------------------------------------------------- */
 @media (max-width: 1020px) {
+    
+    /* --- Contenedor Lateral (Slide-in) --- */
     .main-nav {
         position: fixed;
-        top: 70px; /* Ajuste específico para móvil */
+        top: 70px; /* Ajuste específico para altura de header móvil */
         left: auto;
-        right: -100%;
+        right: -100%; /* Oculto fuera de pantalla a la derecha */
         width: auto;
         height: auto;
         padding: 8px 0;
+        
+        /* Estilos visuales del menú flotante */
         border-bottom: none;
         border-left: 3px solid var(--color-dorado-uabc);
         border-radius: 0 0 0 10px;
-        transition: right 0.3s ease;
         box-shadow: -5px 3px 15px rgba(0, 0, 0, 0.5);
+        
+        transition: right 0.3s ease; /* Animación de entrada */
         overflow: visible;
     }
 
-    .main-nav .mobile-logout {
-        display: block;
-        border-top: none; /* Separador visual */
-        margin-top: 0;
-    }
-
-    .main-nav .mobile-logout a {
-        color: var(--color-dorado-uabc) !important; /* Color dorado para resaltar */
-    }
-
+    /* Estado Activo (Menú abierto) */
     .main-nav.active {
         right: 0;
     }
 
+    /* --- Reestructuración de la Lista --- */
     .main-nav ul {
-        flex-direction: column;
+        flex-direction: column; /* Lista vertical */
         gap: 0;
         padding: 0;
         margin: 0;
@@ -111,24 +128,21 @@
     .main-nav ul li {
         margin: 0;
         width: 100%;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Separadores */
     }
 
-    .main-nav ul li:first-child {
-        border-top: none;
-    }
+    .main-nav ul li:first-child { border-top: none; }
+    .main-nav ul li:last-child { border-bottom: none; }
 
-    .main-nav ul li:last-child {
-        border-bottom: none;
-    }
-
+    /* Mostrar elementos exclusivos de móvil */
     .main-nav ul li.mobile-only {
         display: block;
     }
 
+    /* --- Estilos de Enlaces Móviles --- */
     .main-nav ul li a {
         display: block;
-        padding: 18px 30px;
+        padding: 18px 30px; /* Áreas de toque más grandes */
         width: 100%;
         text-align: left;
         font-size: 1rem;
@@ -141,10 +155,11 @@
         color: var(--color-dorado-uabc);
     }
 
+    /* --- Perfil de Usuario en Menú (Móvil) --- */
     .user-profile-mobile {
-        display: flex !important; /* Flex para alinear icono y texto */
+        display: flex !important;
         align-items: center;
-        background-color: rgba(0, 0, 0, 0.15); /* Fondo un poco más oscuro */
+        background-color: rgba(0, 0, 0, 0.15);
         padding: 20px !important;
         margin: 0 !important;
         border-bottom: 1px solid var(--color-dorado-uabc);
@@ -184,10 +199,24 @@
         font-weight: bold;
         letter-spacing: 1px;
     }
+
+    /* --- Botón de Salir (Móvil) --- */
+    .main-nav .mobile-logout {
+        display: block;
+        border-top: none;
+        margin-top: 0;
+    }
+
+    .main-nav .mobile-logout a {
+        color: var(--color-dorado-uabc) !important;
+    }
 }
 
-/* Ocultar overlay en escritorio (mayor a 1020px) */
+/* --------------------------------------------------------------------------
+   5. AJUSTES DE ESCRITORIO (> 1020px)
+   -------------------------------------------------------------------------- */
 @media (min-width: 1021px) {
+    /* Asegurar que el overlay nunca se vea en pantallas grandes */
     .nav-overlay {
         display: none !important;
     }

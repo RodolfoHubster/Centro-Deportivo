@@ -1,40 +1,57 @@
-/* css/components/buttons.css */
+/* ==========================================================================
+   COMPONENTES DE BOTONES
+   Ruta: public/css/components/buttons.css
+   Descripción: Estilos base, variantes y estados para botones interactivos.
+   ========================================================================== */
 
-button, .btn {
-    font-family: inherit;
+/* --------------------------------------------------------------------------
+   1. ESTILOS BASE (COMUNES)
+   -------------------------------------------------------------------------- */
+   button, .btn {
+    font-family: inherit; /* Heredar tipografía global */
     border: none;
-    border-radius: 8px;
+    border-radius: 8px;   /* Consistencia con el radio de tarjetas */
     padding: 10px 20px;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    
+    /* Layout interno (Alineación de texto e iconos) */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px; /* Espacio para iconos */
+    gap: 8px; /* Espacio entre icono y texto */
+    
+    /* Transiciones suaves para efectos hover/focus */
+    transition: all 0.2s ease;
 }
 
-/* Botón Primario (Inscribirse/Acción Principal) */
+/* --------------------------------------------------------------------------
+   2. BOTÓN PRIMARIO (ACCIÓN PRINCIPAL)
+   Uso: Guardar, Inscribirse, Confirmar.
+   -------------------------------------------------------------------------- */
 button.btn-primary, 
 .btn-inscribir {
     background-color: var(--color-verde-uabc);
     color: var(--color-blanco);
-    box-shadow: 0 4px 10px rgba(0, 102, 51, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 102, 51, 0.2); /* Sombra verde sutil */
 }
 
 button.btn-primary:hover,
 .btn-inscribir:hover {
-    background-color: #00552b; /* Un poco más oscuro */
-    transform: translateY(-2px);
+    background-color: #00552b; /* Verde más oscuro */
+    transform: translateY(-2px); /* Efecto de elevación */
     box-shadow: 0 6px 15px rgba(0, 102, 51, 0.3);
 }
 
 button.btn-primary:active {
-    transform: translateY(0);
+    transform: translateY(0); /* Efecto de presión */
 }
 
-/* Botón Secundario (Detalles/Cancelar) */
+/* --------------------------------------------------------------------------
+   3. BOTÓN SECUNDARIO (ACCIÓN NEUTRA)
+   Uso: Cancelar, Ver detalles, Volver.
+   -------------------------------------------------------------------------- */
 button.btn-secondary {
     background-color: var(--color-fondo);
     color: var(--color-texto);
@@ -42,15 +59,18 @@ button.btn-secondary {
 }
 
 button.btn-secondary:hover {
-    background-color: #e2e6ea;
+    background-color: #e2e6ea; /* Gris hover */
     border-color: #adb5bd;
-    color: var(--color-verde-uabc);
+    color: var(--color-verde-uabc); /* Feedback de color al pasar mouse */
 }
 
-/* Botón de Acción Especial (Dorado) */
+/* --------------------------------------------------------------------------
+   4. BOTÓN ESPECIAL (DESTACADO / DORADO)
+   Uso: Acciones promocionales o llamadas a la acción alternativas.
+   -------------------------------------------------------------------------- */
 .btn-gold {
     background-color: var(--color-dorado-uabc);
-    color: #333; /* Contraste mejor con dorado */
+    color: #333; /* Texto oscuro para contraste óptimo sobre dorado */
 }
 
 .btn-gold:hover {

@@ -1,34 +1,45 @@
-/* css/layout/footer.css */
+/* ==========================================================================
+   LAYOUT DEL PIE DE PÁGINA (FOOTER)
+   Ruta: public/css/layout/footer.css
+   Descripción: Estilos para el footer global, incluyendo redes sociales y copyright.
+   ========================================================================== */
 
-.main-footer {
-    background-color: #4a4a4a;
-    color: #f0f0f0;
+/* --------------------------------------------------------------------------
+   1. CONTENEDOR PRINCIPAL Y TIPOGRAFÍA BASE
+   -------------------------------------------------------------------------- */
+   .main-footer {
+    background-color: #4a4a4a; /* Gris oscuro para separar del contenido */
+    color: #f0f0f0;            /* Texto claro */
     padding-top: 40px;
     font-family: Arial, sans-serif;
 }
 
+/* Colores específicos para títulos dentro del footer */
 .main-footer h1,
 .main-footer h2,
 .main-footer h3,
 .main-footer h4 {
     color: var(--color-blanco);
-    border-color: #6a6a6a;
+    border-color: #6a6a6a; /* Color para bordes decorativos si los hubiera */
 }
 
+/* Colores para texto general */
 .main-footer p, 
 .main-footer li, 
 .main-footer span {
     color: #f0f0f0;
 }
 
+/* Wrapper para centrar el contenido y dar márgenes laterales */
 .footer-content-wrapper {
     max-width: 1000px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* APARTADO REDES SOCIALES */
-
+/* --------------------------------------------------------------------------
+   2. SECCIÓN DE REDES SOCIALES
+   -------------------------------------------------------------------------- */
 .footer-social {
     text-align: center;
     margin-bottom: 30px;
@@ -40,6 +51,7 @@
     margin-bottom: 15px;
 }
 
+/* Contenedor de iconos */
 .social-icons a {
     display: inline-block;
     margin: 0 5px;
@@ -53,16 +65,29 @@
     border-radius: 5px;
 }
 
+/* Efecto Hover en iconos */
 .social-icons a:hover img {
-    transform: scale(1.1);
+    transform: scale(1.1); /* Sutil efecto de zoom */
 }
 
+/* --------------------------------------------------------------------------
+   3. COLUMNAS DE ENLACES (GRID)
+   -------------------------------------------------------------------------- */
+/* Layout de Grid para las columnas de enlaces */
+.footer-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+/* Estilos de cada columna */
 .footer-column h3 {
     font-size: 1.2rem;
     font-weight: bold;
     color: white;
     margin-bottom: 15px;
-    border-bottom: 2px solid #6a6a6a;
+    border-bottom: 2px solid #6a6a6a; /* Subrayado separador */
     padding-bottom: 10px;
 }
 
@@ -87,19 +112,15 @@
     text-decoration: underline;
 }
 
-.footer-links {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    margin-bottom: 40px;
-}
-
+/* --------------------------------------------------------------------------
+   4. BARRA DE COPYRIGHT
+   -------------------------------------------------------------------------- */
 .footer-copyright {
-    background-color: #1c1c1c;
+    background-color: #1c1c1c; /* Tono más oscuro que el footer principal */
     color: #aaa;
     padding: 20px;
     text-align: center;
-    position: relative;
+    position: relative; /* Para posicionar el botón 'Back to Top' */
 }
 
 .footer-copyright p {
@@ -107,14 +128,19 @@
     font-size: 0.9rem;
 }
 
+/* --------------------------------------------------------------------------
+   5. BOTÓN "VOLVER ARRIBA"
+   -------------------------------------------------------------------------- */
 .back-to-top {
     position: absolute;
     right: 30px;
     bottom: 15px;
+    
     background-color: var(--color-dorado-uabc);
     color: #1c1c1c;
     padding: 5px 10px;
     border-radius: 5px;
+    
     text-decoration: none;
     font-weight: bold;
     font-size: 1.2rem;
@@ -125,23 +151,30 @@
     background-color: var(--color-dorado-hover);
 }
 
+/* --------------------------------------------------------------------------
+   6. RESPONSIVE DESIGN (Móvil)
+   -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
+    /* Cambiar Grid a una sola columna */
     .footer-links {
         grid-template-columns: 1fr;
         gap: 20px;
     }
 
+    /* Centrar textos en móvil */
     .footer-column {
         text-align: center;
     }
 
+    /* Quitar borde inferior de títulos para apariencia más limpia */
     .footer-column h3 {
         border-bottom: none;
         padding-bottom: 5px;
     }
 
+    /* Reubicar botón 'Volver Arriba' */
     .back-to-top {
-        position: static;
+        position: static; /* Ya no absoluto */
         display: block;
         margin: 20px auto 0;
         width: fit-content;
