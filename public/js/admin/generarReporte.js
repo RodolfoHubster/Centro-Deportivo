@@ -10,6 +10,8 @@ function obtenerFiltros() {
     const genero = document.getElementById('filtroGenero')?.value || '';
     const tipoParticipante = document.getElementById('filtroTipo')?.value || '';
     const carrera = document.getElementById('filtroCarrera')?.value || '';
+    const facultad = document.getElementById('filtroFacultad')?.value || '';
+    const campus = document.getElementById('filtroCampus')?.value || '';
     
     // Convertir nombre de evento a ID si es necesario
     let eventoId = '';
@@ -26,7 +28,9 @@ function obtenerFiltros() {
         eventoId, 
         genero, 
         tipoParticipante,
-        carrera
+        carrera,
+        facultad,
+        campus
     });
     
     return {
@@ -34,7 +38,9 @@ function obtenerFiltros() {
         evento_id: eventoId,
         genero: genero === '' ? 'todos' : genero,
         tipo_participante: tipoParticipante === '' ? 'todos' : tipoParticipante,
-        carrera: carrera === '' ? 'todas' : carrera
+        carrera: carrera === '' ? 'todas' : carrera,
+        facultad: facultad === '' ? 'todas' : facultad,
+        campus: campus === '' ? 'todos' : campus
     };
 }
 

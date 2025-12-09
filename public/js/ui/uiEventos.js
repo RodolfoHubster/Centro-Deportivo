@@ -179,7 +179,7 @@ export function mostrarEventos(eventos) {
         let etiquetaFinalizado = ''; 
 
         if (evento.activo == 1) { 
-            botonPrincipal = `<button data-action="finalizar" data-id="${evento.id}" data-nombre="${evento.nombre.replace(/"/g, '&quot;')}" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Finalizar</button>`;
+            botonPrincipal = `<button data-action="finalizar" data-id="${evento.id}" data-nombre="${evento.nombre.replace(/"/g, '&quot;')}" style="padding: 8px 15px; background: #ec945dff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Finalizar</button>`;
             botonEditar = `<button data-action="editar" data-id="${evento.id}" style="padding: 8px 15px; background: #ffc107; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Editar</button>`;
             botonVerQR = `<button data-action="qr" data-id="${evento.id}" style="padding: 8px 15px; background: #777272ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap;">Ver QR</button>`;
 
