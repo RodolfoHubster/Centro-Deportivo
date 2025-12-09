@@ -1,8 +1,6 @@
 <?php
 /**
- * Inscribir Equipo - VERSIÓN NORMALIZADA
- * Permite registrar equipos completos para torneos
- * SOPORTA NUEVOS ROLES: Estudiante, Docente, Personal, Externo
+ * Inscribir Equipo - VERSIÓN CORREGIDA (Mayúsculas y Matrículas Opcionales)
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -25,7 +23,7 @@ mysqli_begin_transaction($conexion);
 
 try {
     // ===================================
-    // 1. VALIDAR DATOS DEL EQUIPO
+    // 1. VALIDAR DATOS BÁSICOS
     // ===================================
     
     if (!isset($_POST['evento_id']) || empty($_POST['evento_id'])) {
@@ -34,16 +32,15 @@ try {
     if (!isset($_POST['nombre_equipo']) || empty(trim($_POST['nombre_equipo']))) {
         throw new Exception('El nombre del equipo es obligatorio');
     }
-    if (!isset($_POST['capitan_matricula']) || empty(trim($_POST['capitan_matricula']))) {
-        throw new Exception('La matrícula del capitán es obligatoria');
-    }
+    // NOTA: Quitamos la validación estricta de 'capitan_matricula' aquí al inicio,
+    // porque si el capitán es externo, esto podría venir vacío. Lo validaremos más abajo.
+
     if (!isset($_POST['integrantes']) || !is_array($_POST['integrantes']) || empty($_POST['integrantes'])) {
         throw new Exception('Debes proporcionar al menos un integrante');
     }
     
     $evento_id = intval($_POST['evento_id']);
     $nombre_equipo = mysqli_real_escape_string($conexion, trim($_POST['nombre_equipo']));
-    $capitan_matricula = mysqli_real_escape_string($conexion, trim($_POST['capitan_matricula']));
     $integrantes = $_POST['integrantes'];
     
     // ===================================
@@ -76,10 +73,54 @@ try {
     }
     
     // ===================================
-    // 3. VALIDAR CANTIDAD DE INTEGRANTES Y MATRÍCULAS
+    // 3. PROCESAMIENTO PREVIO Y NORMALIZACIÓN
     // ===================================
     
-    $num_integrantes = count($integrantes);
+    // Aquí vamos a limpiar los datos, corregir mayúsculas y asignar IDs reales (matricula o correo)
+    $integrantes_procesados = [];
+    $ids_reales = []; // Para verificar duplicados
+    
+    // Definimos roles libres
+    $roles_libres = ['Externo', 'Personal de servicio'];
+    $tipos_validos = ['Estudiante', 'Docente', 'Personal académico', 'Personal de servicio', 'Externo'];
+
+    foreach ($integrantes as $index => $integrante) {
+        
+        // 1. Corregir el Rol (Mayúscula -> Minúscula)
+        $tipo_raw = $integrante['tipo_participante'] ?? 'Estudiante';
+        if ($tipo_raw === 'Personal de Servicio') {
+            $tipo_raw = 'Personal de servicio';
+        }
+        $integrante['tipo_participante'] = $tipo_raw; // Guardamos el corregido
+
+        // 2. Determinar ID Real (Matrícula o Correo)
+        $es_libre = in_array($tipo_raw, $roles_libres);
+        $matricula_input = trim($integrante['matricula']);
+        $correo_input = trim($integrante['correo']);
+
+        if (empty($matricula_input)) {
+            if ($es_libre) {
+                // Si es rol libre y no puso matrícula, usamos el correo como ID
+                $integrante['matricula'] = $correo_input; 
+            } else {
+                throw new Exception("El integrante " . ($index + 1) . " debe tener matrícula (Role: $tipo_raw)");
+            }
+        }
+        
+        // Guardamos el integrante ya "parchado"
+        $integrantes_procesados[] = $integrante;
+        $ids_reales[] = $integrante['matricula'];
+    }
+
+    // Identificar al Capitán: Asumimos que el integrante[0] SIEMPRE es el capitán 
+    // (ya que el formulario JS así lo estructura).
+    $capitan_real_id = $integrantes_procesados[0]['matricula'];
+
+    // ===================================
+    // 4. VALIDACIONES DE CANTIDAD Y DUPLICADOS
+    // ===================================
+    
+    $num_integrantes = count($integrantes_procesados);
     $min = $evento['integrantes_min'];
     $max = $evento['integrantes_max'];
 
@@ -90,40 +131,28 @@ try {
         throw new Exception("El equipo debe tener entre {$min} y {$max} integrantes. Actualmente tiene {$num_integrantes}");
     }
     
-    $capitan_en_lista = false;
-    $matriculas = [];
-    foreach ($integrantes as $integrante) {
-        if ($integrante['matricula'] === $capitan_matricula) {
-            $capitan_en_lista = true;
-        }
-        $matriculas[] = $integrante['matricula'];
-    }
-    
-    if (!$capitan_en_lista) {
-        throw new Exception('El capitán debe estar incluido en la lista de integrantes');
-    }
-    if (count($matriculas) !== count(array_unique($matriculas))) {
-        throw new Exception('Hay matrículas duplicadas en la lista de integrantes');
+    // Verificar duplicados dentro del mismo equipo
+    if (count($ids_reales) !== count(array_unique($ids_reales))) {
+        throw new Exception('Hay correos o matrículas duplicadas en la lista de integrantes');
     }
     
     // ===================================
-    // 4. REGISTRAR/ACTUALIZAR PARTICIPANTES (AHORA EN 'usuario')
+    // 5. REGISTRAR/ACTUALIZAR PARTICIPANTES
     // ===================================
     
     $usuario_ids = []; 
     $capitan_usuario_id = 0;
-    $integrantes_registrados_nombres = []; 
+    $integrantes_nombres_finales = []; 
 
-    // DEFINIMOS LOS ROLES VÁLIDOS (Igual que en inscribirEvento.php)
-    $tipos_validos = ['Estudiante', 'Docente', 'Personal académico', 'Personal de servicio', 'Externo'];
-
-    foreach ($integrantes as $integrante) {
-        // --- Validar datos básicos ---
-        if (empty(trim($integrante['matricula']))) throw new Exception('Todos los integrantes deben tener matrícula');
+    foreach ($integrantes_procesados as $integrante) {
+        
+        // Datos ya limpios del paso anterior
+        $matricula = mysqli_real_escape_string($conexion, $integrante['matricula']);
+        $tipo_participante = mysqli_real_escape_string($conexion, $integrante['tipo_participante']);
+        
+        // Validar otros campos obligatorios
         if (empty(trim($integrante['nombres']))) throw new Exception('Todos los integrantes deben tener nombre');
-        // ... (resto de validaciones de campos vacíos siguen igual) ...
-
-        $matricula = mysqli_real_escape_string($conexion, trim($integrante['matricula']));
+        
         $nombres = mysqli_real_escape_string($conexion, trim($integrante['nombres']));
         $apellido_paterno = mysqli_real_escape_string($conexion, trim($integrante['apellido_paterno']));
         $apellido_materno = mysqli_real_escape_string($conexion, trim($integrante['apellido_materno']));
@@ -131,12 +160,9 @@ try {
         $genero = mysqli_real_escape_string($conexion, trim($integrante['genero']));
         $carrera_id = isset($integrante['carrera_id']) && !empty($integrante['carrera_id']) ? intval($integrante['carrera_id']) : NULL;
         
-        // --- VALIDACIÓN DE ROL ---
-        $tipo_participante = isset($integrante['tipo_participante']) ? mysqli_real_escape_string($conexion, $integrante['tipo_participante']) : 'Estudiante';
-        
+        // Validar rol válido
         if (!in_array($tipo_participante, $tipos_validos)) {
-            // Si el frontend envía algo raro, lanzamos error
-            throw new Exception("El rol '{$tipo_participante}' no es válido para el integrante {$nombres}");
+            throw new Exception("El rol '{$tipo_participante}' no es válido");
         }
         
         $current_usuario_id = 0;
@@ -155,7 +181,7 @@ try {
             
             $sqlUpdateUsuario = "UPDATE usuario 
                                  SET nombre = ?, apellido_paterno = ?, apellido_materno = ?,
-                                     correo = ?, genero = ?, carrera_id = ?, rol = ?
+                                     correo = ?, genero = ?, carrera_id = ?, rol = ?, activo = 1
                                  WHERE id = ?";
             $stmt = mysqli_prepare($conexion, $sqlUpdateUsuario);
             mysqli_stmt_bind_param(
@@ -180,6 +206,10 @@ try {
             );
             
             if (!mysqli_stmt_execute($stmt)) {
+                // Error común: Correo duplicado (cuando intentan registrarse dos veces con diferente matrícula pero mismo correo, o viceversa)
+                if (strpos(mysqli_stmt_error($stmt), 'correo') !== false) {
+                    throw new Exception("El correo {$correo} ya está registrado por otro usuario.");
+                }
                 throw new Exception("Error al registrar participante {$matricula}: " . mysqli_stmt_error($stmt));
             }
             $current_usuario_id = mysqli_insert_id($conexion);
@@ -188,25 +218,26 @@ try {
         
         $usuario_ids[$matricula] = $current_usuario_id;
         
-        if ($matricula === $capitan_matricula) {
+        // Verificar si este es el capitán
+        if ($matricula === $capitan_real_id) {
             $capitan_usuario_id = $current_usuario_id;
         }
         
-        $integrantes_registrados_nombres[] = "$apellido_paterno $apellido_materno $nombres ({$matricula})";
+        $integrantes_nombres_finales[] = "$apellido_paterno $apellido_materno $nombres";
     }
 
     if ($capitan_usuario_id === 0) {
-        throw new Exception('No se pudo verificar la ID del capitán. La matrícula del capitán no coincide con ninguna de la lista.');
+        throw new Exception('Error interno: No se pudo identificar al capitán del equipo.');
     }
 
     // ===================================
-    // 5. VERIFICAR QUE NINGÚN INTEGRANTE YA ESTÉ INSCRITO
+    // 6. VERIFICAR QUE NINGÚN INTEGRANTE YA ESTÉ INSCRITO
     // ===================================
     
     $lista_ids_usuarios = array_values($usuario_ids);
     $placeholders = str_repeat('?,', count($lista_ids_usuarios) - 1) . '?';
     
-    $sqlCheckInscritos = "SELECT u.matricula 
+    $sqlCheckInscritos = "SELECT u.nombre, u.apellido_paterno 
                           FROM inscripcion i
                           JOIN usuario u ON i.usuario_id = u.id
                           WHERE i.evento_id = ? AND i.usuario_id IN ($placeholders)";
@@ -224,14 +255,14 @@ try {
     if (mysqli_num_rows($resultadoInscritos) > 0) {
         $yaInscritos = [];
         while ($row = mysqli_fetch_assoc($resultadoInscritos)) {
-            $yaInscritos[] = $row['matricula'];
+            $yaInscritos[] = $row['nombre'] . ' ' . $row['apellido_paterno'];
         }
-        throw new Exception('Los siguientes participantes ya están inscritos en este evento: ' . implode(', ', $yaInscritos));
+        throw new Exception('Los siguientes participantes ya están inscritos: ' . implode(', ', $yaInscritos));
     }
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 6. CREAR EL EQUIPO
+    // 7. CREAR EL EQUIPO
     // ===================================
     
     $sqlEquipo = "INSERT INTO equipo (nombre, evento_id, capitan_usuario_id, fecha_registro) 
@@ -247,7 +278,7 @@ try {
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 7. REGISTRAR INSCRIPCIONES DEL EQUIPO
+    // 8. REGISTRAR INSCRIPCIONES DEL EQUIPO
     // ===================================
     
     $sqlInscripcion = "INSERT INTO inscripcion 
@@ -261,13 +292,13 @@ try {
         mysqli_stmt_bind_param($stmt, 'iiii', $evento_id, $usuario_id, $equipo_id, $es_capitan);
         
         if (!mysqli_stmt_execute($stmt)) {
-            throw new Exception("Error al inscribir participante {$matricula}: " . mysqli_stmt_error($stmt));
+            throw new Exception("Error al inscribir participante: " . mysqli_stmt_error($stmt));
         }
     }
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 8. ACTUALIZAR CONTADOR DE REGISTROS
+    // 9. ACTUALIZAR CONTADOR DE REGISTROS
     // ===================================
     
     $sqlUpdateContador = "UPDATE evento 
@@ -279,25 +310,18 @@ try {
     mysqli_stmt_close($stmt);
     
     // ===================================
-    // 9. CONFIRMAR TRANSACCIÓN
+    // 10. CONFIRMAR Y RESPONDER
     // ===================================
     
     mysqli_commit($conexion);
     
-    // ===================================
-    // 10. RESPUESTA EXITOSA
-    // ===================================
-    
     echo json_encode([
         'success' => true,
-        'mensaje' => "¡Equipo '{$nombre_equipo}' registrado exitosamente en el evento '{$evento['nombre']}'!",
+        'mensaje' => "¡Equipo '{$nombre_equipo}' registrado exitosamente!",
         'datos' => [
             'equipo_id' => $equipo_id,
             'nombre_equipo' => $nombre_equipo,
-            'evento' => $evento['nombre'],
-            'capitan_matricula' => $capitan_matricula,
-            'total_integrantes' => count($integrantes_registrados_nombres),
-            'integrantes' => $integrantes_registrados_nombres
+            'integrantes' => $integrantes_nombres_finales
         ]
     ], JSON_UNESCAPED_UNICODE);
     
@@ -309,6 +333,5 @@ try {
         'mensaje' => $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
-
 mysqli_close($conexion);
 ?>

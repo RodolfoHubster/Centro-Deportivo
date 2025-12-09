@@ -10,6 +10,34 @@ let eventoIdActual = null;
 let usuarioIdEditando = null;
 let eventoActualData = null;
 
+// Función auxiliar para liberar el correo y cambiar el label en el Admin
+function ajustarValidacionCorreoAdmin(tipo, form) {
+    const inputCorreo = form.querySelector('input[name="correo"]');
+    if (!inputCorreo) return;
+
+    // Buscamos el mensaje de ayuda y el label
+    const helpCorreo = form.querySelector('#correo-hint') || inputCorreo.parentElement.querySelector('small');
+    const labelCorreo = inputCorreo.previousElementSibling; // El label está justo antes del input
+    
+    const rolesLibres = ['Externo', 'Personal de Servicio', 'Personal de servicio'];
+
+    if (rolesLibres.includes(tipo)) {
+        // CASO: Correo Libre
+        inputCorreo.removeAttribute('pattern');
+        inputCorreo.placeholder = 'ejemplo@correo.com';
+        inputCorreo.classList.remove('border-red-500'); // Limpiar errores visuales previos
+        
+        if (helpCorreo) helpCorreo.style.display = 'none'; // Ocultar ayuda
+        if (labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>'; // Texto Genérico
+    } else {
+        // CASO: Estricto UABC
+        inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+        inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+        
+        if (helpCorreo) helpCorreo.style.display = 'block'; // Mostrar ayuda
+        if (labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>'; // Texto UABC
+    }
+}
 // 3. FUNCIÓN PARA INYECTAR ESTILOS DE VALIDACIÓN (Se ejecuta solo una vez)
 function injectValidationStyles() {
     if (document.getElementById('modal-validation-styles')) return;
@@ -370,9 +398,18 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
         if (form) { 
              radio.addEventListener('change', function() {
                 actualizarCamposSegunTipo(this.value, form);
+                // AGREGAR ESTA LÍNEA:
+                ajustarValidacionCorreoAdmin(this.value, form);
             });
         }
     });
+    
+    // Ajuste inicial de campos
+    if (form) {
+        actualizarCamposSegunTipo('Estudiante', form);
+        // AGREGAR ESTA LÍNEA PARA INICIALIZAR:
+        ajustarValidacionCorreoAdmin('Estudiante', form);
+    }
     
     // Cargar carreras cuando cambie la facultad (FIX aplicado)
     if (selectFacultad && selectCarrera) {
@@ -738,11 +775,59 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
             cargarCampus(selectCampus, '../../php/public/');
         }
 
-        document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                actualizarCamposSegunTipo(this.value, form);
-            });
+        // --- LÓGICA DE CAMBIO DE TIPO DE PARTICIPANTE ---
+    // Función interna para actualizar validaciones y textos
+    const actualizarReglasCorreo = (tipo) => {
+        const inputCorreo = form.querySelector('input[name="correo"]');
+        const labelCorreo = inputCorreo ? inputCorreo.previousElementSibling : null;
+        const hintCorreo = form.querySelector('#correo-hint');
+        
+        const rolesLibres = ['Externo', 'Personal de Servicio', 'Personal de servicio'];
+
+        if (rolesLibres.includes(tipo)) {
+            // CASO: Correo Libre
+            if (inputCorreo) {
+                inputCorreo.removeAttribute('pattern');
+                inputCorreo.placeholder = 'ejemplo@correo.com';
+                inputCorreo.classList.remove('border-red-500'); // Limpiar error visual si existía
+            }
+            // Cambiar Texto de Etiqueta
+            if (labelCorreo) {
+                labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
+            }
+            // Ocultar ayuda de UABC
+            if (hintCorreo) hintCorreo.style.display = 'none';
+            
+        } else {
+            // CASO: Correo UABC Obligatorio
+            if (inputCorreo) {
+                inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+                inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+            }
+            // Restaurar Texto de Etiqueta
+            if (labelCorreo) {
+                labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
+            }
+            // Mostrar ayuda
+            if (hintCorreo) hintCorreo.style.display = 'block';
+        }
+    };
+
+    // 1. Asignar el evento CHANGE a los radios
+    document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Lógica existente de campos académicos (Matrícula/Carrera)
+            actualizarCamposSegunTipo(this.value, form);
+            ajustarValidacionCorreoAdmin(this.value, form);
+            // NUEVA lógica de correo y etiquetas
+            actualizarReglasCorreo(this.value);
         });
+    });
+    
+    // 2. Ejecutar validación inicial (por defecto Estudiante)
+    // Esto asegura que al abrir el modal todo empiece en el estado correcto
+    actualizarCamposSegunTipo('Estudiante', form);
+    actualizarReglasCorreo('Estudiante');
         
         // FIX del error: envuelto en un chequeo
         if (selectCampus && selectFacultad) { // CHECK DE SEGURIDAD
@@ -788,6 +873,7 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
         
         // Ajuste inicial de campos
         actualizarCamposSegunTipo('Estudiante', form);
+        ajustarValidacionCorreoAdmin('Estudiante', form);
         
         // Listeners de botones
         form.addEventListener('submit', (e) => {

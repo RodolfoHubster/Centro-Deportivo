@@ -48,6 +48,10 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Settings;
 
+// --- IMPORTANTE: Clases para el Caché (Solo funcionan si instalaste symfony/cache) ---
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Psr16Cache;
+
 try {
     // ===============================================
     // SOLUCIONES PARA GRANDES VOLÚMENES DE DATOS (NUEVO)
@@ -56,11 +60,16 @@ try {
     // Se establece a 1024MB (1GB) para manejar miles de registros.
     ini_set('memory_limit', '1024M'); 
     
-    // 2. Activar el Cell Caching de PhpSpreadsheet.
-    // Esto es CRUCIAL. PhpSpreadsheet almacenará los datos de las celdas en el caché 
-    // (por defecto, en un array en memoria o en disco) en lugar de en la estructura de objetos, 
-    // reduciendo drásticamente el uso de memoria.
-    Settings::setCacheEnabled(true);
+    // 2. ACTIVAR CACHÉ EN DISCO (Reemplazo moderno de setCacheEnabled)
+    // Esto verifica si instalaste la librería "symfony/cache".
+    // Si la tienes, guarda los datos temporales en disco para no saturar la RAM.
+    if (class_exists('Symfony\Component\Cache\Adapter\FilesystemAdapter')) {
+        $pool = new FilesystemAdapter();
+        $simpleCache = new Psr16Cache($pool);
+        Settings::setCache($simpleCache);
+    }
+    // Si no la tienes instalada, usará la memoria RAM (que ya aumentamos a 1GB), 
+    // lo cual suele ser suficiente para la mayoría de los casos.
     
     // ===================================
     // DETECTAR SI ES REPORTE DE UN EVENTO ESPECÍFICO

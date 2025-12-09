@@ -1,6 +1,6 @@
 <?php
 /**
- * Inscribir Evento - VERSIÓN CORREGIDA PARA USAR TABLA 'usuario'
+ * Inscribir Evento - VERSIÓN CORREGIDA FINAL
  */
 
 error_reporting(0);
@@ -32,9 +32,18 @@ try {
     // 1. VALIDAR CAMPOS OBLIGATORIOS
     // ===================================
     
-    // El tipo 'Externo' no requiere matrícula
+    // Obtenemos el tipo para definir reglas
     $tipo_participante_temp = $_POST['tipo_participante'] ?? 'Estudiante';
-    $es_externo = ($tipo_participante_temp === 'Externo');
+    
+    // para que coincida con la base de datos y las validaciones.
+    if ($tipo_participante_temp === 'Personal de Servicio') {
+        $tipo_participante_temp = 'Personal de servicio';
+        $_POST['tipo_participante'] = 'Personal de servicio'; // Actualizamos para el resto del script
+    }
+    
+    // Definimos los roles que tienen "permisos libres" (Matrícula opcional y Correo libre)
+    $roles_libres = ['Externo', 'Personal de servicio'];
+    $es_rol_libre = in_array($tipo_participante_temp, $roles_libres);
 
     $camposRequeridos = [
         'evento_id' => 'ID del evento',
@@ -45,15 +54,15 @@ try {
         'genero' => 'Género'
     ];
 
-    // La matrícula solo es obligatoria si NO es externo
-    if (!$es_externo) {
+    // La matrícula solo es obligatoria si NO es un rol libre
+    if (!$es_rol_libre) {
         $camposRequeridos['matricula'] = 'Matrícula';
     }
     
     foreach ($camposRequeridos as $campo => $nombreCampo) {
         if (!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
-            // Permitir matrícula vacía si es externo
-            if ($campo === 'matricula' && $es_externo) {
+            // Permitir matrícula vacía si es rol libre
+            if ($campo === 'matricula' && $es_rol_libre) {
                 continue;
             }
             throw new Exception("El campo '{$nombreCampo}' es obligatorio");
@@ -75,9 +84,8 @@ try {
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : 'Estudiante';
     
-    // Si es externo y la matrícula está vacía, usar NULL o un valor único
-    if ($es_externo && empty($matricula)) {
-        // Usar correo para unicidad si la matrícula es nula
+    // Si es rol libre (Externo/Personal) y la matrícula está vacía, usamos el correo como ID
+    if ($es_rol_libre && empty($matricula)) {
         $matricula = $correo; 
     }
 
@@ -89,8 +97,9 @@ try {
         throw new Exception('Formato de correo electrónico inválido');
     }
     
-    // Permitir correos no UABC solo si es Externo
-    if (!$es_externo && strpos($correo, '@uabc.mx') === false && strpos($correo, '@uabc.edu.mx') === false) {
+    // Validar dominio UABC SOLO si NO es un rol libre
+    // (Aquí corregimos el error de $es_externo undefined)
+    if (!$es_rol_libre && strpos($correo, '@uabc.mx') === false && strpos($correo, '@uabc.edu.mx') === false) {
         throw new Exception('Debes usar tu correo institucional de UABC (@uabc.mx o @uabc.edu.mx)');
     }
     
@@ -104,7 +113,9 @@ try {
         throw new Exception('Tipo de participante inválido');
     }
     
-    if (!$es_externo && !preg_match('/^\d{4,10}$/', $matricula)) {
+    // Validar formato de matrícula numérico SOLO si NO es rol libre
+    // (Los roles libres pueden tener matrícula vacía que se convirtió en correo, o un ID alfanumérico si quisieran)
+    if (!$es_rol_libre && !preg_match('/^\d{4,10}$/', $matricula)) {
         throw new Exception('La matrícula debe contener entre 4 y 10 dígitos');
     }
     
@@ -139,7 +150,7 @@ try {
     $usuario_id = 0;
     $usuario_nuevo = false;
 
-    // Verificar si el usuario ya existe por MATRICULA (o correo si es externo)
+    // Verificar si el usuario ya existe por MATRICULA (o correo usado como ID)
     $sqlCheckUsuario = "SELECT id FROM usuario WHERE matricula = ?";
     $stmt = mysqli_prepare($conexion, $sqlCheckUsuario);
     mysqli_stmt_bind_param($stmt, 's', $matricula);
@@ -211,7 +222,7 @@ try {
         );
         
         if (!mysqli_stmt_execute($stmt)) {
-            // Si falla, podría ser por correo duplicado (si la matrícula era única)
+            // Si falla, podría ser por correo duplicado
             if (strpos(mysqli_stmt_error($stmt), 'correo') !== false) {
                  throw new Exception('Error al registrar: El correo electrónico ya está en uso por otro usuario.');
             }

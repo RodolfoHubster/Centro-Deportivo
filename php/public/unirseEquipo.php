@@ -1,23 +1,39 @@
 <?php
 /**
- * unirseEquipo.php
+ * unirseEquipo.php - VERSIÓN CORREGIDA
  * Permite a un participante unirse a un equipo existente
+ * Soporta Personal de servicio y Externos con correo libre.
  */
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 
-// CORRECCIÓN: Usamos la conexión MySQLi existente
 include '../includes/conexion.php'; 
 
 mysqli_begin_transaction($conexion);
 
 try {
-    // Validar y limpiar datos recibidos
+    // ==========================================
+    // 1. RECIBIR Y NORMALIZAR DATOS
+    // ==========================================
+    
     $equipo_id = isset($_POST['equipo_id']) ? intval($_POST['equipo_id']) : 0;
     $evento_id = isset($_POST['evento_id']) ? intval($_POST['evento_id']) : 0;
-    $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : '';
+    
+    $tipo_raw = isset($_POST['tipo_participante']) ? trim($_POST['tipo_participante']) : '';
+    
+    // --- CORRECCIÓN DE ROL (Mayúscula -> Minúscula) ---
+    if ($tipo_raw === 'Personal de Servicio') {
+        $tipo_raw = 'Personal de servicio';
+    }
+    $tipo_participante = mysqli_real_escape_string($conexion, $tipo_raw);
+    
+    // Definimos roles con permisos flexibles
+    $roles_libres = ['Externo', 'Personal de servicio'];
+    $es_rol_libre = in_array($tipo_raw, $roles_libres);
+
+    // Recibir resto de datos
     $matricula = isset($_POST['matricula']) ? mysqli_real_escape_string($conexion, trim($_POST['matricula'])) : '';
     $apellido_paterno = isset($_POST['apellido_paterno']) ? mysqli_real_escape_string($conexion, trim($_POST['apellido_paterno'])) : '';
     $apellido_materno = isset($_POST['apellido_materno']) ? mysqli_real_escape_string($conexion, trim($_POST['apellido_materno'])) : '';
@@ -26,12 +42,16 @@ try {
     $genero = isset($_POST['genero']) ? mysqli_real_escape_string($conexion, trim($_POST['genero'])) : '';
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     
-    // Si la matrícula está vacía y no es estudiante, usamos el correo para unicidad (para externos/docentes sin ID)
-    if (empty($matricula) && $tipo_participante !== 'Estudiante') {
+    // --- CORRECCIÓN DE MATRÍCULA VACÍA ---
+    // Si es un rol libre y no envió matrícula, usamos el correo como identificador
+    if ($es_rol_libre && empty($matricula)) {
         $matricula = $correo; 
     }
 
-    // Validaciones básicas
+    // ==========================================
+    // 2. VALIDACIONES
+    // ==========================================
+
     if ($equipo_id <= 0 || $evento_id <= 0) {
         throw new Exception('Datos de equipo o evento inválidos');
     }
@@ -39,9 +59,12 @@ try {
         throw new Exception('Todos los campos son obligatorios (Nombre, Apellidos, Correo, Género, Tipo)');
     }
 
-    // Validar correo UABC (solo si no es externo)
-    if ($tipo_participante !== 'Externo' && strpos($correo, '@uabc.mx') === false && strpos($correo, '@uabc.edu.mx') === false) {
-        throw new Exception('El correo debe ser institucional (@uabc.edu.mx o @uabc.mx)');
+    // --- CORRECCIÓN DE CORREO UABC ---
+    // Solo validamos UABC si NO es un rol libre
+    if (!$es_rol_libre) {
+        if (strpos($correo, '@uabc.mx') === false && strpos($correo, '@uabc.edu.mx') === false) {
+            throw new Exception('El correo debe ser institucional (@uabc.edu.mx o @uabc.mx)');
+        }
     }
     
     // Validaciones específicas por tipo
@@ -51,7 +74,11 @@ try {
         }
     }
     
-    // 1. Verificar que el equipo existe, pertenece al evento y cupo
+    // ==========================================
+    // 3. LÓGICA DE NEGOCIO (EQUIPO)
+    // ==========================================
+
+    // Verificar que el equipo existe, pertenece al evento y cupo
     $queryEquipo = "
         SELECT e.nombre, ev.integrantes_max
         FROM equipo e
@@ -69,7 +96,7 @@ try {
         throw new Exception('El equipo no existe o no pertenece a este evento');
     }
 
-    // Contar integrantes actuales (se hace con un subquery para ser preciso en tiempo real)
+    // Contar integrantes actuales
     $queryContar = "SELECT COUNT(id) FROM inscripcion WHERE equipo_id = ?";
     $stmtContar = mysqli_prepare($conexion, $queryContar);
     mysqli_stmt_bind_param($stmtContar, 'i', $equipo_id);
@@ -84,7 +111,10 @@ try {
         throw new Exception('El equipo ya alcanzó su límite de integrantes');
     }
 
-    // 2. Crear/Actualizar Usuario (Usamos la tabla 'usuario' como base)
+    // ==========================================
+    // 4. CREAR O ACTUALIZAR USUARIO
+    // ==========================================
+    
     $usuario_id = 0;
     
     $queryCheckUsuario = "SELECT id FROM usuario WHERE matricula = ? LIMIT 1";
@@ -123,9 +153,9 @@ try {
             $matricula, $apellido_paterno, $apellido_materno, $nombres, $correo, $genero, $carrera_id, $tipo_participante
         );
         if (!mysqli_stmt_execute($stmtInsert)) {
-            // Manejo de error de duplicado (ej. por correo)
             if (mysqli_errno($conexion) == 1062) {
-                 throw new Exception('La matrícula o correo ya están registrados en la base de datos.');
+                 // Verificar si el duplicado es por correo
+                 throw new Exception('El correo electrónico ya está registrado por otro usuario.');
             }
              throw new Exception('Error al registrar usuario: ' . mysqli_stmt_error($stmtInsert));
         }
@@ -133,7 +163,11 @@ try {
         mysqli_stmt_close($stmtInsert);
     }
     
-    // 3. Verificar si el usuario ya está inscrito en el evento (en cualquier equipo)
+    // ==========================================
+    // 5. REGISTRAR INSCRIPCIÓN
+    // ==========================================
+
+    // Verificar si el usuario ya está inscrito en el evento
     $queryYaInscrito = "
         SELECT id FROM inscripcion 
         WHERE evento_id = ? AND usuario_id = ?
@@ -144,12 +178,11 @@ try {
     
     if (mysqli_stmt_fetch($stmtYaInscrito)) {
         mysqli_stmt_close($stmtYaInscrito);
-        throw new Exception('Ya estás inscrito en este evento (posiblemente como capitán de otro equipo)');
+        throw new Exception('Ya estás inscrito en este evento (quizás en otro equipo)');
     }
     mysqli_stmt_close($stmtYaInscrito);
 
-    // 4. Registrar la inscripción (unirse al equipo)
-    // es_capitan = 0 porque esta función es para *unirse*.
+    // Insertar inscripción
     $es_capitan = 0;
     $queryInscripcion = "
         INSERT INTO inscripcion (evento_id, usuario_id, equipo_id, es_capitan, metodo_registro, fecha_inscripcion)

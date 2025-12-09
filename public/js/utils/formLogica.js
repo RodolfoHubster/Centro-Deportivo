@@ -35,11 +35,23 @@ export function actualizarCamposSegunTipo(tipo, context = document) {
 
     // CASO 2: EMPLEADOS (Docente, Personal, etc.)
     } else if (['Docente', 'Personal académico', 'Personal de servicio'].includes(tipo)) {
-        labelMatricula.textContent = 'No. Empleado';
-        inputMatricula.placeholder = 'Núm. empleado';
-        inputMatricula.required = true;
+        
+        // LÓGICA ESPECIAL: "Personal de servicio" tiene matrícula opcional
+        if (tipo === 'Personal de Servicio') {
+            labelMatricula.textContent = 'No. Empleado (Opcional)';
+            inputMatricula.placeholder = 'Opcional';
+            inputMatricula.required = false; // <--- Importante: Ya no es obligatorio
+            if(requiredMatricula) requiredMatricula.style.display = 'none'; // Ocultamos el asterisco rojo
+        } else {
+            // Para Docentes y Personal Académico sigue siendo obligatorio
+            labelMatricula.textContent = 'No. Empleado';
+            inputMatricula.placeholder = 'Núm. empleado';
+            inputMatricula.required = true;
+            if(requiredMatricula) requiredMatricula.style.display = 'inline';
+        }
+
+        // El patrón se mantiene para validar formato SI el usuario escribe algo
         inputMatricula.setAttribute('pattern', '[0-9]{4,10}');
-        if(requiredMatricula) requiredMatricula.style.display = 'inline';
         
         // Muestran Campus y Facultad, pero NO Carrera
         if(seccionAcademica) seccionAcademica.style.display = 'block';
