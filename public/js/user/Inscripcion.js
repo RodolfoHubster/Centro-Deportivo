@@ -382,7 +382,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        Correo Electrónico UABC <span style="color: #dc3545;">*</span>
+                        Correo Electrónico<span style="color: #dc3545;">*</span>
                     </label>
                     <input type="email" name="correo" required placeholder="ejemplo@uabc.edu.mx" class="form-input"
                             pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx"
@@ -499,12 +499,46 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     }
 
     // Manejar cambio de tipo de participante
-    document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
+    // Definir lógica de validación de correo
+    const ajustarValidacionCorreo = (tipo) => {
+        // Buscamos el input de correo dentro del modal actual
+        const inputCorreo = modal.querySelector('input[name="correo"]');
+        const helpCorreo = inputCorreo.nextElementSibling; // El texto <small> de ayuda
+        
+        // Roles que tienen permiso de usar cualquier correo
+        const rolesLibres = ['Externo', 'Personal de Servicio'];
+
+        if (rolesLibres.includes(tipo)) {
+            // CASO: Correo Libre (Gmail, Hotmail, etc.)
+            inputCorreo.removeAttribute('pattern'); // Quitamos la restricción estricta
+            inputCorreo.placeholder = 'ejemplo@correo.com'; 
+            if(helpCorreo) helpCorreo.style.display = 'none'; // Ocultamos el mensaje de "Debe ser UABC"
+        } else {
+            // CASO: Correo Institucional Obligatorio
+            inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+            inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+            if(helpCorreo) helpCorreo.style.display = 'block';
+        }
+    };
+
+    // Manejar cambio de tipo de participante
+    modal.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            // Pasamos 'document' como contexto porque estamos en la página principal
+            // Tu lógica original para ocultar/mostrar matrícula y carrera
             actualizarCamposSegunTipo(this.value, document);
+            // Nueva lógica para liberar el correo
+            ajustarValidacionCorreo(this.value);
         });
     });
+
+    // EJECUTAR AL CARGAR: 
+    // Esto es importante porque en tu HTML tienes "checked" en varios radios.
+    // Esto asegura que si "Personal de Servicio" aparece marcado por defecto, el correo ya esté libre.
+    const tipoInicial = modal.querySelector('input[name="tipo_participante"]:checked')?.value;
+    if (tipoInicial) {
+        actualizarCamposSegunTipo(tipoInicial, document);
+        ajustarValidacionCorreo(tipoInicial);
+    }
     
     selectCampus.addEventListener('change', (e) => {
         const campusId = e.target.value;
@@ -1152,63 +1186,101 @@ function cargarCarrerasEquipo(facultadId, selectElement) {
 }
 
 /**
- * Actualiza los campos de un integrante según su tipo.
- * (Versión adaptada de 'actualizarCamposSegunTipo' para el form de equipo)
+ * Actualiza los campos de un integrante según su tipo (Equipo).
+ * (Versión corregida: Libera correo para Servicio/Externos)
  */
 function actualizarCamposEquipo(tipo, cardElement) {
+    // 1. Obtener referencias a los elementos
     const labelMatricula = cardElement.querySelector('.label-matricula');
     const inputMatricula = cardElement.querySelector('.input-matricula');
     const requiredMatricula = cardElement.querySelector('.required-matricula');
+    
     const facultadContainer = cardElement.querySelector('.facultad-container-equipo');
     const selectFacultad = cardElement.querySelector('.select-facultad');
     const requiredFacultad = cardElement.querySelector('.required-facultad');
+    
     const carreraContainer = cardElement.querySelector('.carrera-container-equipo');
     const selectCarrera = cardElement.querySelector('.select-carrera');
     const requiredCarrera = cardElement.querySelector('.required-carrera');
-    
-    // Reutiliza la lógica de la función original
+
+    // REFERENCIA NUEVA: El campo de correo de esta tarjeta
+    const inputCorreo = cardElement.querySelector('input[type="email"]');
+    // Buscamos la etiqueta (label) que está justo antes del input
+    const labelCorreo = inputCorreo ? inputCorreo.previousElementSibling : null;
+
+    // 2. LÓGICA DE CORREO (Aquí solucionamos tu problema)
+    const rolesCorreoLibre = ['Externo', 'Personal de Servicio'];
+
+    if (rolesCorreoLibre.includes(tipo)) {
+        // CASO: Correo Libre (Gmail, Hotmail, etc.)
+        if (inputCorreo) {
+            inputCorreo.removeAttribute('pattern'); // Quitamos la validación estricta
+            inputCorreo.placeholder = 'ejemplo@correo.com';
+            if (labelCorreo) {
+                labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
+            }
+        }
+    } else {
+        // CASO: Correo Institucional Obligatorio (Estudiante, Docente, Académico)
+        if (inputCorreo) {
+            inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+            inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+            // CAMBIO DE TEXTO: Ponemos "UABC"
+            if (labelCorreo) {
+                labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
+            }
+        }
+    }
+
+    // 3. LÓGICA DE MATRÍCULA Y CAMPOS ACADÉMICOS
     if (tipo === 'Estudiante') {
+        // --- ESTUDIANTE ---
         labelMatricula.textContent = 'Matrícula';
         inputMatricula.placeholder = '12345678';
         inputMatricula.required = true;
         inputMatricula.setAttribute('pattern', '[0-9]{6,10}');
-        requiredMatricula.style.display = 'inline';
+        if(requiredMatricula) requiredMatricula.style.display = 'inline';
         
         selectFacultad.required = true;
-        requiredFacultad.style.display = 'inline';
+        if(requiredFacultad) requiredFacultad.style.display = 'inline';
         facultadContainer.style.display = 'block';
         
         selectCarrera.required = true;
-        requiredCarrera.style.display = 'inline';
+        if(requiredCarrera) requiredCarrera.style.display = 'inline';
         carreraContainer.style.display = 'block';
-    } else if (tipo === 'Docente') {
+
+    } else if (tipo === 'Docente' || tipo === 'Personal Académico') {
+        // --- DOCENTE Y PERSONAL ACADÉMICO ---
         labelMatricula.textContent = 'Número de Empleado';
         inputMatricula.placeholder = 'Núm. empleado';
         inputMatricula.required = true;
         inputMatricula.setAttribute('pattern', '[0-9]{4,10}');
-        requiredMatricula.style.display = 'inline';
+        if(requiredMatricula) requiredMatricula.style.display = 'inline';
         
-        selectFacultad.required = false; // Docente no requiere facultad
-        requiredFacultad.style.display = 'none';
-        facultadContainer.style.display = 'block'; // Pero puede seleccionarla
+        selectFacultad.required = false; 
+        if(requiredFacultad) requiredFacultad.style.display = 'none';
+        facultadContainer.style.display = 'block'; 
         
         selectCarrera.required = false;
-        requiredCarrera.style.display = 'none';
-        carreraContainer.style.display = 'block'; // Pero puede seleccionarla
-    } else { // Externo
+        if(requiredCarrera) requiredCarrera.style.display = 'none';
+        carreraContainer.style.display = 'none'; // Ocultamos carrera
+
+    } else { 
+        // --- EXTERNO Y PERSONAL DE SERVICIO ---
+        // (Matrícula Opcional y sin campos académicos)
         labelMatricula.textContent = 'Identificación (Opcional)';
-        inputMatricula.placeholder = 'ID opcional';
+        inputMatricula.placeholder = 'Opcional';
         inputMatricula.required = false;
         inputMatricula.removeAttribute('pattern');
-        requiredMatricula.style.display = 'none';
+        if(requiredMatricula) requiredMatricula.style.display = 'none';
         
         selectFacultad.required = false;
-        requiredFacultad.style.display = 'none';
-        facultadContainer.style.display = 'none'; // Externo no tiene facultad
+        if(requiredFacultad) requiredFacultad.style.display = 'none';
+        facultadContainer.style.display = 'none'; 
         
         selectCarrera.required = false;
-        requiredCarrera.style.display = 'none';
-        carreraContainer.style.display = 'none'; // Externo no tiene carrera
+        if(requiredCarrera) requiredCarrera.style.display = 'none';
+        carreraContainer.style.display = 'none'; 
     }
 }
 
@@ -1756,12 +1828,17 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
             }
 
             if (input.name === 'correo') {
-                // Solo validar para estudiantes y docentes
-                if (tipo === 'Estudiante' || tipo === 'Docente') {
+                // Definimos los roles que requieren UABC estrictamente
+                // (Agregamos 'Personal Académico' para ser consistentes)
+                const rolesEstrictos = ['Estudiante', 'Docente', 'Personal Académico'];
+
+                if (rolesEstrictos.includes(tipo)) {
+                    // Validación Estricta (UABC)
                     const pattern = /^[a-zA-Z0-9._+\-]+@uabc\.(edu\.)?mx$/;
                     esValido = pattern.test(input.value);
                 } else {
-                    // Para externos, validar que sea un email válido
+                    // Validación Libre (Externo y Personal de Servicio)
+                    // Cualquier correo válido (Gmail, Hotmail, etc.)
                     const pattern = /^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                     esValido = pattern.test(input.value);
                 }
@@ -1855,18 +1932,32 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
             // Actualizar hint del correo según tipo
             const correoHint = document.getElementById('correo-hint');
             const inputCorreo = document.getElementById('input-correo');
+            const labelCorreo = inputCorreo.previousElementSibling;
+            const rolesLibres = ['Externo', 'Personal de Servicio'];
             
-            if (tipo === 'Externo') {
+            if (rolesLibres.includes(tipo)) {
+                // CASO: Correo Libre
                 correoHint.style.display = 'none';
                 inputCorreo.removeAttribute('pattern');
                 inputCorreo.placeholder = 'ejemplo@correo.com';
+                
+                // Cambiar Texto de Etiqueta
+                if(labelCorreo) {
+                    labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
+                }
             } else {
+                // CASO: Correo UABC
                 correoHint.style.display = 'block';
                 inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
                 inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+                
+                // Cambiar Texto de Etiqueta
+                if(labelCorreo) {
+                    labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
+                }
             }
             
-            // Re-validar campos
+            // Re-validar campos para quitar marcas rojas antiguas
             inputs.forEach(input => {
                 validarCampo(input);
             });
