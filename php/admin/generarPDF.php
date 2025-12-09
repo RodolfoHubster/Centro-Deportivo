@@ -7,6 +7,39 @@
 require_once('../../vendor/tecnickcom/tcpdf/tcpdf.php');
 include '../includes/conexion.php';
 
+/**
+ * Función para obtener el nombre de una entidad (Carrera, Facultad, Campus) dado su ID.
+ * @param mysqli $conexion La conexión a la base de datos.
+ * @param string $tabla Nombre de la tabla (ej: 'carrera', 'facultad', 'campus').
+ * @param string $valor Valor del filtro (ID o Nombre).
+ * @return string Nombre o el valor original si no es ID o no se encuentra.
+ */
+function obtenerNombrePorFiltro($conexion, $tabla, $valor) {
+    if (is_numeric($valor) && intval($valor) > 0) {
+        $id = intval($valor);
+        
+        // Determinar la columna a buscar (si es carrera, se busca 'nombre', si es carrera_id, busca 'nombre')
+        $columna_nombre = ($tabla === 'carrera' || $tabla === 'facultad' || $tabla === 'campus') ? 'nombre' : 'nombre';
+
+        $sql = "SELECT $columna_nombre FROM $tabla WHERE id = ?";
+        $stmt = mysqli_prepare($conexion, $sql);
+        
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'i', $id);
+            mysqli_stmt_execute($stmt);
+            $resultado = mysqli_stmt_get_result($stmt);
+            
+            if ($row = mysqli_fetch_assoc($resultado)) {
+                mysqli_stmt_close($stmt);
+                return $row[$columna_nombre];
+            }
+            mysqli_stmt_close($stmt);
+        }
+    }
+    // Si no es un ID o no se encuentra, devuelve el valor original
+    return $valor;
+}
+
 try {
     // Capturar modo de salida
     $modo = isset($_GET['modo']) ? $_GET['modo'] : 'ver';
@@ -32,7 +65,9 @@ try {
                 evento_nombre,
                 fecha_inscripcion,
                 equipo_id,
-                es_capitan
+                es_capitan,
+                facultad_nombre,
+                campus_nombre
             FROM v_inscripciones_completas";
     
     $whereConditions = [];
@@ -69,11 +104,49 @@ try {
     // Filtro por carrera
     if (isset($_GET['carrera']) && !empty($_GET['carrera']) && $_GET['carrera'] !== 'todas') {
         $carrera_filtro = mysqli_real_escape_string($conexion, $_GET['carrera']);
-        $whereConditions[] = "(carrera_nombre = ? OR CONCAT('TC - ', area_tronco_comun) = ?)";
-        $params[] = $carrera_filtro;
-        $params[] = $carrera_filtro;
-        $types .= 'ss';
+        // FIX/MEJORA: Comprueba si es un ID numérico para filtrar por ID, sino filtra por nombre
+        if (is_numeric($carrera_filtro) && intval($carrera_filtro) > 0) {
+            $whereConditions[] = "carrera_id = ?";
+            $params[] = intval($carrera_filtro);
+            $types .= 'i';
+        } else {
+            // Lógica original para filtrar por nombre o Tronco Común
+            $whereConditions[] = "(carrera_nombre = ? OR CONCAT('TC - ', area_tronco_comun) = ?)";
+            $params[] = $carrera_filtro;
+            $params[] = $carrera_filtro;
+            $types .= 'ss';
+        }
     }
+    
+    // INICIO DE MODIFICACIÓN: Agregar filtros de Facultad y Campus
+    // Filtro por Facultad
+    if (isset($_GET['facultad']) && !empty($_GET['facultad']) && $_GET['facultad'] !== 'todas') {
+        $facultad_filtro = mysqli_real_escape_string($conexion, $_GET['facultad']);
+        if (is_numeric($facultad_filtro) && intval($facultad_filtro) > 0) {
+            $whereConditions[] = "facultad_id = ?";
+            $params[] = intval($facultad_filtro);
+            $types .= 'i';
+        } else {
+            $whereConditions[] = "facultad_nombre = ?";
+            $params[] = $facultad_filtro;
+            $types .= 's';
+        }
+    }
+    
+    // Filtro por Campus
+    if (isset($_GET['campus']) && !empty($_GET['campus']) && $_GET['campus'] !== 'todos') {
+        $campus_filtro = mysqli_real_escape_string($conexion, $_GET['campus']);
+        if (is_numeric($campus_filtro) && intval($campus_filtro) > 0) {
+            $whereConditions[] = "campus_id = ?";
+            $params[] = intval($campus_filtro);
+            $types .= 'i';
+        } else {
+            $whereConditions[] = "campus_nombre = ?";
+            $params[] = $campus_filtro;
+            $types .= 's';
+        }
+    }
+    // FIN DE MODIFICACIÓN
         
     // Búsqueda
     if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
@@ -311,11 +384,28 @@ try {
         $filtrosTexto .= "Tipo: " . (isset($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos' ? $_GET['tipo_participante'] : 'Todos');
 
         if (isset($_GET['carrera']) && $_GET['carrera'] !== 'todas') {
-            $filtrosTexto .= " | Carrera: " . $_GET['carrera'];
+            // CORRECCIÓN: Obtener el nombre de la carrera si es un ID
+            $nombreCarrera = obtenerNombrePorFiltro($conexion, 'carrera', $_GET['carrera']);
+            $filtrosTexto .= " | Carrera: " . $nombreCarrera;
         } else {
             $filtrosTexto .= " | Carrera: Todas";
         }
         
+        // INICIO DE MODIFICACIÓN: Agregar Facultad y Campus con mapeo a nombre
+        if (isset($_GET['facultad']) && $_GET['facultad'] !== 'todas') {
+            $nombreFacultad = obtenerNombrePorFiltro($conexion, 'facultad', $_GET['facultad']);
+            $filtrosTexto .= " | Facultad: " . $nombreFacultad;
+        } else {
+            $filtrosTexto .= " | Facultad: Todas";
+        }
+
+        if (isset($_GET['campus']) && $_GET['campus'] !== 'todos') {
+            $nombreCampus = obtenerNombrePorFiltro($conexion, 'campus', $_GET['campus']);
+            $filtrosTexto .= " | Campus: " . $nombreCampus;
+        } else {
+            $filtrosTexto .= " | Campus: Todos";
+        }
+
         $pdf->MultiCell(0, 6, $filtrosTexto, 0, 'L');
         $pdf->Ln(3);
     }
