@@ -1,54 +1,53 @@
 /* public/css/components/cards.css */
 
 /* =============================================================
-   1. CONTENEDOR DE LA REJILLA (GRID PRINCIPAL DE LA PÁGINA)
+   1. CONTENEDOR GRID (RESPONSIVE ULTRA-SEGURO)
    ============================================================= */
    .eventos-container {
     display: grid;
-    /* Tarjetas que llenan el ancho disponible */
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
-    gap: 25px;
+    /* Bajamos el minmax a 260px para que quepa en CUALQUIER celular sin desbordar */
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+    gap: 20px;
     margin-top: 30px;
     padding-bottom: 40px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* =============================================================
-   2. LA TARJETA (DISEÑO VERTICAL UNIFICADO)
+   2. LA TARJETA (BASE)
    ============================================================= */
-/* Usamos .vista-publica para asegurar prioridad */
 .vista-publica .evento-card, 
 .evento-card { 
-    /* Reset de display */
     display: grid !important;
     
-    /* CONFIGURACIÓN GRID GLOBAL (Siempre 1 columna) */
+    /* Layout Vertical Global */
     grid-template-columns: 1fr !important;
-    /* Fila 1: Título, Fila 2: Info, Fila 3: Botones */
-    grid-template-rows: auto 1fr auto !important; 
+    /* Filas: Header | Body | Espacio | Botones */
+    grid-template-rows: auto auto 1fr auto !important; 
     gap: 15px; 
     
     background-color: var(--color-blanco);
     border-radius: 12px;
     
-    /* BORDES */
+    /* Bordes y Estilo */
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-left: 6px solid var(--color-verde-uabc) !important;
     border-top: 6px solid transparent !important;
     
-    /* Espaciado interno */
-    padding: 30px !important; 
+    padding: 25px !important; /* Padding balanceado */
     
     position: relative;
     overflow: hidden;
+    height: 100%; 
+    width: 100%; 
+    box-sizing: border-box; 
     
-    /* Sombras y transiciones */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, 
-                box-shadow 0.3s ease,
-                border-top-color 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-top-color 0.3s ease;
 }
 
-/* EFECTO HOVER */
+/* Hover */
 .vista-publica .evento-card:hover,
 .evento-card:hover {
     transform: translateY(-5px);
@@ -57,152 +56,143 @@
 }
 
 /* =============================================================
-   3. DISTRIBUCIÓN INTERNA
+   3. ELEMENTOS INTERNOS
    ============================================================= */
-
-/* HEADER (Título y Badge) */
 .card-header {
-    grid-column: 1 / -1;
-    grid-row: 1;
     margin-bottom: 5px;
+    width: 100%;
 }
 
-/* BODY (Descripción y Metadatos) */
-.card-body {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ACTIONS (Botones) - SIEMPRE ABAJO Y SIMÉTRICOS */
-.card-actions {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    
-    margin-top: 15px;
-    padding-top: 20px;
-    border-top: 1px solid #eee; /* Línea separadora elegante */
-    
-    /* CONFIGURACIÓN DE LOS BOTONES: GRID 2 COLUMNAS EXACTAS */
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important; /* Dos columnas iguales */
-    gap: 15px;
-    align-items: stretch; /* Estirar altura para que sean iguales */
-}
-
-/* CASO ESPECIAL: Si solo hay 1 botón, ocupa todo el ancho */
-.card-actions:not(:has(button:nth-child(2))) {
-    grid-template-columns: 1fr !important;
-}
-
-/* =============================================================
-   4. ESTILOS DE TEXTO Y ELEMENTOS
-   ============================================================= */
 .evento-card h2 {
     margin: 5px 0 10px 0;
-    font-size: 1.4rem;
+    font-size: 1.3rem; /* Tamaño seguro */
     color: #003366; 
     font-weight: 700;
     line-height: 1.2;
+    /* Evita que títulos largos rompan el ancho */
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
 }
 
 .description {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #555;
-    line-height: 1.6;
-    margin-bottom: 20px;
+    line-height: 1.5;
+    margin-bottom: 15px;
 }
 
 .meta-info {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #444;
-    display: grid;
-    gap: 8px;
-    margin-top: auto; /* Empuja la info hacia abajo si sobra espacio en el body */
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 /* Badges */
 .badge-status {
     display: inline-block;
-    padding: 4px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 8px;
+    max-width: 100%;
 }
 .badge-status.disponible { background-color: #e8f5e9; color: var(--color-verde-uabc); border: 1px solid rgba(0,102,51,0.2); }
 .badge-status.lleno { background-color: #fcebeb; color: var(--color-error); border: 1px solid rgba(220,53,69,0.2); }
 
 /* =============================================================
-   5. BOTONES (Unificados y Simétricos)
+   4. BOTONES (ACTIONS) - MODO ESCRITORIO PAREJO
    ============================================================= */
+.card-actions {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* Grid de 2 columnas */
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px;
+    /* [CORRECCIÓN] Usar stretch para que ambos botones tengan la misma altura */
+    align-items: stretch !important; 
+}
+
+/* Si solo hay un botón, ocupa todo */
+.card-actions:not(:has(button:nth-child(2))) {
+    grid-template-columns: 1fr !important;
+}
+
+/* Estilos de Botón */
 .evento-card button,
 .evento-card a.btn-participantes {
-    width: 100% !important; /* Ocupar todo el ancho de su celda */
-    height: 100% !important; /* Ocupar toda la altura de su celda */
-    padding: 12px 10px !important; /* Padding lateral reducido para evitar desbordes */
-    margin: 0 !important; /* Sin márgenes externos */
-    
-    border-radius: 6px !important;
+    width: 100% !important;
+    padding: 10px 5px !important;
+    border-radius: 8px !important;
     font-weight: 700 !important;
-    font-size: 0.9rem !important; /* Texto ligeramente más pequeño para asegurar que quepa */
+    font-size: 0.9rem !important;
     text-align: center;
     cursor: pointer;
     border: none;
     transition: all 0.2s ease;
     
+    /* Flexbox para centrar contenido vertical y horizontalmente */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px; /* Espacio entre icono y texto */
-    min-height: 48px; /* Altura cómoda */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    gap: 5px;
     
-    /* Asegurar que el texto no rompa el botón */
-    white-space: nowrap; 
+    /* Altura fija mínima para asegurar consistencia */
+    min-height: 48px;
+    height: 100%; /* Ocupar toda la altura de la celda */
+    
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    
+    /* Manejo de texto */
+    white-space: nowrap; /* Evitar saltos de línea en escritorio si es posible */
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Botón Verde (Principal) */
-.btn-inscribir {
-    background: var(--color-verde-uabc) !important;
-    color: white !important;
-}
+.btn-inscribir { background: var(--color-verde-uabc) !important; color: white !important; }
 .btn-inscribir:hover { background: #004d26 !important; transform: translateY(-2px); }
 
-/* Botón Azul (Secundario) */
-.btn-unirse-equipo {
-    background: #007bff !important;
-    color: white !important;
-}
+.btn-unirse-equipo { background: #007bff !important; color: white !important; }
 .btn-unirse-equipo:hover { background: #0056b3 !important; transform: translateY(-2px); }
 
 
 /* =============================================================
-   6. RESPONSIVE (SOLO PARA PANTALLAS MUY PEQUEÑAS)
+   5. MODO MÓVIL (iPhone 12, S24, etc - < 550px)
    ============================================================= */
-/* Como el diseño base ya es "móvil-friendly" (vertical), 
-   solo necesitamos ajustar para pantallas diminutas (< 480px) */
-
-@media (max-width: 480px) {
-    .card-actions {
-        /* En celulares muy angostos, apilamos los botones uno sobre otro */
-        grid-template-columns: 1fr !important; 
-    }
+/* Aquí aplicamos la corrección de "disparejo" */
+@media (max-width: 550px) {
     
     .eventos-container {
-        grid-template-columns: 1fr; /* Una sola tarjeta por fila */
+        gap: 15px; /* Menos espacio entre tarjetas para aprovechar pantalla */
     }
-    
-    /* Permitir salto de línea en botones en pantallas muy pequeñas */
+
+    .vista-publica .evento-card,
+    .evento-card {
+        padding: 20px !important; /* Ganar espacio interno */
+    }
+
+    /* FORZAR COLUMNA ÚNICA PARA BOTONES */
+    /* Esto asegura que queden perfectos uno encima del otro */
+    .card-actions {
+        grid-template-columns: 1fr !important; 
+        gap: 10px !important;
+    }
+
+    /* Botones más fáciles de tocar */
     .evento-card button,
     .evento-card a.btn-participantes {
-        white-space: normal;
-        font-size: 0.85rem !important;
-        padding: 10px !important;
+        min-height: 48px !important;
+        font-size: 0.95rem !important;
+        width: 100% !important; /* Asegurar ancho total */
+        white-space: normal; /* Permitir saltos de línea en móvil si el texto es largo */
     }
 }

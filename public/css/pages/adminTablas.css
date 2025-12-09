@@ -1,36 +1,30 @@
-/* ==========================================================================
-   ESTILOS PARA TABLAS ADMINISTRATIVAS
-   Ruta: public/css/pages/adminTablas.css
-   Descripción: Estilos para tablas de datos (inscripciones, participantes),
-                filtros, paginación y tarjetas de resumen.
-   ========================================================================== */
+/* public/css/pages/adminTablas.css */
 
-/* --------------------------------------------------------------------------
-   1. CONTENEDOR PRINCIPAL (.tabla-container)
-   Descripción: Caja que envuelve la tabla y permite scroll horizontal.
-   -------------------------------------------------------------------------- */
+/* =========================================
+   CONTENEDOR PRINCIPAL
+   ========================================= */
    .tabla-container {
     margin-top: 20px;
-    overflow-x: auto; /* Scroll si la tabla es muy ancha */
+    overflow-x: auto;
     border-radius: var(--borde-redondeado);
     box-shadow: var(--sombra-general);
     background: var(--color-blanco);
     border: 1px solid #eee;
 }
 
-/* --------------------------------------------------------------------------
-   2. ESTRUCTURA DE LA TABLA (.admin-table)
-   -------------------------------------------------------------------------- */
+/* =========================================
+   ESTILOS GENERALES DE TABLA
+   ========================================= */
 .admin-table {
     width: 100%;
     border-collapse: collapse;
     background: var(--color-blanco);
-    min-width: 600px; /* Ancho mínimo para evitar que se aplaste */
+    min-width: 600px;
 }
 
-/* --- Cabecera (Thead) --- */
+/* CABECERA */
 .admin-table thead tr {
-    background-color: var(--color-verde-uabc);
+    background-color: var(--color-verde-uabc); /* Mantiene tu verde original */
     color: var(--color-blanco);
 }
 
@@ -38,16 +32,42 @@
     padding: 12px 10px;
     vertical-align: middle !important;
     text-align: center !important;
-    border-bottom: 3px solid rgba(0, 0, 0, 0.1); 
+    border-bottom: 3px solid rgba(0, 0, 0, 0.1);
     font-weight: 800;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    height: 55px; 
-    white-space: nowrap; /* Evita que el texto se rompa */
+    height: 55px;
+    white-space: nowrap;
 }
 
-/* --- Cuerpo (Tbody) --- */
+/* FILAS */
+.admin-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.admin-table tbody tr:hover {
+    background-color: rgba(0, 102, 51, 0.05); /* Mantiene tu hover verde suave */
+}
+
+/* =========================================
+   ALINEACIÓN DE COLUMNAS
+   ========================================= */
+.admin-table td:nth-child(2),
+.admin-table td:nth-child(3),
+.admin-table td:nth-child(6),
+.admin-table td:nth-child(7) {
+    text-align: left;
+    padding-left: 20px;
+}
+
+.admin-table td:nth-child(1),
+.admin-table td:nth-child(4),
+.admin-table td:nth-child(5),
+.admin-table td:nth-child(8) {
+    text-align: center;
+}
+
 .admin-table td {
     padding: 22px 15px;
     line-height: 1.6;
@@ -57,86 +77,18 @@
     font-size: 0.95rem;
 }
 
-/* Filas alternas (Zebra striping) */
 .admin-table tbody tr:nth-child(even) {
     background-color: #fcfcfc;
 }
 
-/* Efecto Hover en filas */
-.admin-table tbody tr {
-    transition: background-color 0.2s ease;
-}
-
-.admin-table tbody tr:hover {
-    background-color: rgba(0, 102, 51, 0.08); /* Verde muy suave */
-    transform: scale(1); 
-}
-
-/* Alineación específica de columnas */
-/* Texto a la izquierda (Nombres, Correos, etc.) */
-.admin-table td:nth-child(2), /* Nombre */
-.admin-table td:nth-child(3), /* Correo */
-.admin-table td:nth-child(6), /* Carrera */
-.admin-table td:nth-child(7)  /* Evento */ {
-    text-align: left;
-    padding-left: 20px;
-}
-
-/* Texto centrado (IDs, Fechas, Badges) */
-.admin-table td:nth-child(1), /* Matrícula */
-.admin-table td:nth-child(4), /* Género */
-.admin-table td:nth-child(5), /* Tipo */
-.admin-table td:nth-child(8)  /* Fecha */ {
-    text-align: center;
-}
-
-/* --------------------------------------------------------------------------
-   3. ORDENAMIENTO (SORTING)
-   -------------------------------------------------------------------------- */
-th.sortable {
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-th.sortable:hover {
-    background-color: #004d26; /* Verde más oscuro */
-}
-
-/* Icono de flechas */
-.sort-icon {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 5px;
-    font-size: 0.9em;
-    line-height: 1; 
-    position: relative;
-    top: -1px;    
-    opacity: 0.5;    
-}
-
-/* Estado Activo (Columna ordenada actualmente) */
-th.active-asc,
-th.active-desc {
-    background-color: #003e1f;
-    color: #fff;
-    border-bottom-color: var(--color-dorado-uabc); 
-}
-
-th.active-asc .sort-icon,
-th.active-desc .sort-icon {
-    opacity: 1;
-    color: var(--color-dorado-uabc);
-}
-
-/* --------------------------------------------------------------------------
-   4. TARJETAS DE RESUMEN (ESTADÍSTICAS RÁPIDAS)
-   -------------------------------------------------------------------------- */
+/* =========================================
+   TARJETAS DE RESUMEN (STATS)
+   ========================================= */
 .stats-summary-card {
     padding: 20px;
     border-radius: 8px;
     text-align: center;
-    color: var(--color-blanco) !important; 
+    color: var(--color-blanco) !important;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     transition: transform 0.2s ease;
 }
@@ -145,7 +97,6 @@ th.active-desc .sort-icon {
     transform: translateY(-3px);
 }
 
-/* Número grande */
 .stats-summary-card h3 {
     color: var(--color-blanco) !important;
     margin: 0 0 5px 0;
@@ -154,7 +105,6 @@ th.active-desc .sort-icon {
     text-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
-/* Etiqueta */
 .stats-summary-card p {
     color: var(--color-blanco) !important;
     margin: 0;
@@ -165,11 +115,9 @@ th.active-desc .sort-icon {
     letter-spacing: 0.5px;
 }
 
-/* --------------------------------------------------------------------------
-   5. COMPONENTES AUXILIARES (PAGINACIÓN Y TAGS)
-   -------------------------------------------------------------------------- */
-
-/* Botones de Paginación */
+/* =========================================
+   BOTONES Y UTILIDADES
+   ========================================= */
 .btn-paginacion {
     padding: 8px 16px;
     background-color: var(--color-blanco);
@@ -194,7 +142,7 @@ th.active-desc .sort-icon {
     border-color: #eee;
 }
 
-/* Etiquetas (Tags) - Ej: Capitán */
+/* TAGS */
 .tag-capitan {
     background-color: var(--color-dorado-uabc);
     color: var(--color-texto);
@@ -206,28 +154,7 @@ th.active-desc .sort-icon {
     text-transform: uppercase;
 }
 
-/* Botón Volver */
-.btn-volver {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 20px;
-    color: var(--color-verde-uabc);
-    text-decoration: none;
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 5px;
-    transition: background 0.3s ease;
-}
-
-.btn-volver:hover {
-    background-color: #e8f5e9;
-    text-decoration: none;
-}
-
-/* --------------------------------------------------------------------------
-   6. BOTONES DE REPORTE (EXCEL / PDF)
-   -------------------------------------------------------------------------- */
+/* BOTONES REPORTE */
 .btn-reporte {
     color: white;
     border: none;
@@ -244,25 +171,66 @@ th.active-desc .sort-icon {
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.btn-reporte svg {
-    width: 18px;
-    height: 18px;
-}
-
 .btn-reporte:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     opacity: 0.95;
 }
 
-/* Variante Excel (Verde) */
 .btn-excel {
-    background-color: #28a745; 
     background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
+    background-color: #28a745;
 }
 
-/* Variante PDF (Rojo) */
 .btn-pdf {
-    background-color: #dc3545;
     background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+    background-color: #dc3545;
+}
+
+/* Ordenamiento */
+th.sortable { cursor: pointer; user-select: none; transition: background-color 0.2s; }
+th.sortable:hover { background-color: #004d26; }
+.sort-icon { display: inline-block; margin-left: 5px; opacity: 0.5; }
+th.active-asc .sort-icon, th.active-desc .sort-icon { opacity: 1; color: var(--color-dorado-uabc); }
+
+
+/* ==========================================================================
+   AQUÍ ESTÁ LA RESPONSIVIDAD QUE PEDISTE (SIN TOCAR EL HTML)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* 1. Forzamos que el contenedor de paginación sea columna */
+    .pagination-controls {
+        flex-direction: column !important;
+        gap: 20px !important;
+        text-align: center;
+    }
+
+    /* 2. Hacemos que los hijos (select y botones) ocupen todo el ancho */
+    .pagination-controls > div {
+        width: 100% !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* 3. Seleccionamos específicamente el div de la derecha (Página X de Y + Botones) */
+    .pagination-controls > div:last-child {
+        flex-direction: column !important; /* Pone el texto arriba y los botones abajo */
+        gap: 15px !important;
+    }
+
+    /* 4. Seleccionamos el div QUE CONTIENE los botones Anterior/Siguiente */
+    /* Como no tiene clase, usamos la estructura del HTML que me diste */
+    .pagination-controls > div:last-child > div {
+        display: flex !important;
+        flex-direction: column !important; /* <--- ESTO PONE UNO ARRIBA DEL OTRO */
+        width: 100% !important;
+        gap: 10px !important;
+    }
+
+    /* 5. Estiramos los botones al 100% */
+    .btn-paginacion {
+        width: 100% !important;
+        display: block !important;
+        padding: 12px !important; /* Más fácil de picar con el dedo */
+    }
 }

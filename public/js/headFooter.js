@@ -1,16 +1,14 @@
 // 1. Definimos las variables al principio para que sean accesibles en todo el archivo
 const isAdminPage = window.location.pathname.includes('/admin/');
 
-//RUTAS (Definidas globalmente)
+// RUTAS (Definidas globalmente)
 const headerURL = isAdminPage ? '../includes/header.html' : 'includes/header.html';
 const footerURL = isAdminPage ? '../includes/footer.html' : 'includes/footer.html';
 const headerAdminURL = isAdminPage ? '../includes/headerAdmin.html' : 'includes/headerAdmin.html';
 
-// Aquí corregimos el acceso para la función de abajo
+// Rutas de PHP
 const cerrarSesionPHP = isAdminPage ? '../../php/admin/cerrarSesion.php' : '../php/admin/cerrarSesion.php';
 const loginPageURL = isAdminPage ? '../login.html' : 'login.html';
-//FIN DE RUTAS
-
 
 // 2. Lógica del Header
 const headerPlaceholder = document.getElementById('header-placeholder');
@@ -26,43 +24,17 @@ if (headerPlaceholder) {
             return response.text();
         })
         .then(html => {
+            // A. Insertamos el HTML
             headerPlaceholder.innerHTML = html;
+
+            // B. ¡AQUÍ ES EL MOMENTO SEGURO! Inicializamos el menú ahora que ya existe el HTML
+            initMenuHamburguesa();
+
+            // C. Lógica específica de admin
             if (isAdminPage) {
                 ajustarTituloAdminHeader();
-                // Verifica el rol para ocultar/mostrar elementos
                 verificarRolParaNavegacion();
-
-                // --- LÓGICA DE CERRAR SESIÓN (ACTUALIZADA) ---
-                // Manejamos ambos botones: escritorio y móvil
-
-                // 1. Botón del Header (Icono escritorio)
-                const btnLogoutHeader = document.getElementById('btnCerrarSesion');
-                if (btnLogoutHeader) {
-                    btnLogoutHeader.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        cerrarSesionAdmin();
-                    });
-                }
-
-                // 2. Botón del Menú Hamburguesa (Texto móvil)
-                const btnLogoutMovil = document.getElementById('btnCerrarSesionMovil');
-                if (btnLogoutMovil) {
-                    btnLogoutMovil.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        
-                        // Cerramos el menú hamburguesa visualmente antes de salir
-                        const mainNav = document.querySelector('.main-nav');
-                        const toggle = document.getElementById('mobileMenuToggle');
-                        const navOverlay = document.getElementById('navOverlay');
-                        
-                        if(mainNav) mainNav.classList.remove('active');
-                        if(toggle) toggle.classList.remove('active');
-                        if(navOverlay) navOverlay.classList.remove('active');
-                        document.body.style.overflow = ''; // Restaurar scroll
-
-                        cerrarSesionAdmin();
-                    });
-                }
+                inicializarLogout(); // Movi la lógica de logout a una función para limpiar
             }
         })
         .catch(error => {
@@ -90,7 +62,93 @@ if (footerPlaceholder) {
         })
 }
 
-// 4. Funciones Auxiliares
+// ==========================================
+// 4. FUNCIONES AUXILIARES
+// ==========================================
+
+/* Inicializa la lógica del botón hamburguesa (Móvil) */
+function initMenuHamburguesa() {
+    // Buscamos los elementos AHORA (ya existen en el DOM)
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle'); // Usamos clase o ID, asegúrate que coincida con tu HTML
+    const mainNav = document.querySelector('.main-nav');
+    
+    // Creamos o buscamos el overlay
+    let navOverlay = document.getElementById('navOverlay');
+    if (!navOverlay) {
+        navOverlay = document.createElement('div');
+        navOverlay.className = 'nav-overlay';
+        navOverlay.id = 'navOverlay';
+        document.body.appendChild(navOverlay);
+    }
+    
+    if (mobileMenuToggle && mainNav) {
+        // 1. Abrir/Cerrar al dar click en el botón
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Evita que el click se propague
+            
+            this.classList.toggle('active');
+            mainNav.classList.toggle('active');
+            navOverlay.classList.toggle('active');
+            
+            // Bloquear scroll del fondo
+            if (mainNav.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // 2. Cerrar al dar click en el fondo oscuro (Overlay)
+        navOverlay.addEventListener('click', function() {
+            cerrarMenuMovil(mobileMenuToggle, mainNav, navOverlay);
+        });
+        
+        // 3. Cerrar al dar click en cualquier enlace del menú
+        const navLinks = mainNav.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                cerrarMenuMovil(mobileMenuToggle, mainNav, navOverlay);
+            });
+        });
+    } else {
+        console.warn("No se encontró el botón .mobile-menu-toggle o el menú .main-nav");
+    }
+}
+
+/* Helper para cerrar el menú limpiamente */
+function cerrarMenuMovil(btn, menu, overlay) {
+    if(btn) btn.classList.remove('active');
+    if(menu) menu.classList.remove('active');
+    if(overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function inicializarLogout() {
+    // 1. Botón del Header (Icono escritorio)
+    const btnLogoutHeader = document.getElementById('btnCerrarSesion');
+    if (btnLogoutHeader) {
+        btnLogoutHeader.addEventListener('click', (e) => {
+            e.preventDefault();
+            cerrarSesionAdmin();
+        });
+    }
+
+    // 2. Botón del Menú Hamburguesa (Texto móvil)
+    const btnLogoutMovil = document.getElementById('btnCerrarSesionMovil');
+    if (btnLogoutMovil) {
+        btnLogoutMovil.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Cerramos menú visualmente
+            const mainNav = document.querySelector('.main-nav');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            const navOverlay = document.getElementById('navOverlay');
+            cerrarMenuMovil(toggle, mainNav, navOverlay);
+            
+            cerrarSesionAdmin();
+        });
+    }
+}
 
 function ajustarTituloAdminHeader() {
     const headerTitleDiv = document.querySelector('#header-placeholder .main-header .title');
@@ -109,105 +167,10 @@ function ajustarTituloAdminHeader() {
         case 'ver-inscripciones.html': subtitulo = "Inscripciones a Eventos";break;
         case 'ver-mensajes.html': subtitulo = "Mensajes de Contacto";break;
     }
-    // También verifica el rol para el subtítulo (opcional)
     if (currentPage === 'gestionar-usuario.html') subtitulo = "Gestión de Usuarios";
     h1.textContent = tituloPrincipal;
     p.textContent = subtitulo;
 }
-
-/*Verifica el rol del usuario y oculta elementos del menú si no es Admin.*/
-function verificarRolParaNavegacion() {
-    // Definimos la ruta a verificarSesion.php
-    // Usamos la variable 'cerrarSesionPHP' como referencia para la ruta base
-    const verificarSesionURL = cerrarSesionPHP.replace('cerrarSesion.php', 'verificarSesion.php');
-
-    fetch(verificarSesionURL)
-        .then(response => response.json())
-        .then(data => {
-            if (data.loggedin && data.rol !== 'Administrador') {
-                // Si está logueado PERO NO es Administrador...
-                const navGestionarUsuarios = document.getElementById('nav-gestionar-usuarios');
-                if (navGestionarUsuarios) {
-                    // Oculta el enlace
-                    navGestionarUsuarios.style.display = 'none';
-                }
-            }
-        })
-        .catch(error => console.error("Error al verificar rol para nav:", error));
-}
-
-function cerrarSesionAdmin() {
-    if (confirm('¿Estás seguro de cerrar sesión?')) {
-        fetch(cerrarSesionPHP) 
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    localStorage.removeItem('usuarioLogeado'); 
-                    window.location.href = loginPageURL; 
-                } else {
-                    // Fallback por si el servidor responde pero no success
-                    localStorage.removeItem('usuarioLogeado'); 
-                    window.location.href = loginPageURL;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Forzar salida incluso si falla el PHP para que no se quede pegado el usuario
-                localStorage.removeItem('usuarioLogeado');
-                window.location.href = loginPageURL; 
-            });
-     }
-}
-
-// Crear overlay para cerrar el menú (si no existe ya en el HTML)
-const overlay = document.createElement('div');
-overlay.className = 'nav-overlay';
-overlay.id = 'navOverlay';
-document.body.appendChild(overlay);
-
-// Inicializar menú hamburguesa después de cargar el header
-setTimeout(function() {
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const mainNav = document.querySelector('.main-nav');
-    const navOverlay = document.getElementById('navOverlay');
-    
-    if (mobileMenuToggle && mainNav) {
-        // Toggle del menú
-        mobileMenuToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.toggle('active');
-            mainNav.classList.toggle('active');
-            navOverlay.classList.toggle('active');
-            
-            // Prevenir scroll del body cuando el menú está abierto
-            if (mainNav.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
-        });
-        
-        // Cerrar menú al hacer click en overlay
-        navOverlay.addEventListener('click', function() {
-            mainNav.classList.remove('active');
-            mobileMenuToggle.classList.remove('active');
-            navOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-        });
-        
-        // Cerrar menú al hacer click en un enlace
-        const navLinks = mainNav.querySelectorAll('a');
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                mainNav.classList.remove('active');
-                mobileMenuToggle.classList.remove('active');
-                navOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            });
-        });
-    }
-}, 100);
 
 /* Verifica el rol, oculta elementos y MUESTRA DATOS DEL USUARIO EN EL HEADER.*/
 function verificarRolParaNavegacion() {
@@ -259,4 +222,25 @@ function verificarRolParaNavegacion() {
         .catch(error => {
             console.error("Error al verificar sesión y datos:", error);
         });
+}
+
+function cerrarSesionAdmin() {
+    if (confirm('¿Estás seguro de cerrar sesión?')) {
+        fetch(cerrarSesionPHP) 
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.removeItem('usuarioLogeado'); 
+                    window.location.href = loginPageURL; 
+                } else {
+                    localStorage.removeItem('usuarioLogeado'); 
+                    window.location.href = loginPageURL;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                localStorage.removeItem('usuarioLogeado');
+                window.location.href = loginPageURL; 
+            });
+     }
 }
