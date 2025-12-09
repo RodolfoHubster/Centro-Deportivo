@@ -183,8 +183,8 @@
 }
 
 .btn-pdf {
-    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
-    background-color: #dc3545;
+    background: linear-gradient(135deg, rgb(51, 51, 255) 0%, rgb(74, 74, 255) 100%);
+    background-color: #00026d;
 }
 
 /* Ordenamiento */
