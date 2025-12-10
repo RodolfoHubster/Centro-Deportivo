@@ -249,10 +249,8 @@ export function poblarFormularioParaEditar(evento, periodoActivoNombre) {
     document.getElementById('evento-integrantes-min').value = evento.integrantes_min || '';
     document.getElementById('evento-integrantes-max').value = evento.integrantes_max || '';
     
-// CÓDIGO NUEVO
-// Usamos el ID. Si el evento no tiene periodo_id, dejamos el select vacío o por defecto.
-    const periodoId = evento.periodo_id || ''; 
-    document.getElementById('evento-periodo').value = periodoId;
+    const periodoMostrar = evento.periodo || periodoActivoNombre || 'Sin Asignar';
+    document.getElementById('evento-periodo').value = periodoMostrar;
     
     mostrarCamposEquipo(evento.tipo_registro);
 
@@ -291,12 +289,8 @@ export function prepararModalParaCrear(periodoActivoNombre) {
     document.getElementById('tituloModal').textContent = 'Crear Nuevo Evento';
     document.getElementById('formEvento').reset();
     document.getElementById('evento-id').value = '';
-// CÓDIGO NUEVO
-// Ahora necesitamos pasarle el ID del periodo activo, no el nombre.
-// Asumiremos que el segundo parámetro que recibe esta función será el ID.
-// (Nota: Tendremos que actualizar gestEventos.js para mandar el ID).
-    document.getElementById('evento-periodo').value = periodoActivoNombre || '';   
-     
+    document.getElementById('evento-periodo').value = periodoActivoNombre || 'Sin Periodo Activo';
+    
     mostrarCamposEquipo('Individual'); 
 
     // LIMPIAR CHECKBOXES DE CAMPUS
@@ -407,21 +401,4 @@ export function mostrarCamposEquipo(tipoRegistro) {
         minInput.value = '';
         maxInput.value = '';
     }
-}
-/**
- * Rellena el SELECT del modal con los periodos disponibles.
- * @param {Array} periodos - Lista de objetos periodo [{id:1, nombre:'2025-2'}, ...]
- * @param {number|string} periodoActivoId - El ID del periodo que está activo actualmente (para seleccionarlo por defecto)
- */
-export function poblarSelectPeriodos(periodos, periodoActivoId) {
-    const select = document.getElementById('evento-periodo');
-    if (!select) return;
-
-    select.innerHTML = '<option value="">-- Seleccionar Periodo --</option>';
-    
-    periodos.forEach(p => {
-        // AQUÍ ESTÁ LA CLAVE: Usamos p.id en el value
-        const isSelected = (periodoActivoId && String(p.id) === String(periodoActivoId)) ? 'selected' : '';
-        select.innerHTML += `<option value="${p.id}" ${isSelected}>${p.nombre}</option>`;
-    });
 }

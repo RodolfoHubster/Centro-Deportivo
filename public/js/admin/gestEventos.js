@@ -11,7 +11,7 @@ let modoEdicion = false;
 let eventoEditandoId = null;
 let usuarioId = null; 
 let todosLosEventos = []; 
-let periodoActivoId = null; // CAMBIO: Usamos ID en lugar de nombre global
+let periodoActivoGlobal = null;
 
 // 3. --- INICIALIZACIÓN DE LA PÁGINA ---
 window.addEventListener('DOMContentLoaded', inicializarPaginaGestionEventos);
@@ -32,42 +32,32 @@ async function inicializarPaginaGestionEventos() {
     try {
         mostrarMensaje('Cargando datos iniciales...', 'success'); 
         
-        // CAMBIO: Agregamos la petición para obtener TODOS los periodos para el Select
-        // Como no tenemos un método en apiEventos.js, hacemos el fetch directo aquí
-        const reqPeriodos = fetch('../../php/admin/gestionarPeriodos.php?accion=obtener').then(r => r.json());
-        const [campus, actividades, facultades, eventos, periodoObj, dataPeriodos] = await Promise.all([
+        const [campus, actividades, facultades, eventos, periodoObj] = await Promise.all([
             api.cargarCampus(),
             api.cargarActividades(),
             api.cargarFacultades(),
             api.cargarEventos(true), 
-            api.obtenerPeriodoActivo(),
-            reqPeriodos // <--- La nueva petición
+            api.obtenerPeriodoActivo()
         ]);
 
         todosLosEventos = eventos;
-        
-        // CAMBIO: Guardamos el ID del periodo activo
-        periodoActivoId = periodoObj ? periodoObj.id : null;
+        periodoActivoGlobal = periodoObj ? periodoObj.nombre : "N/A";
 
         // Configurar UI
         ui.poblarFiltroFacultades(facultades);
-        ui.poblarFiltroCampus(campus); 
+        ui.poblarFiltroCampus(campus); // <--- NUEVO: Poblar el filtro de campus
         ui.poblarSelectActividades(actividades);
-        
-        // CAMBIO IMPORTANTE: Poblar el SELECT de periodos con IDs
-        const listaPeriodos = dataPeriodos.periodos || [];
-        ui.poblarSelectPeriodos(listaPeriodos, periodoActivoId);
         
         // Configurar Modal
         ui.poblarCheckboxesCampus(campus);         
         ui.poblarCheckboxesFacultades(facultades); 
         
-        // Configurar filtros de tabla (Este usa los nombres para filtrar la tabla visualmente)
+        // Configurar filtros de tabla
         ui.poblarFiltroPeriodos(todosLosEventos);
         const filtroEstado = document.getElementById('filtro-estado-admin');
         if (filtroEstado) filtroEstado.value = 'activo'; 
         
-        aplicarFiltrosAdmin(); 
+        aplicarFiltrosAdmin(); // Aplicar filtros iniciales
 
         // Ocultar mensaje de carga
         const mensajeDiv = document.getElementById('mensaje-respuesta');
@@ -104,6 +94,7 @@ function configurarListenersEventos() {
     document.getElementById('lista-eventos').addEventListener('click', handleListaEventosClick);
 
     // Listeners para los filtros de la tabla principal
+    // --- AGREGAMOS 'filtro-campus-admin' A LA LISTA ---
     const filtrosIDs = [
         'filtro-buscar-admin', 'filtro-facultad-admin', 'filtro-campus-admin', 
         'filtro-categoria-admin', 'filtro-tipo-admin', 'filtro-periodo-admin', 
@@ -141,8 +132,7 @@ function handleCampusChange() {
 function handleNuevoEventoClick() {
     modoEdicion = false;
     eventoEditandoId = null;
-    // CAMBIO: Pasamos el ID del periodo activo
-    ui.prepararModalParaCrear(periodoActivoId);
+    ui.prepararModalParaCrear(periodoActivoGlobal);
 }
 
 function handleCategoriaChange(e) {
@@ -197,8 +187,7 @@ async function handleListaEventosClick(e) {
                 mostrarMensaje('Cargando evento...', 'success');
                 modoEdicion = true;
                 eventoEditandoId = id;
-                // CAMBIO: Pasamos el ID del periodo activo por si el evento no tiene uno
-                ui.poblarFormularioParaEditar(evento, periodoActivoId);
+                ui.poblarFormularioParaEditar(evento, periodoActivoGlobal);
                 document.getElementById('modalEvento').style.display = 'flex';
                 document.getElementById('mensaje-respuesta').style.display = 'none';
             }
@@ -249,12 +238,9 @@ async function handleFormSubmit(e) {
         if (data.success) {
             ui.cerrarModal(); 
             mostrarMensaje(data.mensaje, 'success'); 
-            
-            // Recargar datos
             todosLosEventos = await api.cargarEventos(true);
             ui.poblarFiltroPeriodos(todosLosEventos); 
             aplicarFiltrosAdmin(); 
-            
             if (!modoEdicion && data.datos?.evento_id) {
                 modalQR.mostrarModalExitoConQR(data.datos.evento_id, data.mensaje, formData.get('tipo_actividad'));
             }
@@ -275,7 +261,7 @@ async function handleFormSubmit(e) {
 function aplicarFiltrosAdmin() {
     const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
     const facultad = document.getElementById('filtro-facultad-admin').value;
-    const campus = document.getElementById('filtro-campus-admin') ? document.getElementById('filtro-campus-admin').value : ''; 
+    const campus = document.getElementById('filtro-campus-admin') ? document.getElementById('filtro-campus-admin').value : ''; // <--- NUEVO
     const categoria = document.getElementById('filtro-categoria-admin').value;
     const tipo = document.getElementById('filtro-tipo-admin').value;
     const periodo = document.getElementById('filtro-periodo-admin').value;
@@ -286,14 +272,16 @@ function aplicarFiltrosAdmin() {
         if (estado === 'activo' && evento.activo != 1) return false;
         if (estado === 'inactivo' && evento.activo != 0) return false;
         
-        // 2. Filtro Campus
+        // 2. Filtro Campus (NUEVO)
+        // Compara el ID del campus del evento con el seleccionado
         if (campus && String(evento.campus_id) !== String(campus)) return false;
 
         // 3. Filtro Facultad
+        // Verifica si la facultad seleccionada está dentro de las facultades del evento
         const eventoFacultades = (evento.facultades_ids || '').split(',');
         if (facultad && !eventoFacultades.includes(facultad)) return false;
 
-        // 4. Filtro Búsqueda
+        // 4. Filtro Búsqueda (Nombre o Lugar)
         if (busqueda && !evento.nombre.toLowerCase().includes(busqueda) && 
             !(evento.lugar && evento.lugar.toLowerCase().includes(busqueda))) return false;
         

@@ -104,8 +104,7 @@ try {
                 e.descripcion,
                 e.fecha_inicio,
                 e.fecha_termino,
-                p.nombre AS periodo,  /* CAMBIO: Obtenemos el nombre desde la tabla periodo */
-                e.periodo_id,         /* CAMBIO: Traemos el ID por si acaso */
+                e.periodo,
                 e.lugar,
                 e.tipo_registro,
                 e.categoria_deporte,
@@ -143,13 +142,11 @@ try {
             LEFT JOIN actividaddeportiva a ON e.id_actividad = a.id
             LEFT JOIN campus c ON e.campus_id = c.id
             LEFT JOIN usuario u ON e.id_promotor = u.id
-            LEFT JOIN periodo p ON e.periodo_id = p.id  /* CAMBIO: JOIN necesario para obtener el nombre del periodo */
             LEFT JOIN evento_facultad ef ON e.id = ef.evento_id
             LEFT JOIN facultad f ON ef.facultad_id = f.id
             $whereClause
             /* --- SECCIÓN GROUP BY --- */
-            /* CAMBIO: Agregamos p.nombre y e.periodo_id al GROUP BY */
-            GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino, p.nombre, e.periodo_id,
+            GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino,e.periodo,
                      e.lugar, e.tipo_registro, e.categoria_deporte, e.tipo_actividad,
                      e.ubicacion_tipo, e.cupo_maximo, e.integrantes_min, e.integrantes_max, e.registros_actuales, e.codigo_qr,
                      e.activo, a.nombre, c.nombre, c.codigo, u.nombre
