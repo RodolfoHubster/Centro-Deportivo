@@ -219,7 +219,6 @@ try {
 } catch (Exception $e) {
     // Revertir transacción en caso de error
     mysqli_rollback($conexion);
-    
     http_response_code(400);
     echo json_encode([
         'success' => false,
