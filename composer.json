@@ -3,6 +3,7 @@
         "mpdf/mpdf": "^8.2",
         "phpoffice/phpspreadsheet": "^5.3",
         "tecnickcom/tcpdf": "^6.6",
-        "symfony/cache": "^7.4"
+        "symfony/cache": "^7.4",
+        "vlucas/phpdotenv": "^5.6"
     }
 }
