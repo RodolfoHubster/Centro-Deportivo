@@ -9,7 +9,7 @@ header('Access-Control-Allow-Credentials: true');
 
 include '../includes/conexion.php';
 session_start();
-// Validar sesión
+
 if (!isset($_SESSION['user_logged']) || $_SESSION['user_logged'] !== true) {
     http_response_code(401);
     echo json_encode(['success' => false, 'mensaje' => 'No autorizado']);
@@ -30,7 +30,7 @@ ob_clean();
 mysqli_begin_transaction($conexion);
 
 try {
-    // 1. VALIDAR CAMPOS OBLIGATORIOS
+    // 1. VALIDAR CAMPOS
     $camposRequeridos = [
         'nombre' => 'Nombre del evento',
         'fecha_inicio' => 'Fecha de inicio',
@@ -59,39 +59,29 @@ try {
     
     // La categoría es el valor final (ya sea el predefinido o el escrito por el usuario, gracias al JS)
     $categoria_deporte = mysqli_real_escape_string($conexion, $_POST['categoria_deporte']);
-    
     $tipo_actividad = mysqli_real_escape_string($conexion, $_POST['tipo_actividad']);
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
-    
     $id_promotor = intval($_POST['id_promotor']);
     
-    // === MANEJO SEGURO DE CAMPUS ID (para la columna única) ===
-    $campus_id = 1; // Valor predeterminado seguro
-
-    // 1. Si el nuevo array de checkboxes está presente, tomamos el primer ID seleccionado
+    // CAMPUS ID
+    $campus_id = 1;
     if (isset($_POST['campus']) && is_array($_POST['campus']) && !empty($_POST['campus'])) {
         $campus_id = intval($_POST['campus'][0]); 
-    } 
-    // 2. Si se está usando el campo oculto anterior (campus_id)
-    elseif (isset($_POST['campus_id']) && !empty($_POST['campus_id'])) {
+    } elseif (isset($_POST['campus_id']) && !empty($_POST['campus_id'])) {
         $campus_id = intval($_POST['campus_id']);
     }
+    if ($campus_id === 0) $campus_id = 1; 
 
-    if ($campus_id === 0) {
-        $campus_id = 1; 
-    }
-    // === FIN DE CORRECCIÓN DE CAMPUS ID ===
-    
-    // PERIODO
-    $periodo = isset($_POST['periodo']) ? mysqli_real_escape_string($conexion, trim($_POST['periodo'])) : '';
-    
+    // === CAMBIO CRITICO: PERIODO AHORA ES ID (ENTERO) ===
+    $periodo_id = !empty($_POST['periodo']) ? intval($_POST['periodo']) : null;
+
     $id_actividad = isset($_POST['actividad']) && !empty($_POST['actividad']) ? intval($_POST['actividad']) : null;
     $cupo_maximo = isset($_POST['cupo_maximo']) && $_POST['cupo_maximo'] !== '' ? intval($_POST['cupo_maximo']) : null;
     $integrantes_min = isset($_POST['integrantes_min']) && $_POST['integrantes_min'] !== '' ? intval($_POST['integrantes_min']) : null;
     $integrantes_max = isset($_POST['integrantes_max']) && $_POST['integrantes_max'] !== '' ? intval($_POST['integrantes_max']) : null;
     $facultades = isset($_POST['facultades']) && is_array($_POST['facultades']) ? $_POST['facultades'] : [];
     
-    // 3. VALIDACIONES
+    // 3. VALIDACIONES FECHAS
     $fecha_inicio_obj = DateTime::createFromFormat('Y-m-d', $fecha_inicio);
     $fecha_termino_obj = DateTime::createFromFormat('Y-m-d', $fecha_termino);
     
@@ -103,11 +93,12 @@ try {
     $token_registro = 'TKN_' . md5(uniqid($nombre . time(), true));
     
     // 5. INSERTAR
+    // 'ssssisissssiissiii'
     
     if ($id_actividad !== null) {
         // CASO 1: CON ACTIVIDAD
         $sqlEvento = "INSERT INTO evento (
-                        nombre, descripcion, fecha_inicio, fecha_termino, periodo, lugar, 
+                        nombre, descripcion, fecha_inicio, fecha_termino, periodo_id, lugar, 
                         id_actividad, tipo_registro, categoria_deporte, tipo_actividad,
                         ubicacion_tipo, campus_id, id_promotor, codigo_qr, token_registro,
                         cupo_maximo, integrantes_min, integrantes_max, 
@@ -121,16 +112,15 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt,
-            'ssssssisssssiiiii', 
-            $nombre, $descripcion, $fecha_inicio, $fecha_termino, $periodo, $lugar,
+            'ssssisissssiissiii', // 18 caracteres exactos
+            $nombre, $descripcion, $fecha_inicio, $fecha_termino, $periodo_id, $lugar,
             $id_actividad, $tipo_registro, $categoria_deporte, $tipo_actividad,
             $ubicacion_tipo, $campus_id, $id_promotor, $codigo_qr, $token_registro,
             $cupo_maximo, $integrantes_min, $integrantes_max
         );
     } else {
-        // CASO 2: SIN ACTIVIDAD
         $sqlEvento = "INSERT INTO evento (
-                        nombre, descripcion, fecha_inicio, fecha_termino, periodo, lugar,
+                        nombre, descripcion, fecha_inicio, fecha_termino, periodo_id, lugar,
                         tipo_registro, categoria_deporte, tipo_actividad,
                         ubicacion_tipo, campus_id, id_promotor, codigo_qr, token_registro,
                         cupo_maximo, integrantes_min, integrantes_max, 
@@ -144,17 +134,15 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt,
-            'ssssssssssiissiii', // 17 tipos de datos
-            $nombre, $descripcion, $fecha_inicio, $fecha_termino, $periodo, $lugar,
+            'ssssisissssiissiii', // 18 caracteres exactos
+            $nombre, $descripcion, $fecha_inicio, $fecha_termino, $periodo_id, $lugar,
             $tipo_registro, $categoria_deporte, $tipo_actividad,
             $ubicacion_tipo, $campus_id, $id_promotor, $codigo_qr, $token_registro,
             $cupo_maximo, $integrantes_min, $integrantes_max
         );
     }
     
-    if (!mysqli_stmt_execute($stmt)) {
-        throw new Exception('Error al crear evento: ' . mysqli_stmt_error($stmt));
-    }
+    if (!mysqli_stmt_execute($stmt)) throw new Exception('Error al crear evento: ' . mysqli_stmt_error($stmt));
     $evento_id = mysqli_insert_id($conexion);
     mysqli_stmt_close($stmt);
     
@@ -175,11 +163,7 @@ try {
     
     // CERRAR BUFFER ANTES DE ENVIAR JSON
     ob_end_clean(); 
-    echo json_encode([
-        'success' => true,
-        'mensaje' => "Evento '{$nombre}' creado exitosamente",
-        'datos' => ['evento_id' => $evento_id]
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['success' => true, 'mensaje' => "Evento '{$nombre}' creado exitosamente", 'datos' => ['evento_id' => $evento_id]], JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
     mysqli_rollback($conexion);

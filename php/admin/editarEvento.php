@@ -111,13 +111,16 @@ try {
     // ===================================
     // 4. ACTUALIZAR EVENTO
     // ===================================
-    $periodo = $_POST['periodo'] ?? '';
+    
+    // CAMBIO: Recibimos ID (entero) en lugar de texto
+    $periodo_id = isset($_POST['periodo']) ? intval($_POST['periodo']) : null;
+
     $sqlEvento = "UPDATE evento SET 
                     nombre = ?,
                     descripcion = ?,
                     fecha_inicio = ?,
                     fecha_termino = ?,
-                    periodo = ?,
+                    periodo_id = ?, 
                     lugar = ?,
                     id_actividad = ?,
                     tipo_registro = ?,
@@ -137,14 +140,16 @@ try {
         throw new Exception('Error al preparar consulta de actualización: ' . mysqli_error($conexion));
     }
     
+    // CORRECCIÓN: Cadena de tipos ajustada (17 caracteres exactos)
+    // El 5to parámetro es 'i' porque periodo_id es entero
     mysqli_stmt_bind_param(
         $stmt,
-        'ssssssisssssiiiii',
+        'ssssisissssiiiiii', // 17 caracteres: s,s,s,s,i,s,i,s,s,s,s,i,i,i,i,i,i
         $nombre,
         $descripcion,
         $fecha_inicio,
         $fecha_termino,
-        $periodo,
+        $periodo_id, // Variable corregida (entero)
         $lugar,
         $id_actividad,
         $tipo_registro,
@@ -219,6 +224,7 @@ try {
 } catch (Exception $e) {
     // Revertir transacción en caso de error
     mysqli_rollback($conexion);
+    
     http_response_code(400);
     echo json_encode([
         'success' => false,
