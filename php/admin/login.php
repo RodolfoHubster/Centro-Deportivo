@@ -139,13 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     echo json_encode(['success' => false, 'mensaje' => 'Método no permitido']);
 }
 
-// ==================================================================
-// GARBAGE COLLECTION (NUEVO): Limpiar intentos viejos
-// ==================================================================
-// Esto evita que la tabla crezca indefinidamente con intentos fallidos antiguos.
-$sqlLimpieza = "DELETE FROM login_attempts WHERE attempt_time < (NOW() - INTERVAL 24 HOUR)";
-mysqli_query($conexion, $sqlLimpieza);
-
 mysqli_close($conexion);
 
 function registrarIntentoFallido($conn, $ip, $email) {
