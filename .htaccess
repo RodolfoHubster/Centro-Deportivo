@@ -1,0 +1,7 @@
+# Protege el archivo .env
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+#Evita que listen los directorios (seguridad extra)
+Options -Indexes
