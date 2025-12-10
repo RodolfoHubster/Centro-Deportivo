@@ -161,7 +161,8 @@ export function mostrarModalExitoConQR(id_evento, mensaje, tipo_actividad) { // 
     const baseURL = currentURL.split('?')[0].replace('admin/gestionar-eventos.html', targetPage);
     const enlaceEvento = `${baseURL}?id_evento=${encodeURIComponent(id_evento)}`;
     
-    const modalExito = document.createElement('div'); 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
+    const modalExito = document.createElement('div');
+    modalExito.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; align-items: center; justify-content: center;';
     
     modalExito.innerHTML = `
         <div style="max-width: 650px; background: white; padding: 35px; border-radius: 10px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">

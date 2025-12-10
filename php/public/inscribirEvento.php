@@ -40,6 +40,10 @@ try {
         $tipo_participante_temp = 'Personal de servicio';
         $_POST['tipo_participante'] = 'Personal de servicio'; // Actualizamos para el resto del script
     }
+    if ($tipo_participante_temp === 'Personal Académico') {
+        $tipo_participante_temp = 'Personal académico';
+        $_POST['tipo_participante'] = 'Personal académico'; 
+    }
     
     // Definimos los roles que tienen "permisos libres" (Matrícula opcional y Correo libre)
     $roles_libres = ['Externo', 'Personal de servicio'];
