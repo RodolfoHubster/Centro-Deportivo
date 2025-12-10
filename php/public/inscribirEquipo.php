@@ -91,6 +91,9 @@ try {
         if ($tipo_raw === 'Personal de Servicio') {
             $tipo_raw = 'Personal de servicio';
         }
+        if ($tipo_raw === 'Personal Académico') {
+            $tipo_raw = 'Personal académico';
+        }
         $integrante['tipo_participante'] = $tipo_raw; // Guardamos el corregido
 
         // 2. Determinar ID Real (Matrícula o Correo)
