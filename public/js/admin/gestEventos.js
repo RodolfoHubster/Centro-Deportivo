@@ -162,24 +162,45 @@ async function handleListaEventosClick(e) {
     const accion = boton.dataset.action;
     const nombre = boton.dataset.nombre || 'este evento';
 
+    let tituloExito = '';
+    let mensajeDetalleExito = '';
+
     try {
         if (accion === 'finalizar') {
             if (!confirm(`¿Estás seguro de FINALIZAR el evento "${nombre}"?`)) return;
             mostrarMensaje('Finalizando...', 'error');
+            
+            // Definir mensajes de éxito
+            tituloExito = '¡Evento Finalizado Exitosamente!';
+            mensajeDetalleExito = `El evento '${nombre}' ha sido marcado como finalizado.`;
+
             const data = await api.finalizarEvento(id);
-            procesarRespuestaAccion(data);
+            // Pasar mensajes a la función
+            procesarRespuestaAccion(data, tituloExito, mensajeDetalleExito);
         }
         else if (accion === 'reactivar') {
             if (!confirm(`¿Estás seguro de REACTIVAR el evento "${nombre}"?`)) return;
             mostrarMensaje('Reactivando...', 'success');
+            
+            // Definir mensajes de éxito
+            tituloExito = '¡Evento Reactivado Exitosamente!';
+            mensajeDetalleExito = `El evento '${nombre}' ha sido reactivado y vuelve a estar activo.`;
+
             const data = await api.reactivarEvento(id);
-            procesarRespuestaAccion(data);
+            // Pasar mensajes a la función
+            procesarRespuestaAccion(data, tituloExito, mensajeDetalleExito);
         }
         else if (accion === 'eliminar') {
             if (!confirm(`¿Estás seguro de ELIMINAR el evento "${nombre}"?`)) return;
             mostrarMensaje('Eliminando...', 'success');
+            
+            // Definir mensajes de éxito
+            tituloExito = '¡Evento Eliminado Exitosamente!';
+            mensajeDetalleExito = `El evento '${nombre}' ha sido eliminado permanentemente del sistema.`;
+
             const data = await api.eliminarEvento(id); 
-            procesarRespuestaAccion(data);
+            // Pasar mensajes a la función
+            procesarRespuestaAccion(data, tituloExito, mensajeDetalleExito);
         }
         else if (accion === 'editar') {
             const evento = todosLosEventos.find(e => e.id == id);
@@ -201,8 +222,17 @@ async function handleListaEventosClick(e) {
     }
 }
 
-function procesarRespuestaAccion(res) {
-    mostrarMensaje(res.mensaje, res.success ? 'success' : 'error');
+function procesarRespuestaAccion(res, tituloExito = '¡Acción Exitosa!', mensajeDetalleExito = '') {
+    // Si la respuesta es exitosa Y tenemos un mensaje de detalle
+    if (res.success && mensajeDetalleExito) {
+        // Muestra el modal de éxito con el mensaje personalizado
+        mostrarModalExitoGlobal(tituloExito, mensajeDetalleExito);
+    } else {
+        // Muestra el mensaje de respuesta normal (por defecto o error, o si no se pasó mensaje de detalle)
+        mostrarMensaje(res.mensaje, res.success ? 'success' : 'error');
+    }
+    
+    // Si la respuesta fue exitosa, recarga la lista de eventos
     if (res.success) {
         api.cargarEventos(true).then(ev => {
             todosLosEventos = ev;
@@ -233,17 +263,39 @@ async function handleFormSubmit(e) {
     btn.disabled = true;
     btn.textContent = 'Guardando...';
 
-    try {
+try {
         const data = await api.guardarEvento(formData, modoEdicion);
         if (data.success) {
+            
+            // 1. Cerrar el modal del formulario de creación/edición
             ui.cerrarModal(); 
-            mostrarMensaje(data.mensaje, 'success'); 
+
+            // 2. Recargar los datos y aplicar filtros para actualizar la lista.
             todosLosEventos = await api.cargarEventos(true);
             ui.poblarFiltroPeriodos(todosLosEventos); 
-            aplicarFiltrosAdmin(); 
-            if (!modoEdicion && data.datos?.evento_id) {
-                modalQR.mostrarModalExitoConQR(data.datos.evento_id, data.mensaje, formData.get('tipo_actividad'));
+            aplicarFiltrosAdmin();
+            
+            const nombreEvento = formData.get('nombre');
+
+            if (!modoEdicion) {
+                // Caso: Creación - Mostrar Modal de Éxito CON QR
+                if (data.datos?.evento_id) {
+                    const mensajeCreacion = `Tu evento '${nombreEvento}' ha sido programado.`; 
+                    modalQR.mostrarModalExitoConQR(
+                        data.datos.evento_id, 
+                        mensajeCreacion, 
+                        formData.get('tipo_actividad')
+                    );
+                } else {
+                    mostrarMensaje(data.mensaje, 'success'); // Fallback por si no viene el ID
+                }
+            } else {
+                // Caso: Edición - Mostrar Modal de Éxito GENÉRICO (sin QR)
+                const titulo = "¡Evento Editado Exitosamente!";
+                const mensaje = `El evento '${nombreEvento}' ha sido actualizado correctamente.`;
+                mostrarModalExitoGlobal(titulo, mensaje);
             }
+
         } else {
             mostrarMensaje(data.mensaje, 'error');
         }
@@ -294,6 +346,44 @@ function aplicarFiltrosAdmin() {
     });
 
     ui.mostrarEventos(eventosFiltrados);
+}
+
+// ... [Después de la función 'aplicarFiltrosAdmin']
+
+// ==========================================================
+// === LÓGICA DEL MODAL DE ÉXITO DINÁMICO (Crear/Editar) ===
+// ==========================================================
+function mostrarModalExitoGlobal(titulo, mensajeDetalle) {
+    const modal = document.getElementById('modalExitoGlobal');
+    if (!modal) {
+        // Fallback: si el modal no se encuentra (por ejemplo, por CSS), usa el mensaje normal
+        return mostrarMensaje(titulo + ' - ' + mensajeDetalle, 'success');
+    } 
+
+    const tituloEl = document.getElementById('tituloExito');
+    const mensajeEl = document.getElementById('mensajeExito');
+    const btnAceptar = document.getElementById('btnAceptarExito');
+
+    tituloEl.textContent = titulo;
+    mensajeEl.innerHTML = mensajeDetalle;
+    
+
+    modal.style.display = 'flex'; // Mostrar el modal
+
+    const cerrarModal = () => {
+        modal.style.display = 'none';
+        btnAceptar.removeEventListener('click', cerrarModal);
+        modal.removeEventListener('click', cerrarFueraDeContenido);
+    };
+    
+    const cerrarFueraDeContenido = (e) => {
+        if (e.target === modal) {
+            cerrarModal();
+        }
+    }
+    
+    btnAceptar.addEventListener('click', cerrarModal);
+    modal.addEventListener('click', cerrarFueraDeContenido);
 }
 
 // --- Cierre de modal ---

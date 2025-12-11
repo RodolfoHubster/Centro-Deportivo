@@ -912,9 +912,17 @@ function enviarInscripcion(form, modal) {
     .then(data => {
         if (data.success) {
             modal.remove();
-            mostrarModalExito(data.mensaje, () => {
+            
+            // TITULO y MENSAJE para la inscripción
+            const nombreCompleto = `${formData.get('nombres')} ${formData.get('apellido_paterno')}`;
+            const titulo = '¡Inscripción Exitosa!';
+            const mensaje = `El participante **${nombreCompleto}** ha sido registrado en el evento.`;
+            
+            // Usamos el modal global con la función de recarga como callback
+            mostrarModalExitoGlobal(titulo, mensaje, () => {
                 cargarParticipantes(eventoIdActual); 
             });
+            
         } else {
             mostrarMensaje(data.mensaje, 'error');
             btnEnviar.disabled = false;
@@ -947,9 +955,17 @@ function enviarUnirseEquipo(form, modal) {
     .then(data => {
         if (data.success) {
             modal.remove();
-            mostrarModalExito(data.mensaje, () => {
+            
+            // TITULO y MENSAJE para la unión a equipo
+            const nombreCompleto = `${formData.get('nombres')} ${formData.get('apellido_paterno')}`;
+            const titulo = '¡Unión a Equipo Exitosa!';
+            const mensaje = `El participante **${nombreCompleto}** fue añadido al equipo.`;
+            
+            // Usamos el modal global con la función de recarga como callback
+            mostrarModalExitoGlobal(titulo, mensaje, () => {
                 cargarParticipantes(eventoIdActual); 
             });
+            
         } else {
             mostrarMensaje(data.mensaje, 'error');
             btnEnviar.disabled = false;
@@ -1285,6 +1301,7 @@ window.abrirModalEditar = async function(usuarioString) {
     }
 }
 
+
 window.eliminarParticipante = async function(inscripcionId, nombre) {
     if (!confirm(`¿Estás seguro de eliminar a ${nombre}?`)) return;
     
@@ -1297,8 +1314,11 @@ window.eliminarParticipante = async function(inscripcionId, nombre) {
         const data = await response.json(); 
         
         if (data.success) {
-            mostrarMensaje(data.mensaje, 'success');
-            cargarParticipantes(eventoIdActual);
+            // ANTES: mostrarMensaje(data.mensaje, 'success');
+            // ANTES: cargarParticipantes(eventoIdActual);
+            
+            // NUEVO: Usar la función que muestra el modal de éxito
+            procesarRespuestaAccion(data, nombre);
         } else {
             mostrarMensaje(data.mensaje, 'error');
         }
@@ -1306,6 +1326,7 @@ window.eliminarParticipante = async function(inscripcionId, nombre) {
         mostrarMensaje("Error al eliminar", 'error');
     }
 }
+
 
 async function guardarEdicion(form) {
     const formData = new FormData(form);
@@ -1320,8 +1341,16 @@ async function guardarEdicion(form) {
         const data = await response.json();
 
         if (data.success) {
-            window.cerrarModal();
-            mostrarModalExito(data.mensaje, () => {
+            // 1. Cierra el modal de edición/formulario.
+            window.cerrarModal(); 
+            
+            // 2. Define el título y el mensaje.
+            const titulo = '¡Edición Exitosa!';
+            // Usamos el mensaje del servidor si existe, si no, uno genérico.
+            const mensaje = data.mensaje || 'Los datos del participante han sido actualizados correctamente.';
+
+            // 3. Muestra el modal de éxito global, pasando la recarga de participantes como callback.
+            mostrarModalExitoGlobal(titulo, mensaje, () => {
                 cargarParticipantes(eventoIdActual); 
             });
 
@@ -1345,5 +1374,71 @@ window.cerrarModal = function() {
     const contenedor = document.getElementById('contenedor-formulario-externo');
     if (contenedor) {
         contenedor.innerHTML = ''; 
+    }
+}
+
+// ==========================================================
+// === LÓGICA DEL MODAL DE ÉXITO DINÁMICO (CORREGIDA) ===
+// ==========================================================
+// DEBE RECIBIR TRES ARGUMENTOS
+function mostrarModalExitoGlobal(titulo, mensajeDetalle, onAceptarCallback = null) {
+    const modal = document.getElementById('modalExitoGlobal');
+    if (!modal) {
+        // Fallback: si el modal no se encuentra (por ejemplo, por CSS), usa el mensaje normal
+        // Asumiendo que 'mostrarMensaje' está importado de '../utils/utilidades.js'
+        return mostrarMensaje(titulo + ' - ' + mensajeDetalle, 'success'); 
+    } 
+
+    const tituloEl = document.getElementById('tituloExito');
+    const mensajeEl = document.getElementById('mensajeExito');
+    const btnAceptar = document.getElementById('btnAceptarExito');
+
+    tituloEl.textContent = titulo;
+    mensajeEl.innerHTML = mensajeDetalle;
+
+    modal.style.display = 'flex'; // Mostrar el modal
+
+    const cerrarModal = () => {
+        modal.style.display = 'none';
+        
+        // EJECUTAR EL CALLBACK SI EXISTE
+        // onAceptarCallback ahora está en el scope gracias al parámetro de la función padre.
+        if (onAceptarCallback && typeof onAceptarCallback === 'function') {
+            onAceptarCallback();
+        }
+
+        btnAceptar.removeEventListener('click', cerrarModal);
+        modal.removeEventListener('click', cerrarFueraDeContenido);
+    };
+    
+    const cerrarFueraDeContenido = (e) => {
+        if (e.target === modal) {
+            cerrarModal();
+        }
+    }
+    
+    btnAceptar.addEventListener('click', cerrarModal);
+    modal.addEventListener('click', cerrarFueraDeContenido);
+}
+
+// ==========================================================
+// === FUNCIÓN DE PROCESAMIENTO DE RESPUESTA MODIFICADA ===
+// ==========================================================
+function procesarRespuestaAccion(res, nombreParticipante) {
+    // Definimos el callback de recarga
+    const recargarCallback = () => cargarParticipantes(eventoIdActual); 
+    
+    if (res.success) {
+        // Usa el nuevo modal de éxito
+        const tituloExito = '¡Participante Eliminado Exitosamente!';
+        const mensajeDetalleExito = `El participante '${nombreParticipante}' ha sido eliminado del evento.`;
+        
+        // Llamamos al modal de éxito, pasando la función de recarga como callback (tercer argumento)
+        mostrarModalExitoGlobal(tituloExito, mensajeDetalleExito, recargarCallback);
+
+        // Eliminamos la llamada directa a cargarParticipantes(eventoIdActual); de aquí
+    } else {
+        // Muestra el mensaje de error normal
+        mostrarMensaje(res.mensaje, 'error');
     }
 }
