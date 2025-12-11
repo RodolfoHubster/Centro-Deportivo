@@ -27,10 +27,13 @@ try {
     if ($tipo_raw === 'Personal de Servicio') {
         $tipo_raw = 'Personal de servicio';
     }
+    if ($tipo_raw === 'Personal Académico') {
+        $tipo_raw = 'Personal académico'; 
+    }
     $tipo_participante = mysqli_real_escape_string($conexion, $tipo_raw);
     
     // Definimos roles con permisos flexibles
-    $roles_libres = ['Externo', 'Personal de servicio'];
+    $roles_libres = ['Externo', 'Personal de servicio','Personal académico'];
     $es_rol_libre = in_array($tipo_raw, $roles_libres);
 
     // Recibir resto de datos
