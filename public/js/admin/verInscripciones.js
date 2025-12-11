@@ -64,6 +64,7 @@ async function cargarDatosIniciales() {
 
 function configurarListeners() {
     const selectCampus = document.getElementById('filtroCampus');
+    const selectFacultad = document.getElementById('filtroFacultad');
     
     if (selectCampus) {
         selectCampus.addEventListener('change', (e) => {
@@ -80,6 +81,13 @@ function configurarListeners() {
             // 3. Recargar la tabla
             paginaActual = 1;
             cargarTablaInscripciones();
+        });
+
+    }
+    if (selectFacultad) {
+        selectFacultad.addEventListener('change', (e) => {
+            // Al cambiar la facultad, filtramos las carreras disponibles
+            actualizarCarrerasPorFacultad(e.target.value);
         });
     }
 
@@ -151,7 +159,31 @@ function actualizarDropdownsPorCampus(campusId) {
     poblarSelect('filtroFacultad', facultadesFiltradas, campusId ? 'Facultades de este campus' : 'Todas las facultades');
     poblarSelect('filtroCarrera', carrerasFiltradas, campusId ? 'Carreras de este campus' : 'Todas las carreras');
 }
+/**
+ * Filtra las carreras basándose en la Facultad seleccionada (y respeta el Campus si hay uno)
+ */
+function actualizarCarrerasPorFacultad(facultadId) {
+    const campusId = document.getElementById('filtroCampus').value;
+    let carrerasFiltradas = todasLasCarreras;
 
+    // 1. Si hay campus seleccionado, filtramos primero por campus
+    if (campusId) {
+        carrerasFiltradas = carrerasFiltradas.filter(c => String(c.campus_id) === String(campusId));
+    }
+
+    // 2. Si hay facultad seleccionada, filtramos las carreras de ESA facultad
+    if (facultadId) {
+        carrerasFiltradas = carrerasFiltradas.filter(c => String(c.facultad_id) === String(facultadId));
+    }
+
+    // 3. Actualizamos el dropdown de carreras
+    // Nota: Esto usará tu función poblarSelect modificada (la que muestra los nombres largos)
+    const textoDefault = facultadId ? 'Carreras de esta facultad' : (campusId ? 'Carreras de este campus' : 'Todas las carreras');
+    poblarSelect('filtroCarrera', carrerasFiltradas, textoDefault);
+    
+    // 4. Limpiamos la selección actual de carrera para evitar inconsistencias
+    document.getElementById('filtroCarrera').value = ''; 
+}
 function poblarSelect(id, datos, textoDefault) {
     const select = document.getElementById(id);
     if (!select) return;
@@ -160,11 +192,22 @@ function poblarSelect(id, datos, textoDefault) {
     if (!datos) return;
 
     datos.forEach(item => {
-        const texto = item.nombre_completo || item.nombre;
+        let texto = item.nombre_completo || item.nombre;
+        
+        // CORRECCIÓN ESPECÍFICA PARA EL CASO DE SIGLAS NULL
+        if (id === 'filtroCarrera') {
+            // Intentamos usar siglas; si es null o vacío, usamos el nombre completo de la facultad
+            const distintivo = item.facultad_siglas ? item.facultad_siglas : item.facultad_nombre;
+            
+            if (distintivo) {
+                // Agregamos el distintivo entre paréntesis
+                texto += ` - ${distintivo}`; 
+            }
+        }
+        
         select.innerHTML += `<option value="${item.id}">${texto}</option>`;
     });
 }
-
 function configurarOrdenamiento() {
     const headers = document.querySelectorAll('th.sortable');
     headers.forEach(th => {
