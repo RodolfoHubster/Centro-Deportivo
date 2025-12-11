@@ -37,6 +37,46 @@ function configurarListeners() {
     });
 }
 
+// === Función para mostrar el modal de éxito dinámico ===
+function mostrarModalExitoUsuario(titulo, mensajeDetalle, onAceptarCallback = null) {
+    const modal = document.getElementById('modalExitoGlobal');
+    if (!modal) {
+        // Fallback: usar el mensaje normal si el modal no se encuentra
+        return mostrarMensaje(titulo + ' - ' + mensajeDetalle, 'success'); 
+    } 
+
+    const tituloEl = document.getElementById('tituloExito');
+    const mensajeEl = document.getElementById('mensajeExito');
+    const btnAceptar = document.getElementById('btnAceptarExito');
+
+    tituloEl.textContent = titulo;
+    mensajeEl.innerHTML = mensajeDetalle;
+
+    modal.style.display = 'flex'; // Mostrar el modal
+
+    const cerrarModal = () => {
+        modal.style.display = 'none';
+        
+        if (onAceptarCallback && typeof onAceptarCallback === 'function') {
+            onAceptarCallback();
+        }
+
+        btnAceptar.removeEventListener('click', cerrarModal);
+        modal.removeEventListener('click', cerrarFueraDeContenido);
+    };
+    
+    // Listener para cerrar al hacer clic fuera del contenido
+    const cerrarFueraDeContenido = (e) => {
+        if (e.target === modal) {
+            cerrarModal();
+        }
+    }
+    
+    // Asignar listeners
+    btnAceptar.addEventListener('click', cerrarModal);
+    modal.addEventListener('click', cerrarFueraDeContenido);
+}
+
 async function cargarUsuarios() {
     try {
         const response = await fetch('../../php/admin/obtenerUsuarios.php');
@@ -122,15 +162,18 @@ async function guardarUsuario(e) {
         const data = await response.json();
 
         if (data.success) {
-            mostrarMensaje(data.mensaje, 'success');
-            cerrarModal();
+            // OBTENER EL NOMBRE DEL USUARIO
+            const nombreCompleto = `${formData.get('nombre')} ${formData.get('apellido_paterno')} ${formData.get('apellido_materno') || ''}`.trim();
             
-            // --- CAMBIO CLAVE: ---
-            // Limpiamos el formulario AQUÍ, solo cuando se confirma que se guardó.
-            // Así, si fallara o cancelaras, el texto seguiría intacto.
+            const operacion = modoEdicion ? '¡Operación Exitosa!' : '¡Operación Exitosa!';
+            const mensajeDetalle = modoEdicion 
+                ? `El usuario <strong>${nombreCompleto}</strong> se actualizó correctamente.`
+                : `El usuario <strong>${nombreCompleto}</strong> se creó correctamente.`;
+            
+            cerrarModal();
             form.reset(); 
             
-            cargarUsuarios(); // Recargamos la lista
+            mostrarModalExitoUsuario(operacion, mensajeDetalle, cargarUsuarios); 
         } else {
             mostrarMensaje(data.mensaje, 'error');
         }
@@ -163,19 +206,64 @@ function handleEliminarPermanenteClick() {
 }
 
 async function eliminarUsuario(id) {
-    await fetch('../../php/admin/desactivarUsuario.php', { method: 'POST', body: JSON.stringify({id}) });
-    cargarUsuarios();
+    // OBTENER EL NOMBRE DEL USUARIO ANTES DE DESACTIVAR
+    const usuario = todosLosUsuarios.find(u => u.id == id);
+    const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim() : 'el usuario';
+    
+    const response = await fetch('../../php/admin/desactivarUsuario.php', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({id}) 
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+        const mensajeDetalle = `El usuario <strong>${nombreCompleto}</strong> se desactivó correctamente.`;
+        mostrarModalExitoUsuario('¡Operación Exitosa!', mensajeDetalle, cargarUsuarios);
+    } else {
+        mostrarMensaje(data.mensaje, 'error');
+    }
 }
 
 async function reactivarUsuario(id) {
-    await fetch('../../php/admin/reactivarUsuario.php', { method: 'POST', body: JSON.stringify({id}) });
-    cargarUsuarios();
+    // OBTENER EL NOMBRE DEL USUARIO ANTES DE REACTIVAR
+    const usuario = todosLosUsuarios.find(u => u.id == id);
+    const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim() : 'el usuario';
+    
+    const response = await fetch('../../php/admin/reactivarUsuario.php', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({id}) 
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+        const mensajeDetalle = `El usuario <strong>${nombreCompleto}</strong> se reactivó correctamente.`;
+        mostrarModalExitoUsuario('¡Operación Exitosa!', mensajeDetalle, cargarUsuarios);
+    } else {
+        mostrarMensaje(data.mensaje, 'error');
+    }
 }
 
 async function eliminarUsuarioPermanente(id) {
-    await fetch('../../php/admin/eliminarUsuarios.php', { method: 'POST', body: JSON.stringify({id}) });
-    cerrarModal();
-    cargarUsuarios();
+    // OBTENER EL NOMBRE DEL USUARIO ANTES DE ELIMINAR
+    const usuario = todosLosUsuarios.find(u => u.id == id);
+    const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim() : 'el usuario';
+    
+    const response = await fetch('../../php/admin/eliminarUsuarios.php', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({id}) 
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+        const mensajeDetalle = `El usuario <strong>${nombreCompleto}</strong> se eliminó permanentemente.`;
+        cerrarModal();
+        mostrarModalExitoUsuario('¡Operación Exitosa!', mensajeDetalle, cargarUsuarios);
+    } else {
+        mostrarMensaje(data.mensaje, 'error');
+    }
 }
 
 // public/js/admin/gestUsuarios.js

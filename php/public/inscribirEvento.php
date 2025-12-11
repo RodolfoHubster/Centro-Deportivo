@@ -46,7 +46,7 @@ try {
     }
     
     // Definimos los roles que tienen "permisos libres" (Matrícula opcional y Correo libre)
-    $roles_libres = ['Externo', 'Personal de servicio'];
+    $roles_libres = ['Externo', 'Personal de servicio','Personal académico'];
     $es_rol_libre = in_array($tipo_participante_temp, $roles_libres);
 
     $camposRequeridos = [
