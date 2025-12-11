@@ -1,5 +1,11 @@
 // 1. Definimos las variables al principio para que sean accesibles en todo el archivo
 const isAdminPage = window.location.pathname.includes('/admin/');
+// Lógica para el Favicon (Icono)
+const faviconPath = isAdminPage ? '../images/centroDeportivo.ico' : 'images/centroDeportivo.ico';
+const link = document.createElement('link');
+link.rel = 'icon';
+link.href = faviconPath;
+document.head.appendChild(link);
 
 // RUTAS (Definidas globalmente)
 const headerURL = isAdminPage ? '../includes/header.html' : 'includes/header.html';

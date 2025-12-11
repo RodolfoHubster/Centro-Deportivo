@@ -94,6 +94,30 @@ try {
         exit;
     }
     
+    // 6. ACCIÓN: ELIMINAR (POST) - NUEVO
+    elseif ($accion === 'eliminar' && $method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = intval($input['id'] ?? 0);
+
+        if ($id <= 0) throw new Exception("ID inválido para la eliminación.");
+
+        // Utilizamos prepared statements para el DELETE
+        $stmt = mysqli_prepare($conexion, "DELETE FROM periodo WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            $affected_rows = mysqli_stmt_affected_rows($stmt);
+            if ($affected_rows > 0) {
+                echo json_encode(['success' => true, 'mensaje' => 'El periodo fue eliminado permanentemente.']);
+            } else {
+                throw new Exception("No se pudo eliminar el periodo. ID no encontrado o ya eliminado.");
+            }
+        } else {
+            throw new Exception("Error al ejecutar la eliminación: " . mysqli_error($conexion));
+        }
+        exit;
+    }
+    
     else {
         throw new Exception("Acción no válida o método incorrecto.");
     }

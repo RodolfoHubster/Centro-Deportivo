@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>Gestionar Periodos - Admin</title>
-  <link rel="stylesheet" href="../css/main.css">
-  <style>
-    /* --- ESTILOS RESPONSIVOS (Del Código 2) --- */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Gestionar Periodos - Admin</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+    /* --- ESTILOS RESPONSIVOS --- */
     .periodo-card { 
         background: white; 
         padding: 15px; 
@@ -17,7 +17,7 @@
         align-items: center; 
         margin-bottom: 10px; 
         gap: 10px; 
-        border-left: 5px solid transparent; /* Preparado para borde de color */
+        border-left: 5px solid transparent;
     }
     
     .periodo-activo-border { border-left-color: #28a745; background-color: #f0fff4; }
@@ -37,54 +37,104 @@
             justify-content: space-between;
             align-items: center;
         }
-        /* Ajuste para que el botón no quede gigante en móvil */
         .btn-activar-container {
             justify-content: flex-end !important;
             margin-top: 10px;
         }
     }
-  </style>
+    </style>
 </head>
 <body>
-  <div id="header-placeholder"></div>
-  
-  <main class="page-content">
-    <h1>Gestión de Periodos</h1>
-    <p>Crea semestres y selecciona cuál está activo.</p>
+    <div id="header-placeholder"></div>
+    
+    <main class="page-content">
+        <h1>Gestión de Periodos</h1>
+        <p>Crea semestres y selecciona cuál está activo.</p>
 
-    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h3 style="margin-top:0; color: #006633;">Crear Nuevo Semestre</h3>
-        
-        <form id="formCrearPeriodo" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex-grow: 1; min-width: 200px;"> 
-                <label style="display:block; font-weight:bold; margin-bottom:5px;">Nombre del Periodo:</label>
-                <input type="text" id="nombrePeriodo" placeholder="Ej: 2025-2" required
-                       style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
-            </div>
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+            <h3 style="margin-top:0; color: #006633;">Crear Nuevo Semestre</h3>
             
-            <button type="submit" 
-                    style="background: #006633; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; height: 42px;">
-                Crear Periodo
-            </button>
-        </form>
+            <form id="formCrearPeriodo" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex-grow: 1; min-width: 200px;"> 
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Nombre del Periodo:</label>
+                    <input type="text" id="nombrePeriodo" placeholder="Ej: 2025-2" required
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                </div>
+                
+                <button type="submit" 
+                        style="background: #006633; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; height: 42px;">
+                    Crear Periodo
+                </button>
+            </form>
+        </div>
+
+        <h3>Lista de Periodos</h3>
+        <div id="lista-periodos">
+            <p>Cargando datos...</p>
+        </div>
+    </main>
+
+    <!-- MODAL DE ÉXITO GLOBAL -->
+    <div id="modalExitoGlobal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center;">
+        <div class="admin-modal-contenido" style="background-color: #fefefe; padding: 40px; border-radius: 12px; max-width: 450px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        
+        <div style="display: flex; justify-content: center; align-items: center; width: 70px; height: 70px; background-color: #28a745; border-radius: 50%; margin: 0 auto 20px;">
+            <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        
+        <h2 id="tituloExito" style="color: #1f2937; font-size: 24px; font-weight: 700; margin-bottom: 10px;">¡Operación Exitosa!</h2>
+        <p id="mensajeExito" style="color: #6b7280; font-size: 16px; margin-bottom: 30px;"></p>
+        
+        <button type="button" id="btnAceptarExito" class="admin-modal-btn-guardar" style="width: 100%; max-width: 150px; padding: 10px 20px; font-size: 16px; background-color: #28a745; border: none; color: white; border-radius: 8px; cursor: pointer;">
+            Aceptar
+        </button>
+        </div>
     </div>
 
-    <h3>Lista de Periodos</h3>
-    <div id="lista-periodos">
-        <p>Cargando datos...</p>
-    </div>
-  </main>
-
-  <script src="../js/headFooter.js"></script>
-  <script>
+    <script src="../js/headFooter.js"></script>
+    <script>
         document.addEventListener('DOMContentLoaded', cargarPeriodos);
 
-        // --- LÓGICA FUNCIONAL (Del Código 1) CON ESTRUCTURA HTML (Del Código 2) ---
+        // === FUNCIÓN PARA MOSTRAR MODAL DE ÉXITO ===
+        function mostrarModalExito(titulo, mensajeDetalle, onAceptarCallback = null) {
+            const modal = document.getElementById('modalExitoGlobal');
+            const tituloEl = document.getElementById('tituloExito');
+            const mensajeEl = document.getElementById('mensajeExito');
+            const btnAceptar = document.getElementById('btnAceptarExito');
+
+            tituloEl.textContent = titulo;
+            mensajeEl.innerHTML = mensajeDetalle;
+
+            modal.style.display = 'flex';
+
+            const cerrarModal = () => {
+                modal.style.display = 'none';
+                
+                if (onAceptarCallback && typeof onAceptarCallback === 'function') {
+                    onAceptarCallback();
+                }
+
+                btnAceptar.removeEventListener('click', cerrarModal);
+                modal.removeEventListener('click', cerrarFueraDeContenido);
+            };
+            
+            const cerrarFueraDeContenido = (e) => {
+                if (e.target === modal) {
+                    cerrarModal();
+                }
+            }
+            
+            btnAceptar.addEventListener('click', cerrarModal);
+            modal.addEventListener('click', cerrarFueraDeContenido);
+        }
+
+        // === CARGAR PERIODOS ===
         function cargarPeriodos() {
             const lista = document.getElementById('lista-periodos');
             lista.innerHTML = '<p>Cargando datos...</p>';
 
-            // URL del Código 1 (la que sí funciona)
             fetch('../../php/admin/gestionarPeriodos.php?accion=obtener')
                 .then(response => {
                     if (!response.ok) throw new Error('Error en la red: ' + response.statusText);
@@ -94,7 +144,6 @@
                     console.log("Datos:", data); 
                     lista.innerHTML = ''; 
 
-                    // Verificación robusta (Lógica del código 1)
                     if (data.success && Array.isArray(data.periodos)) {
                         
                         if (data.periodos.length === 0) {
@@ -103,8 +152,7 @@
                         }
 
                         data.periodos.forEach(p => {
-                            // Determinar estilos según estado
-                            const esActivo = p.activo == 1 || p.activo === true || p.activo === '1'; // Asegurar booleano
+                            const esActivo = p.activo == 1 || p.activo === true || p.activo === '1';
                             
                             const claseExtra = esActivo ? 'periodo-activo-border' : '';
                             
@@ -112,11 +160,14 @@
                                 ? '<span class="badge-activo">ACTIVO ACTUALMENTE</span>' 
                                 : '<span class="badge-inactivo">Inactivo</span>';
 
-                            const btnActivar = !esActivo 
-                                ? `<button onclick="activarPeriodo(${p.id})" style="background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Activar</button>` 
+                            // Botones de acción
+                            const botonesAccion = !esActivo 
+                                ? `
+                                    <button onclick="activarPeriodo(${p.id}, '${p.nombre}')" style="background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-right: 8px;">Activar</button>
+                                    <button onclick="eliminarPeriodo(${p.id}, '${p.nombre}')" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Eliminar</button>
+                                ` 
                                 : '';
 
-                            // HTML Híbrido: Estructura del Code 2, Datos del Code 1
                             const itemHTML = `
                                 <div class="periodo-card ${claseExtra}">
                                     <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -124,8 +175,8 @@
                                         <span style="font-size: 0.8rem; color: #999;">(ID: ${p.id})</span>
                                         ${badge}
                                     </div>
-                                    <div class="btn-activar-container">
-                                        ${btnActivar}
+                                    <div class="btn-activar-container" style="display: flex; gap: 8px;">
+                                        ${botonesAccion}
                                     </div>
                                 </div>
                             `;
@@ -142,13 +193,16 @@
                 });
         }
 
-        // --- CREAR PERIODO (Lógica Código 1) ---
+        // === CREAR PERIODO ===
         document.getElementById('formCrearPeriodo').addEventListener('submit', (e) => {
             e.preventDefault();
             const nombreInput = document.getElementById('nombrePeriodo');
             const nombre = nombreInput.value.trim();
 
-            if(!nombre) return alert("Escribe un nombre");
+            if(!nombre) {
+                alert("Escribe un nombre");
+                return;
+            }
 
             fetch('../../php/admin/gestionarPeriodos.php?accion=crear', {
                 method: 'POST',
@@ -158,9 +212,12 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.mensaje);
                     nombreInput.value = ''; 
-                    cargarPeriodos(); 
+                    mostrarModalExito(
+                        '¡Operación Exitosa!',
+                        `El periodo <strong>${nombre}</strong> se creó correctamente.`,
+                        cargarPeriodos
+                    );
                 } else {
                     alert("Error: " + data.mensaje);
                 }
@@ -168,9 +225,9 @@
             .catch(e => alert("Error de conexión al crear"));
         });
 
-        // --- ACTIVAR PERIODO (Lógica Código 1) ---
-        window.activarPeriodo = function(id) {
-            if(!confirm('¿Seguro que quieres activar este periodo?')) return;
+        // === ACTIVAR PERIODO ===
+        window.activarPeriodo = function(id, nombrePeriodo) {
+            if(!confirm(`¿Seguro que quieres activar el periodo ${nombrePeriodo}?`)) return;
             
             fetch('../../php/admin/gestionarPeriodos.php?accion=activar', {
                 method: 'POST',
@@ -180,13 +237,19 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    cargarPeriodos();
+                    mostrarModalExito(
+                        '¡Operación Exitosa!',
+                        `El periodo <strong>${nombrePeriodo}</strong> se activó correctamente.`,
+                        cargarPeriodos
+                    );
                 } else {
                     alert("Error: " + data.mensaje);
                 }
             })
             .catch(e => alert("Error de conexión al activar"));
         }
-  </script>
+    </script>
+
+    <script src="../js/admin/gestPeriodos.js" type="module"></script>
 </body>
 </html>

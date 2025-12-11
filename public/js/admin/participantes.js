@@ -1190,15 +1190,15 @@ window.abrirModalEditar = async function(usuarioString) {
     try {
         // 1. Decodificar datos del usuario
         const u = JSON.parse(decodeURIComponent(usuarioString));
-        usuarioIdEditando = u.usuario_id; // Variable global definida arriba
+        usuarioIdEditando = u.usuario_id; // Variable global
 
-        // 2. Obtener referencias del HTML padre (ver-participantes.html)
+        // 2. Obtener referencias del HTML padre
         const contenedor = document.getElementById('contenedor-formulario-externo');
         const modal = document.getElementById('modalEditarParticipante');
         
         if(!contenedor || !modal) return;
 
-        // 3. Mostrar modal y cargar el formulario HTML (form_inscripcion_partial.html)
+        // 3. Mostrar modal y cargar el formulario HTML
         modal.style.display = 'flex';
         contenedor.innerHTML = '<p style="text-align:center; padding:20px;">Cargando formulario...</p>';
 
@@ -1208,72 +1208,80 @@ window.abrirModalEditar = async function(usuarioString) {
         const html = await response.text();
         contenedor.innerHTML = html;
 
-        // 4. Obtener referencias a los elementos recién inyectados
+        // 4. Obtener referencias a los elementos
         const form = contenedor.querySelector('#formDatosParticipante');
         const selectCampus = form.querySelector('#select-campus');
         const selectFacultad = form.querySelector('#select-facultad');
         const selectCarrera = form.querySelector('#select-carrera');
-        const rutaPHP = '../../php/public/'; // Ajusta si tu ruta es diferente
+        const rutaPHP = '../../php/public/'; 
 
-        // ============================================================
-        // LÓGICA DE CARGA EN CASCADA (Wait -> Fill)
-        // ============================================================
-
-        // A) Cargar CAMPUS y asignar valor
-        if (selectCampus) {
-            // Esperamos a que el fetch traiga las opciones...
-            await cargarCampus(selectCampus, rutaPHP); 
-            // ...y ahora sí asignamos el valor
-            selectCampus.value = u.campus_id; 
-        }
-
-        // B) Cargar FACULTADES (si hay campus) y asignar valor
-        if (selectFacultad && u.campus_id) {
-            await cargarFacultades(selectFacultad, u.campus_id, rutaPHP);
-            selectFacultad.value = u.facultad_id;
-        }
-
-        // C) Cargar CARRERAS (si hay facultad) y asignar valor
-        if (selectCarrera && u.facultad_id) {
-            await cargarCarreras(u.facultad_id, selectCarrera, rutaPHP);
-            selectCarrera.value = u.carrera_id;
-        }
-
-        // ============================================================
-        // LLENADO DE DATOS PERSONALES
-        // ============================================================
-        if(form.elements['matricula']) form.elements['matricula'].value = u.matricula;
-        if(form.elements['nombres']) form.elements['nombres'].value = u.nombre;
-        if(form.elements['apellido_paterno']) form.elements['apellido_paterno'].value = u.apellido_paterno;
-        if(form.elements['apellido_materno']) form.elements['apellido_materno'].value = u.apellido_materno;
-        if(form.elements['correo']) form.elements['correo'].value = u.correo;
-        if(form.elements['genero']) form.elements['genero'].value = u.genero;
-
-        // ============================================================
-        // MANEJO DE TIPO DE PARTICIPANTE Y CAMPOS VISIBLES
-        // ============================================================
+        // 5. CONFIGURAR ROL Y VISIBILIDAD (¡IMPORTANTE HACERLO PRIMERO!)
         const radios = form.querySelectorAll('input[name="tipo_participante"]');
-        let tipoUsuario = 'Estudiante'; // Default
+        let tipoUsuario = u.rol || 'Estudiante'; // Default
         
+        // Marcar el radio correcto
         radios.forEach(r => {
-            if (r.value === u.rol) {
+            // --- MODIFICACIÓN AQUÍ ---
+            // Convertimos ambos a minúsculas para comparar (ej: "Personal Académico" == "personal académico")
+            if (r.value.toLowerCase() === (u.rol || '').toLowerCase()) {
                 r.checked = true;
-                tipoUsuario = u.rol;
+                // Si encontramos coincidencia, actualizamos tipoUsuario para que la visibilidad se ajuste al valor del HTML
+                tipoUsuario = r.value; 
             }
-            // Reactivar el listener para que funcione si el admin cambia el tipo manualmente
+            
+            // Reactivar listener para cambios manuales
             r.addEventListener('change', () => actualizarCamposSegunTipo(r.value, form));
         });
         
-        // Ejecutar una vez para ocultar/mostrar campos según el rol cargado (ej. ocultar carrera si es docente)
+        // Ejecutar para mostrar/ocultar los campos correctos
         actualizarCamposSegunTipo(tipoUsuario, form);
-        
+
         // ============================================================
-        // LISTENERS PARA CAMBIOS MANUALES (Si el admin edita los selects)
+        // 6. CARGA EN CASCADA (Wait -> Fill)
+        // ============================================================
+
+        // A) Cargar CAMPUS
+        if (selectCampus) {
+            await cargarCampus(selectCampus, rutaPHP); 
+            if (u.campus_id) {
+                selectCampus.value = u.campus_id; 
+            }
+        }
+
+        // B) Cargar FACULTADES (Depende de Campus)
+        if (selectFacultad && u.campus_id) {
+            await cargarFacultades(selectFacultad, u.campus_id, rutaPHP);
+            if (u.facultad_id) {
+                selectFacultad.value = u.facultad_id;
+            }
+        }
+
+        // C) Cargar CARRERAS (Depende de Facultad)
+        // Solo cargar si el rol permite ver carreras (Estudiante) o si hay una carrera guardada
+        if (selectCarrera && u.facultad_id && (tipoUsuario === 'Estudiante' || u.carrera_id)) {
+            await cargarCarreras(u.facultad_id, selectCarrera, rutaPHP);
+            if (u.carrera_id) {
+                selectCarrera.value = u.carrera_id;
+            }
+        }
+
+        // ============================================================
+        // 7. LLENADO DE DATOS PERSONALES
+        // ============================================================
+        if(form.elements['matricula']) form.elements['matricula'].value = u.matricula || '';
+        if(form.elements['nombres']) form.elements['nombres'].value = u.nombre || '';
+        if(form.elements['apellido_paterno']) form.elements['apellido_paterno'].value = u.apellido_paterno || '';
+        if(form.elements['apellido_materno']) form.elements['apellido_materno'].value = u.apellido_materno || '';
+        if(form.elements['correo']) form.elements['correo'].value = u.correo || '';
+        if(form.elements['genero']) form.elements['genero'].value = u.genero || '';
+
+
+        // ============================================================
+        // 8. LISTENERS PARA CAMBIOS MANUALES (Si el admin edita los selects)
         // ============================================================
         if (selectCampus && selectFacultad) {
             selectCampus.addEventListener('change', (e) => {
                 cargarFacultades(selectFacultad, e.target.value, rutaPHP);
-                // Limpiar carrera si cambia el campus
                 if(selectCarrera) {
                     selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
                     selectCarrera.disabled = true;
@@ -1287,17 +1295,15 @@ window.abrirModalEditar = async function(usuarioString) {
             });
         }
 
-        // ============================================================
-        // GUARDAR CAMBIOS
-        // ============================================================
+        // 9. GUARDAR CAMBIOS
         form.onsubmit = function(e) {
             e.preventDefault();
-            guardarEdicion(form); // Tu función existente para enviar el POST
+            guardarEdicion(form); 
         };
 
     } catch (error) {
         console.error("Error en abrirModalEditar:", error);
-        alert("Error al cargar los datos de edición. Revisa la consola.");
+        alert("Error al cargar los datos de edición.");
     }
 }
 
