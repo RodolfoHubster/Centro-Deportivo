@@ -78,54 +78,42 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
 
 function agregarBotonesInscripcion() {
     const tarjetasEvento = document.querySelectorAll('.evento-card, .event-card, .card-evento');
-    // NUEVA LÍNEA: Identificar la página actual
     const paginaActual = window.location.pathname.split('/').pop();
 
     tarjetasEvento.forEach((tarjeta) => {
         
-        // ======================================
-        // ===== ¡ESTA ES LA LÍNEA MÁGICA! =====
-        // ======================================
-        // Si la tarjeta tiene la marca 'data-lleno', no hagas nada y salta a la siguiente.
+        // 1. Si la tarjeta dice "LLENO" (cupo general del evento), saltar.
         if (tarjeta.getAttribute('data-lleno') === 'true') {
-            return; // Saltar esta tarjeta
+            return; 
         }
-        // ======================================
 
-        if (tarjeta.querySelector('.btn-inscribir')) return;
+        // =====================================================================
+        // === AQUÍ ESTABA EL BUG ===
+        // Antes solo buscabas '.btn-inscribir'. 
+        // Ahora buscamos CUALQUIERA de los dos botones para no duplicar.
+        // =====================================================================
+        if (tarjeta.querySelector('.btn-inscribir') || tarjeta.querySelector('.btn-unirse-equipo')) {
+            return; // Si ya existe alguno de los dos, no hacemos nada.
+        }
+        // =====================================================================
         
         const eventoId = tarjeta.getAttribute('data-evento-id') || tarjeta.getAttribute('data-id');
-        
         if (!eventoId) return;
 
-        // --- INICIO DE CAMBIOS ---
-        
-        // 1. Lee el nombre del evento (como ya lo tenías)
         const nombreEvento = tarjeta.querySelector('.evento-titulo, .event-title, h3, h2')?.textContent.trim() 
                             || tarjeta.getAttribute('data-nombre') 
                             || 'Evento';
 
-        // 2. Lee el nuevo tipo de registro que guardamos
+        const fechaInicio = tarjeta.getAttribute('data-fecha-inicio');
+        const fechaTermino = tarjeta.getAttribute('data-fecha-termino');
         const tipoRegistro = tarjeta.getAttribute('data-tipo-registro') || 'Individual';
-        
         const min = tarjeta.getAttribute('data-integrantes-min') || 8;
-        
-        // Si es 0 (o nulo) lo dejamos así para "sin límite"
         const max = tarjeta.getAttribute('data-integrantes-max') || 0;
 
-        // --- FIN DE CAMBIOS ---
-        
         const contenedorBotones = tarjeta.querySelector('.card-actions, .evento-actions, .btn-container');
         if (!contenedorBotones) return;
 
-
-        // =========================================================
-        // ===== LÓGICA CONDICIONAL DE BOTONES (MODIFICADO) =====
-        // =========================================================
-        
-        const esTorneoEquipo = paginaActual === 'torneos.html' && tipoRegistro === 'Por equipos';
-
-        // Estilos base para el botón principal (crear equipo / registro individual)
+        // Estilos base (Verde)
         const estilosBaseBoton = `
             background: linear-gradient(135deg, #00843D 0%, #00a651 100%);
             color: white;
@@ -142,29 +130,35 @@ function agregarBotonesInscripcion() {
             box-shadow: 0 4px 12px rgba(0, 132, 61, 0.3);
             width: 100%;
         `;
-        
-        if (esTorneoEquipo) {
-            // Caso 1: Torneos por equipo -> Dos botones
-            
-            // 1. Botón Principal: Registrar Mi Equipo
-            const btnCrearEquipo = document.createElement('button');
-            btnCrearEquipo.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                Registrar Mi Equipo
-            `;
-            btnCrearEquipo.className = 'btn-inscribir btn-crear-equipo';
-            btnCrearEquipo.style.cssText = estilosBaseBoton + `margin-bottom: 10px;`;
-            
-            btnCrearEquipo.addEventListener('click', () => {
-                mostrarFormularioEquipo(eventoId, nombreEvento, min, max);
-            });
 
-            // 2. Botón Secundario: Unirme a Equipo Existente
+        const esTorneoEquipo = paginaActual === 'torneos.html' && tipoRegistro === 'Por equipos';
+
+        if (esTorneoEquipo) {
+            // Verificar si ya no caben más equipos
+            const equiposLlenos = tarjeta.getAttribute('data-equipos-llenos') === 'true';
+
+            // 1. Botón "Registrar Mi Equipo" (Solo si NO está lleno)
+            if (!equiposLlenos) {
+                const btnCrearEquipo = document.createElement('button');
+                btnCrearEquipo.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Registrar Mi Equipo
+                `;
+                btnCrearEquipo.className = 'btn-inscribir btn-crear-equipo';
+                btnCrearEquipo.style.cssText = estilosBaseBoton + `margin-bottom: 10px;`;
+                
+                btnCrearEquipo.addEventListener('click', () => {
+                    mostrarFormularioEquipo(eventoId, nombreEvento, min, max, fechaInicio, fechaTermino);
+                });
+                contenedorBotones.appendChild(btnCrearEquipo);
+            }
+
+            // 2. Botón "Unirme a Equipo" (Siempre aparece)
             const btnUnirseEquipo = document.createElement('button');
             btnUnirseEquipo.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
@@ -176,34 +170,38 @@ function agregarBotonesInscripcion() {
                 Unirme a Equipo
             `;
             btnUnirseEquipo.className = 'btn-unirse-equipo';
-            // Estilo diferente para el segundo botón
-            btnUnirseEquipo.style.cssText = `
-                background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-                color: white;
-                padding: 14px 28px;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 16px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-                width: 100%;
-            `;
+            
+            // Si ya no se pueden crear equipos, este botón se vuelve el principal (Verde)
+            // Si aún se pueden crear, este es secundario (Azul)
+            if (equiposLlenos) {
+                btnUnirseEquipo.style.cssText = estilosBaseBoton; 
+            } else {
+                btnUnirseEquipo.style.cssText = `
+                    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+                    color: white;
+                    padding: 14px 28px;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 16px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+                    width: 100%;
+                `;
+            }
 
             btnUnirseEquipo.addEventListener('click', () => {
-                // Llama a la nueva función
                 mostrarFormularioUnirseEquipo(eventoId, nombreEvento);
             });
 
-            contenedorBotones.appendChild(btnCrearEquipo);
             contenedorBotones.appendChild(btnUnirseEquipo);
 
         } else {
-            // Caso 2: Eventos Individuales (incluyendo torneos individuales) -> Un solo botón
+            // Caso Individual
             const btnInscribir = document.createElement('button');
             btnInscribir.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
@@ -224,7 +222,7 @@ function agregarBotonesInscripcion() {
             contenedorBotones.appendChild(btnInscribir);
         }
 
-        // Agregar efectos hover una sola vez para ambos botones
+        // Efectos Hover
         const botones = contenedorBotones.querySelectorAll('button');
         botones.forEach(btn => {
             btn.addEventListener('mouseover', () => {
@@ -234,7 +232,7 @@ function agregarBotonesInscripcion() {
             
             btn.addEventListener('mouseout', () => {
                 btn.style.transform = 'translateY(0)';
-                btn.style.boxShadow = btn.classList.contains('btn-unirse-equipo') 
+                btn.style.boxShadow = btn.classList.contains('btn-unirse-equipo') && !btn.classList.contains('btn-principal-verde') 
                     ? '0 4px 12px rgba(0, 123, 255, 0.3)'
                     : '0 4px 12px rgba(0, 132, 61, 0.3)';
             });
@@ -388,6 +386,46 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                             pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx"
                             style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
+                </div>
+
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                        Disponibilidad de Juego <span style="color: #dc3545;">*</span>
+                    </label>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        
+                        <div style="grid-column: span 2;"> <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Día Preferido:</span>
+                            <select name="dias_disponibles" required class="form-input"
+                                    style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                                <option value="">Selecciona un día...</option>
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Desde las:</span>
+                            <input type="time" name="hora_inicio" required class="form-input"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                        </div>
+
+                        <div>
+                            <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Hasta las:</span>
+                            <input type="time" name="hora_fin" required class="form-input"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                        </div>
+                    </div>
+                    
+                    <small style="color: #888; font-size: 11px; display: block; margin-top: 8px; font-style: italic;">
+                        * Selecciona el día y rango de horas en que puedes asistir.
+                    </small>
                 </div>
 
                 <div style="margin-bottom: 10px;", id="campus-container">
@@ -590,6 +628,18 @@ function enviarInscripcion(form, modal) {
     datosEnvio.append('carrera', formData.get('carrera') || '');
     datosEnvio.append('tipo_participante', formData.get('tipo_participante'));
     
+    // Obtenemos las horas
+    const horaInicio = formData.get('hora_inicio');
+    const horaFin = formData.get('hora_fin');
+    
+    //  Enviarlo como un solo texto (Ej: "13:00 - 15:00")
+    // Esto es útil si solo vas a guardar un string en la base de datos
+    const horarioTexto = `${horaInicio} - ${horaFin}`;
+    datosEnvio.append('horario_disponible', horarioTexto);
+
+    // Día disponible de los participantes
+    datosEnvio.append('dias_disponibles', formData.get('dias_disponibles'));
+
     // Validar campos requeridos según tipo
     const tipo = formData.get('tipo_participante');
     if (tipo === 'Estudiante') {
@@ -815,6 +865,42 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                             style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
                 </div>
 
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                    Disponibilidad de Juego del Equipo <span style="color: #dc3545;">*</span>
+                </label>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                    
+                    <div style="grid-column: span 2;">
+                        <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Día Preferido:</span>
+                        <select name="dias_disponibles" required class="form-input"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                            <option value="">Selecciona un día...</option>
+                            <option value="Lunes">Lunes</option>
+                            <option value="Martes">Martes</option>
+                            <option value="Miércoles">Miércoles</option>
+                            <option value="Jueves">Jueves</option>
+                            <option value="Viernes">Viernes</option>
+                            <option value="Sábado">Sábado</option>
+                            <option value="Domingo">Domingo</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Desde las:</span>
+                        <input type="time" name="hora_inicio" required class="form-input"
+                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div>
+                        <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Hasta las:</span>
+                        <input type="time" name="hora_fin" required class="form-input"
+                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                    </div>
+                </div>
+            </div>
+                
                 <div id="integrantes-container"></div>
                 
                 <div class="acciones-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px;">
@@ -881,7 +967,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     }
 
     // --- FUNCIÓN INTERNA MODIFICADA PARA USAR GRID RESPONSIVE ---
-    function agregarIntegranteInterno(esCapitan = false) {
+    function agregarIntegranteInterno(esCapitan = false, defCampus = null, defFacultad = null, defCarrera = null) {
         const container = document.getElementById('integrantes-container');
         const index = contadorIntegrantes;
         
@@ -970,7 +1056,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Correo Electrónico UABC <span style="color: #dc3545;">*</span></label>
                 <input type="email" name="${nombreBase}[correo]" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
-            </div>
+            </div>            
 
             <div class="campus-container-equipo" style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">
@@ -1000,6 +1086,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         `;
         
         container.appendChild(divIntegrante);
+        
         contadorIntegrantes++;
         document.getElementById('contador-integrantes').textContent = contadorIntegrantes;
 
@@ -1014,7 +1101,18 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         const selectFacultad = divIntegrante.querySelector('.select-facultad');
         const selectCarrera = divIntegrante.querySelector('.select-carrera');
         
-        cargarCampusEquipo(selectCampus);
+        cargarCampusEquipo(selectCampus, defCampus, (campusId) => {
+            // Callback: Se ejecuta cuando el campus ya se seleccionó
+            if (campusId && defFacultad) {
+                cargarFacultadesEquipo(selectFacultad, campusId, defFacultad, (facultadId) => {
+                    
+                    // Callback: Se ejecuta cuando la facultad ya se seleccionó
+                    if (facultadId && defCarrera) {
+                        cargarCarrerasEquipo(facultadId, selectCarrera, defCarrera);
+                    }
+                });
+            }
+        });
         
         // 2. Cuando cambie el campus → cargar facultades
         selectCampus.addEventListener('change', (e) => {
@@ -1057,11 +1155,29 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     // Añadir el primer integrante (Capitán)
     agregarIntegranteInterno(true);
 
+ /* Dentro de mostrarFormularioEquipo */
+
     document.getElementById('btnAgregarIntegrante').addEventListener('click', () => {
         if (maxIntegrantes > 0 && contadorIntegrantes >= maxIntegrantes) {
             mostrarToast(`Se ha alcanzado el límite de ${maxIntegrantes} integrantes`, 'error');
         } else {
-            agregarIntegranteInterno(false);
+            // === LÓGICA NUEVA: LEER DATOS DEL CAPITÁN ===
+            let defCampus = null, defFacultad = null, defCarrera = null;
+            
+            // Buscamos la tarjeta del capitán (siempre es la primera .integrante-card)
+            const tarjetaCapitan = document.querySelector('.integrante-card');
+            if(tarjetaCapitan) {
+                const sCampus = tarjetaCapitan.querySelector('.select-campus');
+                const sFacultad = tarjetaCapitan.querySelector('.select-facultad');
+                const sCarrera = tarjetaCapitan.querySelector('.select-carrera');
+                
+                if(sCampus && sCampus.value) defCampus = sCampus.value;
+                if(sFacultad && sFacultad.value) defFacultad = sFacultad.value;
+                if(sCarrera && sCarrera.value) defCarrera = sCarrera.value;
+            }
+
+            // Pasamos los datos leídos
+            agregarIntegranteInterno(false, defCampus, defFacultad, defCarrera);
         }
     });
 
@@ -1086,11 +1202,9 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     });
 }
 
-/**
- * Carga campus/unidades académicas en un select específico.
- * (Versión adaptada de 'cargarCampus' para el form de equipo)
- */
-function cargarCampusEquipo(selectElement) {
+/* === REEMPLAZA LAS FUNCIONES DE CARGA AL FINAL DEL ARCHIVO === */
+
+function cargarCampusEquipo(selectElement, preseleccionId = null, callback = null) {
     if (!selectElement) return;
     selectElement.innerHTML = '<option value="">Cargando...</option>';
     
@@ -1099,9 +1213,19 @@ function cargarCampusEquipo(selectElement) {
         .then(data => {
             selectElement.innerHTML = '<option value="">Selecciona tu Unidad</option>';
             const lista = Array.isArray(data) ? data : (data.campus || []);
+            
             lista.forEach(campus => {
                 selectElement.innerHTML += `<option value="${campus.id}">${campus.nombre}</option>`;
             });
+
+            // Lógica de Autorrelleno
+            if (preseleccionId) {
+                selectElement.value = preseleccionId;
+                // Si se aplicó el valor, ejecutamos el siguiente paso
+                if (selectElement.value == preseleccionId && callback) {
+                    callback(preseleccionId);
+                }
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -1109,14 +1233,9 @@ function cargarCampusEquipo(selectElement) {
         });
 }
 
-/**
- * Carga facultades en un select específico con filtro de campus.
- * (Versión adaptada de 'cargarFacultades' para el form de equipo)
- */
-function cargarFacultadesEquipo(selectElement, campusId = null) {
+function cargarFacultadesEquipo(selectElement, campusId, preseleccionId = null, callback = null) {
     if (!selectElement) return;
     
-    // Si no hay campus seleccionado, bloquear
     if (!campusId) {
         selectElement.innerHTML = '<option value="">Selecciona primero una unidad</option>';
         selectElement.disabled = true;
@@ -1124,7 +1243,7 @@ function cargarFacultadesEquipo(selectElement, campusId = null) {
     }
 
     selectElement.innerHTML = '<option value="">Cargando...</option>';
-    selectElement.disabled = true;
+    selectElement.disabled = true; 
     
     fetch(`../php/public/obtenerFacultades.php?campus_id=${campusId}`)
         .then(response => response.json())
@@ -1137,6 +1256,14 @@ function cargarFacultadesEquipo(selectElement, campusId = null) {
                     selectElement.innerHTML += `<option value="${facultad.id}">${facultad.nombre} (${facultad.siglas || ''})</option>`;
                 });
                 selectElement.disabled = false;
+
+                // Lógica de Autorrelleno
+                if (preseleccionId) {
+                    selectElement.value = preseleccionId;
+                    if (selectElement.value == preseleccionId && callback) {
+                        callback(preseleccionId);
+                    }
+                }
             } else {
                 selectElement.innerHTML = '<option value="">No hay facultades</option>';
             }
@@ -1147,11 +1274,7 @@ function cargarFacultadesEquipo(selectElement, campusId = null) {
         });
 }
 
-/**
- * Carga carreras en un select específico.
- * (Versión adaptada de 'cargarCarreras' para el form de equipo)
- */
-function cargarCarrerasEquipo(facultadId, selectElement) {
+function cargarCarrerasEquipo(facultadId, selectElement, preseleccionId = null) {
     if (!selectElement) return;
     
     if (!facultadId) {
@@ -1175,6 +1298,11 @@ function cargarCarrerasEquipo(facultadId, selectElement) {
                     selectElement.innerHTML += `<option value="${carrera.id}" style="${carrera.es_tronco_comun ? 'font-weight: 600; color: #00843D;' : ''}">${nombreMostrar}</option>`;
                 });
                 selectElement.disabled = false;
+
+                // Lógica de Autorrelleno
+                if (preseleccionId) {
+                    selectElement.value = preseleccionId;
+                }
             } else {
                 selectElement.innerHTML = '<option value="">No hay carreras</option>';
             }
@@ -1184,7 +1312,6 @@ function cargarCarrerasEquipo(facultadId, selectElement) {
             selectElement.innerHTML = '<option value="">Error al cargar</option>';
         });
 }
-
 /**
  * Actualiza los campos de un integrante según su tipo (Equipo).
  * (Versión corregida: Libera correo para Servicio/Externos)
@@ -1365,6 +1492,13 @@ function enviarInscripcionEquipo(form, modal) {
             formDataLimpia.append(key, value);
         }
     }
+
+    const horaInicio = formData.get('hora_inicio');
+    const horaFin = formData.get('hora_fin');
+    if (horaInicio && horaFin) {
+        formDataLimpia.append('horario_disponible', `${horaInicio} - ${horaFin}`);
+    }
+
     // Ahora `formDataLimpia` tiene 'nombre_equipo', 'evento_id', 'capitan_matricula',
     // y todos los 'integrantes[0][...]', 'integrantes[1][...]', etc.
     // Pero ya NO tiene los problemáticos '[nombres]', '[correo]', etc.
@@ -1807,6 +1941,33 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
     
     document.body.appendChild(modal);
 
+    // =================================================================
+    // === LÓGICA OCULTA: BUSCAR HORARIO DEL EQUIPO Y RELLENAR ===
+    // =================================================================
+    if (equipoId) {
+        // Petición silenciosa para buscar el horario del equipo
+        fetch(`../php/public/obtenerHorarioEquipo.php?equipo_id=${equipoId}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Rellenamos los inputs ocultos
+                    if(data.dias_disponibles) {
+                        const inputDias = document.getElementById('public_hidden_dias');
+                        if(inputDias) inputDias.value = data.dias_disponibles;
+                    }
+                    if(data.horario_disponible && data.horario_disponible.includes(' - ')) {
+                        const partes = data.horario_disponible.split(' - ');
+                        const inputInicio = document.getElementById('public_hidden_inicio');
+                        const inputFin = document.getElementById('public_hidden_fin');
+                        
+                        if(inputInicio) inputInicio.value = partes[0].trim();
+                        if(inputFin) inputFin.value = partes[1].trim();
+                    }
+                }
+            })
+            .catch(err => console.error("No se pudo obtener horario equipo:", err));
+    }
+
     // Función para validar campo en tiempo real
     function validarCampo(input, forzarValidacion = false) {
         const tipo = document.querySelector('input[name="tipo_participante"]:checked').value;
@@ -2002,10 +2163,22 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
 /**
  * Envía los datos para unir un participante a un equipo existente
  */
+/**
+ * Envía los datos para unir un participante a un equipo existente
+ * MODIFICADO: Envía también el horario oculto.
+ */
 function enviarUnirseEquipo(form, modal) {
     const formData = new FormData(form);
     const btnEnviar = document.getElementById('btnSubmitUnirse');
     
+    // === LÓGICA DE UNIÓN DE HORARIO ===
+    const hInicio = formData.get('hora_inicio');
+    const hFin = formData.get('hora_fin');
+    if(hInicio && hFin) {
+        formData.append('horario_disponible', `${hInicio} - ${hFin}`);
+    }
+    // ==================================
+
     // Validar campos requeridos según tipo
     const tipo = formData.get('tipo_participante');
     if (tipo === 'Estudiante') {

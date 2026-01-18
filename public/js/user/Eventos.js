@@ -116,19 +116,28 @@ function mostrarEventos(eventos) {
         // 2. LÓGICA DE ESTADO Y CUPO
         // ============================================================
         let badgeHTML = '';
-        let lleno = false;
-        
-        const cupoMaximo = parseInt(evento.cupo_maximo, 10);
+        let llenoTotal = false; // Indica si el evento está lleno
+        let equiposLlenos = false; // Indica si los equipos están llenos (para eventos por equipo)
+
+        const cupoMaximo = parseInt(evento.cupo_maximo, 10) || 0;
         const registrosActuales = parseInt(evento.registros_actuales, 10) || 0;
+        const esPorEquipo = evento.tipo_registro === 'Por equipos';
 
         if (cupoMaximo > 0) {
             const disponibles = cupoMaximo - registrosActuales;
             
             if (disponibles <= 0) {
-                lleno = true;
-                badgeHTML = `<span class="badge-status lleno">Cupo Lleno</span>`;
+                if (esPorEquipo) {
+                    // CASO ESPECIAL: Límite de equipos alcanzado, pero se puede unir
+                    equiposLlenos = true;
+                    // Etiqueta Amarilla/Naranja
+                    badgeHTML = `<span class="badge-status" style="color:#856404; background-color:#fff3cd; border: 1px solid #ffeeba;">Equipos Completos (Solo Unirse)</span>`;
+                } else {
+                    // Individual y lleno = Nadie entra
+                    llenoTotal = true;
+                    badgeHTML = `<span class="badge-status lleno">Cupo Lleno</span>`;
+                }
             } else if (disponibles < 3) {
-                // Aviso de últimos lugares (Amarillo/Dorado)
                 badgeHTML = `<span class="badge-status" style="color:#856404; background-color:#fff3cd; border: 1px solid #ffeeba;">¡Últimos Lugares!</span>`;
             } else {
                 badgeHTML = `<span class="badge-status disponible">Disponible (${disponibles})</span>`;
@@ -137,9 +146,15 @@ function mostrarEventos(eventos) {
             badgeHTML = `<span class="badge-status disponible">Entrada Libre</span>`;
         }
 
-        // Marca para JS: Si está lleno, ponemos el atributo data-lleno
-        if (lleno) {
+        // MARCAS PARA JS:
+        // 1. data-lleno: Bloquea TODO el acceso (Inscripcion.js se salta esta tarjeta)
+        if (llenoTotal) {
             tarjeta.setAttribute('data-lleno', 'true');
+        }
+        
+        // 2. data-equipos-llenos: Nueva marca para ocultar solo el botón "Crear Equipo"
+        if (equiposLlenos) {
+            tarjeta.setAttribute('data-equipos-llenos', 'true');
         }
 
         // Lógica de facultades (Visualización)

@@ -313,6 +313,42 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
                 </div>
 
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                        Disponibilidad de Juego <span style="color: #dc3545;">*</span>
+                    </label>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        
+                        <div style="grid-column: span 2;">
+                            <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Día Preferido:</span>
+                            <select name="dias_disponibles" required class="form-input"
+                                    style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                                <option value="">Selecciona un día...</option>
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Desde las:</span>
+                            <input type="time" name="hora_inicio" required class="form-input"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                        </div>
+
+                        <div>
+                            <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Hasta las:</span>
+                            <input type="time" name="hora_fin" required class="form-input"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                        </div>
+                    </div>
+                </div>
+
                 <div style="margin-bottom: 20px;" id="campus-container">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
                         <span id="label-campus">Unidad Académica</span> <span style="color: #dc3545;" id="required-campus">*</span>
@@ -604,7 +640,7 @@ function mostrarListaEquiposAdmin(equipos, container, eventoId, nombreEvento) {
 }
 
 
-// 9. MODAL PARA AÑADIR INTEGRANTE A EQUIPO ESPECÍFICO (ADAPTADO DEL FRONT-END)
+// 9. MODAL PARA AÑADIR INTEGRANTE A EQUIPO ESPECÍFICO (SOLUCIÓN CAMPOS OCULTOS)
 function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, nombreEvento) {
     document.getElementById('modal-unirse-equipo')?.remove();
     const modalContainer = document.getElementById('generic-modal-container');
@@ -619,7 +655,7 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
     `;
     
     // Llamada para asegurar que los estilos de validación se inyecten
-    injectValidationStyles();
+    if (typeof injectValidationStyles === 'function') injectValidationStyles();
     
     modal.innerHTML = `
         <div style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); max-height: 90vh; overflow-y: auto; position: relative;">
@@ -629,14 +665,6 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
             </button>
 
             <div style="text-align: center; margin-bottom: 30px;">
-                <div style="display: inline-block; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="8.5" cy="7" r="4"/>
-                        <line x1="20" y1="8" x2="20" y2="14"/>
-                        <line x1="23" y1="11" x2="17" y2="11"/>
-                    </svg>
-                </div>
                 <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Añadir Integrante a Equipo</h2>
                 <h3 style="color: #00843D; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">${nombreEvento}</h3>
                 <div style="padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%); border-radius: 10px; border-left: 4px solid #007bff;">
@@ -648,6 +676,9 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                 <input type="hidden" name="equipo_id" value="${equipoId}">
                 <input type="hidden" name="evento_id" value="${eventoId}">
                 
+                <input type="hidden" name="dias_disponibles" id="hidden_dias">
+                <input type="hidden" name="hora_inicio" id="hidden_hora_inicio">
+                <input type="hidden" name="hora_fin" id="hidden_hora_fin">
                 <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #00843D;">
                     <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">
                         Tipo de Participante <span style="color: #dc3545;">*</span>
@@ -697,12 +728,12 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
                             <span id="label-matricula">Matrícula</span> <span style="color: #dc3545;" id="required-matricula">*</span>
                         </label>
-                        <input type="text" name="matricula" id="input-matricula" placeholder="12345678" required class="form-input" pattern="[0-9]{6,10}" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
-                        <small style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Solo números (6-10 dígitos)</small>
+                        <input type="text" name="matricula" id="input-matricula" placeholder="12345678" required class="form-input" pattern="[0-9]{6,10}" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
+                        <small id="help-matricula" style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Solo números (6-10 dígitos)</small>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Género <span style="color: #dc3545;">*</span></label>
-                        <select name="genero" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <select name="genero" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; background: white; box-sizing: border-box;">
                             <option value="">Selecciona</option>
                             <option value="Hombre">Hombre</option>
                             <option value="Mujer">Mujer</option>
@@ -713,7 +744,7 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Correo Electrónico UABC <span style="color: #dc3545;">*</span></label>
-                    <input type="email" name="correo" id="input-correo" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    <input type="email" name="correo" id="input-correo" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
                     <small id="correo-hint" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Debe ser correo institucional (@uabc.edu.mx o @uabc.edu.mx)</small>
                 </div>
 
@@ -742,7 +773,7 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                     <select name="carrera" id="select-carrera" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
                         <option value="">Selecciona primero una facultad</option>
                     </select>
-                    <small style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área</small>
+                    <small id="help-carrera" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área</small>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
@@ -756,109 +787,109 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                     </button>
                 </div>
             </form>
-            
         </div>
     `;
     
     modalContainer.appendChild(modal);
 
-    // Configurar lógica del formulario
+    // =================================================================
+    // === LÓGICA OCULTA: BUSCAR HORARIO DEL EQUIPO Y RELLENAR ===
+    // =================================================================
+    if (equipoId) {
+        // Obtenemos los inputs ocultos
+        const hiddenDias = document.getElementById('hidden_dias');
+        const hiddenInicio = document.getElementById('hidden_hora_inicio');
+        const hiddenFin = document.getElementById('hidden_hora_fin');
+
+        // Petición silenciosa
+        fetch(`../../php/admin/obtenerHorarioEquipo.php?equipo_id=${equipoId}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Rellenar Fecha oculta
+                    if(data.dias_disponibles && hiddenDias) {
+                        hiddenDias.value = data.dias_disponibles;
+                    }
+                    // Rellenar Hora oculta
+                    if(data.horario_disponible && data.horario_disponible.includes(' - ')) {
+                        const partes = data.horario_disponible.split(' - ');
+                        if(partes.length === 2 && hiddenInicio && hiddenFin) {
+                            hiddenInicio.value = partes[0].trim();
+                            hiddenFin.value = partes[1].trim();
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error("No se pudo obtener el horario del equipo (silent fail):", err));
+    }
+    // =================================================================
+
+    // Configurar lógica del formulario (RESTO DEL CÓDIGO NORMAL)
     const form = document.getElementById('formAnadirIntegrante');
-    // FIX: Usar form.querySelector para asegurar el scope.
     const selectCampus = form.querySelector('#select-campus');
     const selectFacultad = form.querySelector('#select-facultad');
     const selectCarrera = form.querySelector('#select-carrera');
     
     // Adjuntar listeners de forma robusta
     if (form) {
-        if (selectCampus) { // CHECK DE SEGURIDAD
+        if (selectCampus) { 
             cargarCampus(selectCampus, '../../php/public/');
         }
 
         // --- LÓGICA DE CAMBIO DE TIPO DE PARTICIPANTE ---
-    // Función interna para actualizar validaciones y textos
-    const actualizarReglasCorreo = (tipo) => {
-        const inputCorreo = form.querySelector('input[name="correo"]');
-        const labelCorreo = inputCorreo ? inputCorreo.previousElementSibling : null;
-        const hintCorreo = form.querySelector('#correo-hint');
-        
-        const rolesLibres = ['Externo', 'Personal de Servicio', 'Personal de servicio'];
-
-        if (rolesLibres.includes(tipo)) {
-            // CASO: Correo Libre
-            if (inputCorreo) {
-                inputCorreo.removeAttribute('pattern');
-                inputCorreo.placeholder = 'ejemplo@correo.com';
-                inputCorreo.classList.remove('border-red-500'); // Limpiar error visual si existía
-            }
-            // Cambiar Texto de Etiqueta
-            if (labelCorreo) {
-                labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
-            }
-            // Ocultar ayuda de UABC
-            if (hintCorreo) hintCorreo.style.display = 'none';
+        const actualizarReglasCorreo = (tipo) => {
+            const inputCorreo = form.querySelector('input[name="correo"]');
+            const labelCorreo = inputCorreo ? inputCorreo.previousElementSibling : null;
+            const hintCorreo = form.querySelector('#correo-hint');
             
-        } else {
-            // CASO: Correo UABC Obligatorio
-            if (inputCorreo) {
-                inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
-                inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
-            }
-            // Restaurar Texto de Etiqueta
-            if (labelCorreo) {
-                labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
-            }
-            // Mostrar ayuda
-            if (hintCorreo) hintCorreo.style.display = 'block';
-        }
-    };
+            const rolesLibres = ['Externo', 'Personal de Servicio', 'Personal de servicio'];
 
-    // 1. Asignar el evento CHANGE a los radios
-    document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Lógica existente de campos académicos (Matrícula/Carrera)
-            actualizarCamposSegunTipo(this.value, form);
-            ajustarValidacionCorreoAdmin(this.value, form);
-            // NUEVA lógica de correo y etiquetas
-            actualizarReglasCorreo(this.value);
+            if (rolesLibres.includes(tipo)) {
+                if (inputCorreo) {
+                    inputCorreo.removeAttribute('pattern');
+                    inputCorreo.placeholder = 'ejemplo@correo.com';
+                    inputCorreo.classList.remove('border-red-500');
+                }
+                if (labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
+                if (hintCorreo) hintCorreo.style.display = 'none';
+            } else {
+                if (inputCorreo) {
+                    inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+                    inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+                }
+                if (labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
+                if (hintCorreo) hintCorreo.style.display = 'block';
+            }
+        };
+
+        document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                actualizarCamposSegunTipo(this.value, form);
+                if (typeof ajustarValidacionCorreoAdmin === 'function') {
+                    ajustarValidacionCorreoAdmin(this.value, form);
+                }
+                actualizarReglasCorreo(this.value);
+            });
         });
-    });
-    
-    // 2. Ejecutar validación inicial (por defecto Estudiante)
-    // Esto asegura que al abrir el modal todo empiece en el estado correcto
-    actualizarCamposSegunTipo('Estudiante', form);
-    actualizarReglasCorreo('Estudiante');
         
-        // FIX del error: envuelto en un chequeo
-        if (selectCampus && selectFacultad) { // CHECK DE SEGURIDAD
+        actualizarCamposSegunTipo('Estudiante', form);
+        actualizarReglasCorreo('Estudiante');
+        
+        // --- Listeners de Selects ---
+        if (selectCampus && selectFacultad) {
             selectCampus.addEventListener('change', (e) => {
                 const campusId = e.target.value;
-
                 if (campusId) {
-                //Pasar parámetros en el orden correcto: (selectElement, campusId, rutaBase)
-                cargarFacultades(selectFacultad, campusId, '../../php/public/');
+                    cargarFacultades(selectFacultad, campusId, '../../php/public/');
                 } else {
                     selectFacultad.innerHTML = '<option value="">Selecciona primero una Unidad</option>';
                     selectFacultad.disabled = true;
                 }
-                // Limpiar carrera al cambiar campus
                 selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
                 selectCarrera.disabled = true;
-                });
+            });
 
-                if (selectFacultad && selectCarrera) {
-                    selectFacultad.addEventListener('change', (e) => {
-                        const facultadId = e.target.value;
-                        if (facultadId) {
-                            cargarCarreras(facultadId, selectCarrera, '../../php/public/');
-                        } else {
-                            selectCarrera.innerHTML = '<option value="">Selecciona primero una facultad</option>';
-                            selectCarrera.disabled = true;
-                        }
-                    });
-                }
-
-                // 4.Cuando cambie la facultad → cargar carreras
+            if (selectFacultad && selectCarrera) {
                 selectFacultad.addEventListener('change', (e) => {
                     const facultadId = e.target.value;
                     if (facultadId) {
@@ -868,19 +899,16 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                         selectCarrera.disabled = true;
                     }
                 });
+            }
         }
-
         
-        // Ajuste inicial de campos
-        actualizarCamposSegunTipo('Estudiante', form);
-        ajustarValidacionCorreoAdmin('Estudiante', form);
-        
-        // Listeners de botones
+        // --- Submit ---
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             enviarUnirseEquipo(form, modal);
         });
         
+        // --- Botón Volver ---
         const btnVolver = document.getElementById('btnVolverListaEquipos');
         if (btnVolver) {
             btnVolver.addEventListener('click', () => {
@@ -898,6 +926,14 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
 function enviarInscripcion(form, modal) {
     const formData = new FormData(form);
     const btnEnviar = form.querySelector('button[type="submit"]');
+
+    // Capturar y combinar el horario
+    const horaInicio = formData.get('hora_inicio');
+    const horaFin = formData.get('hora_fin');
+    
+    if (horaInicio && horaFin) {
+        formData.append('horario_disponible', `${horaInicio} - ${horaFin}`);
+    }
     
     const endpoint = '../../php/public/inscribirEvento.php'; 
     
@@ -937,10 +973,18 @@ function enviarInscripcion(form, modal) {
 }
 
 
-// 11. FUNCIÓN PARA ENVIAR UNIÓN A EQUIPO (Limpio)
+/// 11. FUNCIÓN PARA ENVIAR UNIÓN A EQUIPO (CORREGIDA PARA MANEJAR ERROR 400)
 function enviarUnirseEquipo(form, modal) {
     const formData = new FormData(form);
     const btnEnviar = modal.querySelector('#btnSubmitUnirse') || modal.querySelector('#btnSubmitAnadirIntegrante');
+
+    // Combinar horario si los inputs ocultos tienen datos
+    const horaInicio = formData.get('hora_inicio');
+    const horaFin = formData.get('hora_fin');
+    
+    if (horaInicio && horaFin) {
+        formData.append('horario_disponible', `${horaInicio} - ${horaFin}`);
+    }
 
     const endpoint = '../../php/public/unirseEquipo.php'; 
     
@@ -951,29 +995,34 @@ function enviarUnirseEquipo(form, modal) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            modal.remove();
-            
-            // TITULO y MENSAJE para la unión a equipo
-            const nombreCompleto = `${formData.get('nombres')} ${formData.get('apellido_paterno')}`;
-            const titulo = '¡Unión a Equipo Exitosa!';
-            const mensaje = `El participante **${nombreCompleto}** fue añadido al equipo.`;
-            
-            // Usamos el modal global con la función de recarga como callback
-            mostrarModalExitoGlobal(titulo, mensaje, () => {
-                cargarParticipantes(eventoIdActual); 
-            });
-            
-        } else {
-            mostrarMensaje(data.mensaje, 'error');
-            btnEnviar.disabled = false;
-            btnEnviar.textContent = 'Confirmar Adición';
+    .then(async response => {
+        // Intentamos leer el JSON sin importar el status code (200 o 400)
+        const data = await response.json().catch(() => null);
+        
+        // Si el status no es OK (ej. 400, 500) o success es false
+        if (!response.ok || !data || !data.success) {
+            const mensajeError = data ? data.mensaje : `Error del servidor (${response.status})`;
+            throw new Error(mensajeError);
         }
+        
+        return data;
+    })
+    .then(data => {
+        // === ÉXITO ===
+        modal.remove();
+        
+        const nombreCompleto = `${formData.get('nombres')} ${formData.get('apellido_paterno')}`;
+        const titulo = '¡Participante Añadido!';
+        const mensaje = `**${nombreCompleto}** se unió al equipo correctamente.`;
+        
+        mostrarModalExitoGlobal(titulo, mensaje, () => {
+            cargarParticipantes(eventoIdActual); 
+        });
     })
     .catch(error => {
-        mostrarMensaje('Error de conexión al unir al equipo.', 'error');
+        // === ERROR ===
+        console.warn("Error en registro:", error);
+        mostrarMensaje(error.message, 'error'); // Aquí verás el mensaje real (ej. "Matrícula obligatoria")
         btnEnviar.disabled = false;
         btnEnviar.textContent = 'Agregar al Equipo';
     });
@@ -1054,6 +1103,8 @@ function renderizarResumenCupo(evento) {
     container.innerHTML = html;
 }
 
+/* public/js/admin/participantes.js */
+
 async function cargarParticipantes(eventoId) {
     const tbody = document.getElementById("cuerpo-tabla");
     const titulo = document.getElementById("titulo-evento");
@@ -1065,42 +1116,28 @@ async function cargarParticipantes(eventoId) {
         if(!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
         const data = await response.json();
-
+        console.log("DATOS RECIBIDOS DEL PHP:", data);
         if (data.success) {
             if(data.nombre_evento) titulo.textContent = `Participantes: ${data.nombre_evento}`;
             
             const totalParticipantes = data.participantes.length;
 
-            // --- INICIO FIX PARA MOSTRAR TOTAL CORRECTO Y BARRA ---
+            // --- Lógica de Contadores y Barra ---
             if(eventoActualData) {
-               
                if (eventoActualData.tipo_registro === 'Por equipos') {
-                   // 1. Calcular el número de equipos únicos
-                   // Usamos Set para contar los IDs de equipo sin duplicados.
                    const equipoIds = new Set(data.participantes.filter(p => p.equipo_id !== null).map(p => p.equipo_id));
-                   const totalEquipos = equipoIds.size;
-                   
-                   // 2. Actualizar el campo para el renderizado de la barra (debe ser el total de equipos)
-                   eventoActualData.registros_actuales = totalEquipos;
-                   
-                   // 3. FIX: Mostrar el total de personas en el subtítulo (formato simple)
+                   eventoActualData.registros_actuales = equipoIds.size;
                    subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
                } else {
-                   // 1. Evento Individual: Total de personas es el total de registros
                    eventoActualData.registros_actuales = totalParticipantes;
-                   
                    const cupoMaximo = parseInt(eventoActualData.cupo_maximo) || 0;
-                   // 2. FIX: Mostrar el total de participantes con la capacidad (si existe)
                    subtitulo.textContent = `Total de participantes registrados: ${totalParticipantes}${cupoMaximo > 0 ? ` / ${cupoMaximo}` : ' (Sin límite)'}`;
                }
-               
-               // 4. Renderizar el resumen visual de cupo (usa el eventoActualData actualizado)
                renderizarResumenCupo(eventoActualData);
             } else {
-                // Fallback si eventoActualData no está listo (aunque no debería ocurrir)
                 subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
             }
-            // --- FIN FIX PARA MOSTRAR TOTAL CORRECTO Y BARRA ---
+            // ------------------------------------
             
             if (data.participantes.length > 0) {
                 
@@ -1110,6 +1147,7 @@ async function cargarParticipantes(eventoId) {
                 tbody.innerHTML = ""; 
 
                 if (esPorEquipo) {
+                    // === LÓGICA POR EQUIPOS ===
                     let equipoActualId = null;
                     let contadorEquipo = 1;
 
@@ -1118,8 +1156,9 @@ async function cargarParticipantes(eventoId) {
                             equipoActualId = p.equipo_id;
                             
                             const encabezadoEquipo = document.createElement('tr');
+                            // NOTA: colspan="8" para abarcar la columna nueva
                             encabezadoEquipo.innerHTML = `
-                                <td colspan="6" style="padding: 10px; background: #e8f5e9; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid #003366;">
+                                <td colspan="8" style="padding: 10px; background: #e8f5e9; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid #003366;">
                                     ${p.nombre_equipo ? `EQUIPO ${contadorEquipo}: ${p.nombre_equipo}` : 'EQUIPO SIN NOMBRE'}
                                 </td>
                             `;
@@ -1135,6 +1174,15 @@ async function cargarParticipantes(eventoId) {
                             : '';
                         
                         const rolDisplay = `${p.rol} ${etiquetaCapitan}`;
+                        
+                        // Definir Horario
+                        const horarioDisplay = p.horario_disponible 
+                            ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` 
+                            : '<span style="color:#999; font-style:italic;">N/A</span>';
+
+                        // --- AQUÍ ESTABA EL ERROR: Definimos diaDisplay ---
+                        const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
+                        // --------------------------------------------------
 
                         fila.innerHTML = `
                             <td>${p.matricula}</td>
@@ -1142,7 +1190,7 @@ async function cargarParticipantes(eventoId) {
                             <td>${p.correo}</td>
                             <td>${p.genero || 'No especificado'}</td>
                             <td>${rolDisplay}</td>
-                            <td style="display:flex; gap:5px;">
+                            <td>${diaDisplay}</td>     <td>${horarioDisplay}</td> <td style="display:flex; gap:5px;">
                                 <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
                                 <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
                             </td>
@@ -1150,10 +1198,18 @@ async function cargarParticipantes(eventoId) {
                         tbody.appendChild(fila);
                     });
                 } else {
-                    // LÓGICA INDIVIDUAL
+                    // === LÓGICA INDIVIDUAL ===
                     data.participantes.forEach(p => {
                         const fila = document.createElement("tr");
                         const usuarioObj = encodeURIComponent(JSON.stringify(p));
+
+                        const horarioDisplay = p.horario_disponible 
+                            ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` 
+                            : '<span style="color:#999; font-style:italic;">N/A</span>';
+
+                        // --- IMPORTANTE: Definir diaDisplay también aquí ---
+                        const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
+                        // --------------------------------------------------
 
                         fila.innerHTML = `
                             <td>${p.matricula}</td>
@@ -1161,7 +1217,7 @@ async function cargarParticipantes(eventoId) {
                             <td>${p.correo}</td>
                             <td>${p.genero || 'No especificado'}</td>
                             <td>${p.rol}</td>
-                            <td style="display:flex; gap:5px;">
+                            <td>${diaDisplay}</td>     <td>${horarioDisplay}</td> <td style="display:flex; gap:5px;">
                                 <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
                                 <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
                             </td>
@@ -1171,13 +1227,15 @@ async function cargarParticipantes(eventoId) {
                 }
                 
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay participantes inscritos.</td></tr>';
+                // Ajustamos el colspan a 8 para que cubra toda la tabla vacía
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay participantes inscritos.</td></tr>';
             }
         } else {
-            tbody.innerHTML = `<tr><td colspan="6" style="color:red;">Error: ${data.mensaje}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="color:red;">Error: ${data.mensaje}</td></tr>`;
         }
     } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">Error de conexión.</td></tr>`;
+        console.error(error);
+        tbody.innerHTML = `<tr><td colspan="8" style="color:red;">Error técnico: ${error.message}</td></tr>`;
     }
 }
 
