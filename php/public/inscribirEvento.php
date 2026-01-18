@@ -88,6 +88,11 @@ try {
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : 'Estudiante';
     
+    // === Capturar el horario ===
+    $horario_disponible = isset($_POST['horario_disponible']) ? mysqli_real_escape_string($conexion, trim($_POST['horario_disponible'])) : NULL;
+    // === Capturar días disponibles (opcional) ===
+    $dias_disponibles = isset($_POST['dias_disponibles']) ? mysqli_real_escape_string($conexion, trim($_POST['dias_disponibles'])) : NULL;
+
     // Si es rol libre (Externo/Personal) y la matrícula está vacía, usamos el correo como ID
     if ($es_rol_libre && empty($matricula)) {
         $matricula = $correo; 
@@ -258,10 +263,10 @@ try {
     // ===================================
     
     $sqlInscripcion = "INSERT INTO inscripcion 
-                      (evento_id, usuario_id, metodo_registro, fecha_inscripcion) 
-                      VALUES (?, ?, 'Web', NOW())";
+                      (evento_id, usuario_id, metodo_registro, fecha_inscripcion, horario_disponible, dias_disponibles) 
+                      VALUES (?, ?, 'Web', NOW(), ?, ?)";
     $stmt = mysqli_prepare($conexion, $sqlInscripcion);
-    mysqli_stmt_bind_param($stmt, 'ii', $evento_id, $usuario_id);
+    mysqli_stmt_bind_param($stmt, 'iiss', $evento_id, $usuario_id, $horario_disponible, $dias_disponibles);
     
     if (!mysqli_stmt_execute($stmt)) {
         throw new Exception('Error al procesar inscripción: ' . mysqli_stmt_error($stmt));

@@ -1,38 +1,38 @@
 <?php
-// /php/public/obtenerParticipantes.php
+// ARCHIVO: php/admin/obtenerParticipantes.php
+// (Asegurate de que estás en la carpeta ADMIN)
 
 header('Content-Type: application/json; charset=utf-8');
-include '../includes/conexion.php'; // Ajusta la ruta a tu conexión
+include '../includes/conexion.php';
 
 try {
-    if (!isset($_GET['evento_id']) || empty($_GET['evento_id'])) {
-        throw new Exception("No se proporcionó ID de evento");
-    }
-    
-    $evento_id = intval($_GET['evento_id']);
+    $evento_id = isset($_GET['evento_id']) ? intval($_GET['evento_id']) : 0;
 
-    // Esta consulta une 'inscripcion' con 'usuario' para obtener los datos de la persona
+    // CONSULTA CORREGIDA PARA ADMIN
     $sql = "SELECT 
                 u.id AS usuario_id,
                 u.matricula,
                 u.nombre,
                 u.apellido_paterno,
                 u.apellido_materno,
-                u.genero,
                 u.correo,
+                u.genero,
                 u.rol,
-                u.campus_id,  
-                u.facultad_id, 
-                u.carrera_id,
                 i.id AS inscripcion_id,
                 i.es_capitan,
                 i.equipo_id,
-                e.nombre AS nombre_equipo  /* <--- CAMBIO 1: Obtener nombre del equipo */
+                
+                /* ESTOS SON LOS DATOS QUE TE FALTAN */
+                i.dias_disponibles, 
+                i.horario_disponible, 
+                /* -------------------------------- */
+
+                e.nombre AS nombre_equipo
             FROM inscripcion i
             JOIN usuario u ON i.usuario_id = u.id
-            LEFT JOIN equipo e ON i.equipo_id = e.id /* <--- CAMBIO 2: Unir con tabla equipo */
+            LEFT JOIN equipo e ON i.equipo_id = e.id
             WHERE i.evento_id = ?
-            ORDER BY e.id, i.es_capitan DESC, u.apellido_paterno, u.apellido_materno, u.nombre"; /* <--- CAMBIO 3: Ordenar por equipo y capitán */
+            ORDER BY e.nombre ASC, i.es_capitan DESC";
             
     $stmt = mysqli_prepare($conexion, $sql);
     mysqli_stmt_bind_param($stmt, 'i', $evento_id);
@@ -41,33 +41,27 @@ try {
     
     $participantes = [];
     while ($fila = mysqli_fetch_assoc($resultado)) {
-        // Combinamos los apellidos para el nombre completo
-        $fila['nombre_completo'] = $fila['apellido_paterno'] . ' ' . $fila['apellido_materno'] . ' ' . $fila['nombre'];
+        // Combinar nombres para el JS
+        $fila['nombre_completo'] = $fila['nombre'] . ' ' . $fila['apellido_paterno'];
         $participantes[] = $fila;
     }
-        // Obtener nombre del evento
-    $sqlEvento = "SELECT nombre FROM evento WHERE id = ?";
-    $stmtEvento = mysqli_prepare($conexion, $sqlEvento);
-    mysqli_stmt_bind_param($stmtEvento, 'i', $evento_id);
-    mysqli_stmt_execute($stmtEvento);
-    $resultEvento = mysqli_stmt_get_result($stmtEvento);
-    $evento = mysqli_fetch_assoc($resultEvento);
-    $nombre_evento = $evento ? $evento['nombre'] : "Evento sin nombre";
 
-    // Cerrar conexiones
-    mysqli_stmt_close($stmt);
-    mysqli_stmt_close($stmtEvento);
-    mysqli_close($conexion);
+    // Obtener nombre del evento para el título
+    $sqlE = "SELECT nombre FROM evento WHERE id = ?";
+    $stmtE = mysqli_prepare($conexion, $sqlE);
+    mysqli_stmt_bind_param($stmtE, 'i', $evento_id);
+    mysqli_stmt_execute($stmtE);
+    $resE = mysqli_stmt_get_result($stmtE);
+    $evt = mysqli_fetch_assoc($resE);
 
-    // Respuesta final
     echo json_encode([
         'success' => true,
-        'nombre_evento' => $nombre_evento,
+        'debug_check' => 'SI_ESTOY_EN_ADMIN', // <--- Esto nos confirmará si funciona
+        'nombre_evento' => $evt ? $evt['nombre'] : 'Evento',
         'participantes' => $participantes
     ]);
 
 } catch (Exception $e) {
-    http_response_code(400);
     echo json_encode(['success' => false, 'mensaje' => $e->getMessage()]);
 }
 ?>

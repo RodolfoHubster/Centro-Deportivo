@@ -3,6 +3,7 @@
  * unirseEquipo.php - VERSIÓN CORREGIDA
  * Permite a un participante unirse a un equipo existente
  * Soporta Personal de servicio y Externos con correo libre.
+ * Actualizado para guardar Fecha y Horario (dias_disponibles / horario_disponible).
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -21,6 +22,14 @@ try {
     $equipo_id = isset($_POST['equipo_id']) ? intval($_POST['equipo_id']) : 0;
     $evento_id = isset($_POST['evento_id']) ? intval($_POST['evento_id']) : 0;
     
+    // === NUEVO: RECIBIR FECHA Y HORARIO (Añadido para que se guarde en BD) ===
+    $horario_raw = isset($_POST['horario_disponible']) ? trim($_POST['horario_disponible']) : '';
+    $horario_disponible = !empty($horario_raw) ? mysqli_real_escape_string($conexion, $horario_raw) : NULL;
+
+    $dias_raw = isset($_POST['dias_disponibles']) ? trim($_POST['dias_disponibles']) : '';
+    $dias_disponibles = !empty($dias_raw) ? mysqli_real_escape_string($conexion, $dias_raw) : NULL;
+    // =========================================================================
+
     $tipo_raw = isset($_POST['tipo_participante']) ? trim($_POST['tipo_participante']) : '';
     
     // --- CORRECCIÓN DE ROL (Mayúscula -> Minúscula) ---
@@ -44,6 +53,11 @@ try {
     $correo = isset($_POST['correo']) ? mysqli_real_escape_string($conexion, strtolower(trim($_POST['correo']))) : '';
     $genero = isset($_POST['genero']) ? mysqli_real_escape_string($conexion, trim($_POST['genero'])) : '';
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
+    
+    // === AÑADIDO: Recibir Campus y Facultad (Para que no de error si faltan) ===
+    $campus_id = isset($_POST['campus']) && !empty($_POST['campus']) ? intval($_POST['campus']) : NULL;
+    $facultad_id = isset($_POST['facultad']) && !empty($_POST['facultad']) ? intval($_POST['facultad']) : NULL;
+    // ===========================================================================
     
     // --- CORRECCIÓN DE MATRÍCULA VACÍA ---
     // Si es un rol libre y no envió matrícula, usamos el correo como identificador
@@ -133,27 +147,31 @@ try {
         $usuario_id = $usuarioExistente['id'];
         $sqlUpdateUsuario = "UPDATE usuario 
                              SET nombre = ?, apellido_paterno = ?, apellido_materno = ?,
-                                 correo = ?, genero = ?, carrera_id = ?, rol = ?, activo = 1
+                                 correo = ?, genero = ?, carrera_id = ?, campus_id = ?, facultad_id = ?, rol = ?, activo = 1
                              WHERE id = ?";
         $stmtUpdate = mysqli_prepare($conexion, $sqlUpdateUsuario);
+        // Parametros: 10 (nombre...rol) + 1 (id) = 11. 
+        // Tipos: sssssiiisi
         mysqli_stmt_bind_param(
-            $stmtUpdate, 'sssssisi',
-            $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $tipo_participante, $usuario_id
+            $stmtUpdate, 'sssssiiisi',
+            $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante, $usuario_id
         );
         mysqli_stmt_execute($stmtUpdate);
         mysqli_stmt_close($stmtUpdate);
 
     } else {
         // Usuario NO existe: Crear
+        // Se añade campus_id y facultad_id al insert si están disponibles
         $queryInsertUsuario = "
             INSERT INTO usuario 
-            (matricula, apellido_paterno, apellido_materno, nombre, correo, genero, carrera_id, rol, activo, contrasena)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)
+            (matricula, apellido_paterno, apellido_materno, nombre, correo, genero, carrera_id, campus_id, facultad_id, rol, activo, contrasena)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)
         ";
         $stmtInsert = mysqli_prepare($conexion, $queryInsertUsuario);
+        // Parametros: 10. Tipos: ssssssiiis
         mysqli_stmt_bind_param(
-            $stmtInsert, 'ssssssis', 
-            $matricula, $apellido_paterno, $apellido_materno, $nombres, $correo, $genero, $carrera_id, $tipo_participante
+            $stmtInsert, 'ssssssiiis', 
+            $matricula, $apellido_paterno, $apellido_materno, $nombres, $correo, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante
         );
         if (!mysqli_stmt_execute($stmtInsert)) {
             if (mysqli_errno($conexion) == 1062) {
@@ -185,19 +203,28 @@ try {
     }
     mysqli_stmt_close($stmtYaInscrito);
 
-    // Insertar inscripción
+    // Insertar inscripción con horario y días (SI DISPONIBLES)
     $es_capitan = 0;
+    // === ACTUALIZADO: Incluir campos de horario y dias ===
     $queryInscripcion = "
-        INSERT INTO inscripcion (evento_id, usuario_id, equipo_id, es_capitan, metodo_registro, fecha_inscripcion)
-        VALUES (?, ?, ?, ?, 'Web', NOW())
+        INSERT INTO inscripcion (evento_id, usuario_id, equipo_id, es_capitan, metodo_registro, fecha_inscripcion, horario_disponible, dias_disponibles)
+        VALUES (?, ?, ?, ?, 'Web', NOW(), ?, ?)
     ";
     $stmtInscripcion = mysqli_prepare($conexion, $queryInscripcion);
-    mysqli_stmt_bind_param($stmtInscripcion, 'iiii', $evento_id, $usuario_id, $equipo_id, $es_capitan);
+    // Cambiamos 'iiii' por 'iiiiss' para incluir los dos strings de horario y fecha
+    mysqli_stmt_bind_param($stmtInscripcion, 'iiiiss', $evento_id, $usuario_id, $equipo_id, $es_capitan, $horario_disponible, $dias_disponibles);
     
     if (!mysqli_stmt_execute($stmtInscripcion)) {
         throw new Exception('Error al registrar la inscripción: ' . mysqli_stmt_error($stmtInscripcion));
     }
     mysqli_stmt_close($stmtInscripcion);
+
+    // 4. Actualizar contador del evento
+    $sqlCount = "UPDATE evento SET registros_actuales = registros_actuales + 1 WHERE id = ?";
+    $stmtCount = mysqli_prepare($conexion, $sqlCount);
+    mysqli_stmt_bind_param($stmtCount, 'i', $evento_id);
+    mysqli_stmt_execute($stmtCount);
+    mysqli_stmt_close($stmtCount);
 
     mysqli_commit($conexion);
 
