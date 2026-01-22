@@ -131,9 +131,9 @@ function agregarBotonesInscripcion() {
             width: 100%;
         `;
 
-        const esTorneoEquipo = paginaActual === 'torneos.html' && tipoRegistro === 'Por equipos';
+        const esPorEquipo = tipoRegistro === 'Por equipos';
 
-        if (esTorneoEquipo) {
+        if (esPorEquipo) {
             // Verificar si ya no caben más equipos
             const equiposLlenos = tarjeta.getAttribute('data-equipos-llenos') === 'true';
 

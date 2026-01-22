@@ -1141,31 +1141,50 @@ async function cargarParticipantes(eventoId) {
             
             if (data.participantes.length > 0) {
                 
-                const primerParticipante = data.participantes[0];
-                const esPorEquipo = primerParticipante.equipo_id !== null;
+                // CAMBIO CLAVE: Ya no miramos al primer participante.
+                // Miramos la configuración real del evento que viene del PHP.
+                const esEventoPorEquipos = data.tipo_registro === 'Por equipos';
                 
                 tbody.innerHTML = ""; 
 
-                if (esPorEquipo) {
-                    // === LÓGICA POR EQUIPOS ===
-                    let equipoActualId = null;
+                if (esEventoPorEquipos) {
+                    // === LÓGICA POR EQUIPOS (MEJORADA) ===
+                    let equipoActualId = 'INICIO'; // Valor centinela
                     let contadorEquipo = 1;
 
                     data.participantes.forEach(p => {
-                        if (p.equipo_id !== equipoActualId) {
+                        // Detectar cambio de grupo (Equipo o Sin Equipo)
+                        // Usamos String() para manejar comparar null con null correctamente si fuera el caso
+                        if (String(p.equipo_id) !== String(equipoActualId)) {
                             equipoActualId = p.equipo_id;
                             
-                            const encabezadoEquipo = document.createElement('tr');
-                            // NOTA: colspan="8" para abarcar la columna nueva
-                            encabezadoEquipo.innerHTML = `
-                                <td colspan="8" style="padding: 10px; background: #e8f5e9; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid #003366;">
-                                    ${p.nombre_equipo ? `EQUIPO ${contadorEquipo}: ${p.nombre_equipo}` : 'EQUIPO SIN NOMBRE'}
+                            const filaEncabezado = document.createElement('tr');
+                            let contenidoEncabezado = '';
+                            let estiloFondo = '';
+                            let estiloBorde = '';
+
+                            if (p.equipo_id) {
+                                // Es un equipo real
+                                contenidoEncabezado = `EQUIPO ${contadorEquipo}: ${p.nombre_equipo || 'Sin Nombre'}`;
+                                estiloFondo = '#e8f5e9'; // Verde claro
+                                estiloBorde = '#00843D';
+                                contadorEquipo++;
+                            } else {
+                                // Es null -> Usuarios sin asignar
+                                contenidoEncabezado = `⚠️ PARTICIPANTES SIN EQUIPO ASIGNADO`;
+                                estiloFondo = '#fff3cd'; // Amarillo alerta
+                                estiloBorde = '#ffc107';
+                            }
+
+                            filaEncabezado.innerHTML = `
+                                <td colspan="8" style="padding: 10px; background: ${estiloFondo}; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid ${estiloBorde};">
+                                    ${contenidoEncabezado}
                                 </td>
                             `;
-                            tbody.appendChild(encabezadoEquipo);
-                            contadorEquipo++;
+                            tbody.appendChild(filaEncabezado);
                         }
                         
+                        // Renderizado de la fila del participante (IGUAL QUE ANTES)
                         const fila = document.createElement("tr");
                         const usuarioObj = encodeURIComponent(JSON.stringify(p));
                         
@@ -1174,15 +1193,10 @@ async function cargarParticipantes(eventoId) {
                             : '';
                         
                         const rolDisplay = `${p.rol} ${etiquetaCapitan}`;
-                        
-                        // Definir Horario
                         const horarioDisplay = p.horario_disponible 
                             ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` 
                             : '<span style="color:#999; font-style:italic;">N/A</span>';
-
-                        // --- AQUÍ ESTABA EL ERROR: Definimos diaDisplay ---
                         const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
-                        // --------------------------------------------------
 
                         fila.innerHTML = `
                             <td>${p.matricula}</td>
@@ -1190,7 +1204,9 @@ async function cargarParticipantes(eventoId) {
                             <td>${p.correo}</td>
                             <td>${p.genero || 'No especificado'}</td>
                             <td>${rolDisplay}</td>
-                            <td>${diaDisplay}</td>     <td>${horarioDisplay}</td> <td style="display:flex; gap:5px;">
+                            <td>${diaDisplay}</td>
+                            <td>${horarioDisplay}</td>
+                            <td style="display:flex; gap:5px;">
                                 <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
                                 <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
                             </td>

@@ -36,7 +36,9 @@ try {
                 facultad_siglas,
                 fecha_inscripcion,
                 equipo_id,
-                es_capitan
+                es_capitan,
+                tipo_registro,  
+                nombre_equipo
             FROM v_inscripciones_completas";
     
     $whereConditions = [];
