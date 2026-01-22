@@ -1,7 +1,7 @@
 <?php
 /**
- * Obtener Eventos - ACTUALIZADO para nueva estructura BD
- * Soporta múltiples filtros
+ * Obtener Eventos - CORREGIDO (Conteo dinámico de equipos)
+ * Soluciona el error donde se permite crear equipos aunque el cupo esté lleno.
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -16,14 +16,12 @@ try {
     $tipos_params = '';
     $valores_params = [];
     
-    // Filtro por tipo de actividad (compatibilidad con código anterior)
+    // Filtro por tipo de actividad
     if (isset($_GET['tipo']) && !empty($_GET['tipo'])) {
         $filtros[] = "a.nombre = ?";
         $tipos_params .= 's';
         $valores_params[] = $_GET['tipo'];
     }
-    
-    // NUEVOS FILTROS (para después de la migración)
     
     // Filtro por campus
     if (isset($_GET['campus_id']) && !empty($_GET['campus_id'])) {
@@ -53,15 +51,12 @@ try {
         $valores_params[] = $_GET['tipo_registro'];
     }
 
-    // AÑADÍ ESTE BLOQUE PARA EL FILTRO DE EXCLUSIÓN
-   
     // Filtro para EXCLUIR un tipo de actividad
     if (isset($_GET['excluir_tipo_actividad']) && !empty($_GET['excluir_tipo_actividad'])) {
-        $filtros[] = "e.tipo_actividad != ?"; // Usamos != (No es igual a)
+        $filtros[] = "e.tipo_actividad != ?"; 
         $tipos_params .= 's';
         $valores_params[] = $_GET['excluir_tipo_actividad'];
     }
-    
     
     // Filtro por rango de fechas
     if (isset($_GET['fecha_desde']) && !empty($_GET['fecha_desde'])) {
@@ -76,28 +71,24 @@ try {
         $valores_params[] = $_GET['fecha_hasta'];
     }
     
-// --- LÓGICA DE FILTRO DE ESTADO PARA EL FRONT-END ---
-    // NUEVA BANDERA: Para saber si la llamada viene del panel de administración
+    // Lógica de estado (Activos/Inactivos)
     $incluirInactivos = isset($_GET['incluir_inactivos']) && $_GET['incluir_inactivos'] === 'true'; 
     $soloActivos = isset($_GET['activos']) ? $_GET['activos'] === 'true' : true;
     
-    // Solo aplicamos el filtro de activo si NO se pide incluir inactivos (uso público).
     if (!$incluirInactivos) {
         if ($soloActivos) {
             $filtros[] = "e.activo = TRUE";
-            // Solo muestra eventos activos y cuya fecha de término es HOY o después.
             $filtros[] = "e.fecha_termino >= CURDATE()"; 
         }
     }
-    // Si $incluirInactivos es true, no aplicamos ningún filtro de estado ni fecha pasada.
     
-    // Construir WHERE clause
     $whereClause = '';
     if (count($filtros) > 0) {
         $whereClause = ' WHERE ' . implode(' AND ', $filtros);
     }
     
-    // Consulta SQL actualizada para nueva estructura
+    // === CONSULTA SQL OPTIMIZADA ===
+    // Se añade un LEFT JOIN con una subconsulta (eq_stats) para contar los equipos reales.
     $sql = "SELECT 
                 e.id,
                 e.nombre,
@@ -113,7 +104,13 @@ try {
                 e.cupo_maximo,
                 e.integrantes_min,
                 e.integrantes_max,
-                e.registros_actuales,
+                
+                -- CORRECCIÓN: Usar el conteo real de equipos si es un torneo, si no, usar el contador normal
+                CASE 
+                    WHEN e.tipo_registro = 'Por equipos' THEN IFNULL(eq_stats.total_equipos, 0)
+                    ELSE e.registros_actuales 
+                END AS registros_actuales,
+
                 e.codigo_qr,
                 e.activo,
                 e.campus_id,
@@ -121,36 +118,49 @@ try {
                 c.nombre AS campus_nombre,
                 c.codigo AS campus_codigo,
                 u.nombre AS promotor_nombre,
-                /* --- LÍNEA MODIFICADA --- */
-                GROUP_CONCAT(DISTINCT f.siglas ORDER BY f.siglas SEPARATOR ', ') AS facultades_siglas, /* Renombramos esta */
-                /* --- LÍNEAS NUEVAS A AÑADIR --- */
+                
+                GROUP_CONCAT(DISTINCT f.siglas ORDER BY f.siglas SEPARATOR ', ') AS facultades_siglas,
                 GROUP_CONCAT(DISTINCT f.id ORDER BY f.id SEPARATOR ',') AS facultades_ids,
                 GROUP_CONCAT(DISTINCT f.nombre ORDER BY f.nombre SEPARATOR ', ') AS facultades_nombres,
-                -- Calcular si tiene cupo disponible
+                
+                -- CORRECCIÓN: Calcular cupo disponible usando el valor dinámico
                 CASE 
                     WHEN e.cupo_maximo > 0 THEN 
-                        CASE WHEN e.registros_actuales < e.cupo_maximo THEN 1 ELSE 0 END
+                        CASE WHEN 
+                            (CASE WHEN e.tipo_registro = 'Por equipos' THEN IFNULL(eq_stats.total_equipos, 0) ELSE e.registros_actuales END) 
+                            < e.cupo_maximo THEN 1 ELSE 0 END
                     ELSE 1
                 END AS tiene_cupo,
-                -- Calcular porcentaje de ocupación
+                
+                -- CORRECCIÓN: Calcular porcentaje usando el valor dinámico
                 CASE 
                     WHEN e.cupo_maximo > 0 THEN 
-                        ROUND((e.registros_actuales * 100.0 / e.cupo_maximo), 2)
+                        ROUND((
+                            (CASE WHEN e.tipo_registro = 'Por equipos' THEN IFNULL(eq_stats.total_equipos, 0) ELSE e.registros_actuales END)
+                            * 100.0 / e.cupo_maximo), 2)
                     ELSE 0
                 END AS porcentaje_ocupacion
+
             FROM evento e
             LEFT JOIN actividaddeportiva a ON e.id_actividad = a.id
             LEFT JOIN campus c ON e.campus_id = c.id
             LEFT JOIN usuario u ON e.id_promotor = u.id
             LEFT JOIN evento_facultad ef ON e.id = ef.evento_id
             LEFT JOIN facultad f ON ef.facultad_id = f.id
+            
+            -- JOIN PARA CONTAR EQUIPOS REALES
+            LEFT JOIN (
+                SELECT evento_id, COUNT(*) as total_equipos
+                FROM equipo
+                GROUP BY evento_id
+            ) eq_stats ON e.id = eq_stats.evento_id
+            
             $whereClause
-            /* --- SECCIÓN GROUP BY --- */
-            GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino,e.periodo,
+            
+            GROUP BY e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino, e.periodo,
                      e.lugar, e.tipo_registro, e.categoria_deporte, e.tipo_actividad,
                      e.ubicacion_tipo, e.cupo_maximo, e.integrantes_min, e.integrantes_max, e.registros_actuales, e.codigo_qr,
-                     e.activo, a.nombre, c.nombre, c.codigo, u.nombre
-            /* (Ya no se necesita agrupar por los GROUP_CONCAT) */
+                     e.activo, a.nombre, c.nombre, c.codigo, u.nombre, eq_stats.total_equipos
             ORDER BY e.fecha_inicio DESC";
     
     // Preparar y ejecutar consulta
@@ -159,7 +169,6 @@ try {
         if (!$stmt) {
             throw new Exception('Error al preparar consulta: ' . mysqli_error($conexion));
         }
-        
         mysqli_stmt_bind_param($stmt, $tipos_params, ...$valores_params);
         mysqli_stmt_execute($stmt);
         $resultado = mysqli_stmt_get_result($stmt);
@@ -170,21 +179,19 @@ try {
         }
     }
     
-    // Procesar resultados
     $eventos = [];
     while ($fila = mysqli_fetch_assoc($resultado)) {
         // Formatear fechas
         $fila['fecha_inicio_formato'] = date('d/m/Y', strtotime($fila['fecha_inicio']));
         $fila['fecha_termino_formato'] = date('d/m/Y', strtotime($fila['fecha_termino']));
         
-        // Calcular días restantes
+        // Calcular estado
         $hoy = new DateTime();
         $fecha_evento = new DateTime($fila['fecha_inicio']);
         $diferencia = $hoy->diff($fecha_evento);
         $fila['dias_restantes'] = $diferencia->days;
         $fila['evento_pasado'] = $fecha_evento < $hoy;
         
-        // Estado del evento
         if ($fila['evento_pasado']) {
             $fila['estado'] = 'finalizado';
         } elseif ($fila['dias_restantes'] == 0) {
@@ -195,30 +202,18 @@ try {
             $fila['estado'] = 'programado';
         }
         
-        // Convertir valores numéricos
         $fila['tiene_cupo'] = (bool)$fila['tiene_cupo'];
         $fila['porcentaje_ocupacion'] = (float)$fila['porcentaje_ocupacion'];
         
         $eventos[] = $fila;
     }
     
-    // Respuesta exitosa
     echo json_encode([
         'success' => true,
         'eventos' => $eventos,
-        'total' => count($eventos),
-        'filtros_aplicados' => [
-            'tipo' => $_GET['tipo'] ?? null,
-            'campus_id' => $_GET['campus_id'] ?? null,
-            'categoria_deporte' => $_GET['categoria_deporte'] ?? null,
-            'tipo_actividad' => $_GET['tipo_actividad'] ?? null,
-            'excluir_tipo_actividad' => $_GET['excluir_tipo_actividad'] ?? null, // Añadido para depuración
-            'fecha_desde' => $_GET['fecha_desde'] ?? null,
-            'fecha_hasta' => $_GET['fecha_hasta'] ?? null
-        ]
+        'total' => count($eventos)
     ], JSON_UNESCAPED_UNICODE);
     
-    // Cerrar statement si existe
     if (isset($stmt)) {
         mysqli_stmt_close($stmt);
     }
