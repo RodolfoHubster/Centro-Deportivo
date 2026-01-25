@@ -303,6 +303,30 @@ function mostrarInscripciones(lista) {
             fecha = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
 
+        // --- LÓGICA DE EQUIPO VS INDIVIDUAL ---
+        let infoEquipoHTML = '';
+        
+        if (insc.tipo_registro === 'Por equipos') {
+            // Es registro por equipo
+            const esCapitan = insc.es_capitan == 1; // Asegurar booleano
+            const iconoCapitan = esCapitan 
+                ? '<span title="Capitán del equipo" style="color:#eab308; margin-left:5px;">★</span>' 
+                : '';
+            
+            infoEquipoHTML = `
+                <div style="display:flex; align-items:center;">
+                    <span style="font-weight:600; color:#003366;">${insc.nombre_equipo || 'Sin Nombre'}</span>
+                    ${iconoCapitan}
+                </div>
+                <small style="color:#666; font-size: 0.8em;">(Equipo)</small>
+            `;
+        } else {
+            // Es individual
+            infoEquipoHTML = `
+                <span style="color:#666; font-style:italic;">Individual</span>
+            `;
+        }
+
         tr.innerHTML = `
             <td><strong>${insc.participante_matricula}</strong></td>
             <td>${insc.nombre_completo}</td>
@@ -313,7 +337,11 @@ function mostrarInscripciones(lista) {
                 ${carreraInfo}<br>
                 <small style="color:#666;">${facultadInfo}</small>
             </td>
-            <td><strong>${insc.evento_nombre}</strong></td>
+            <td><strong>${insc.evento_nombre}</strong><br>
+                <div style="margin-top:4px; border-top:1px solid #eee; padding-top:4px;">
+                    ${infoEquipoHTML}
+                </div>
+            </td>
             <td>${fecha}</td>
         `;
         tbody.appendChild(tr);

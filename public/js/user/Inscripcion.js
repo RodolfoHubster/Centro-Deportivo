@@ -23,62 +23,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Nueva función para obtener datos del evento desde el QR
 function obtenerDatosEventoYMostrarFormulario(eventoId) {
-    // Usar el archivo obtenerEventos.php existente pero con el filtro 'activos=true'
     fetch('../php/public/obtenerEventos.php?activos=true') 
         .then(response => response.json())
         .then(data => {
             if (data.success && data.eventos) {
-                // Buscar el evento específico por ID
                 const evento = data.eventos.find(e => e.id == eventoId);
                 
                 if (evento) {
                     const nombreEvento = evento.nombre || 'Evento';
                     const tipoRegistro = evento.tipo_registro || 'Individual';
-                    // === LÍNEA MODIFICADA: Verifica el campo 'tiene_cupo' ===
-                    const tieneCupo = evento.tiene_cupo == 1; // Lee el campo 'tiene_cupo' del backend
-                    
-                    if (!tieneCupo) {
-                        // El evento está lleno, mostrar mensaje de error y salir
-                        mostrarToast(`El evento "${nombreEvento}" ha alcanzado el cupo máximo de participantes.`, 'error');
-                        return; // Detener ejecución y no mostrar formulario
-                    }
-                    // === FIN DE LÓGICA NUEVA ===
+                    const tieneCupo = evento.tiene_cupo == 1; 
 
-                    // Si hay cupo, procede con la lógica normal:
                     if (tipoRegistro === 'Por equipos') {
+                        // === CAMBIO: SIEMPRE ABRIR LISTA DE EQUIPOS PRIMERO ===
+                        // Pasamos 'tieneCupo' para saber si mostramos el botón de "Crear Equipo" dentro del modal
                         const min = evento.integrantes_min || 8;
-                        const max = evento.integrantes_max || 0; // 0 = sin límite
-                        mostrarFormularioEquipo(eventoId, nombreEvento, min, max);
+                        const max = evento.integrantes_max || 0;
+                        const fInicio = evento.fecha_inicio;
+                        const fTermino = evento.fecha_termino;
+
+                        mostrarFormularioUnirseEquipo(eventoId, nombreEvento, tieneCupo, min, max, fInicio, fTermino);
                     } else {
+                        // Lógica Individual (Sin cambios)
+                        if (!tieneCupo) {
+                            mostrarToast(`El evento "${nombreEvento}" ha alcanzado el cupo máximo.`, 'error');
+                            return; 
+                        }
                         mostrarFormularioInscripcion(eventoId, nombreEvento);
                     }
 
-                    // Función de scroll que movimos de Eventos.js
                     setTimeout(() => {
                         const tarjeta = document.querySelector(`[data-evento-id="${eventoId}"]`);
                         if(tarjeta) tarjeta.scrollIntoView({behavior: "smooth", block: "center"});
                     }, 500);
 
                 } else {
-                    // Si el ID es erróneo o el evento no existe
                     mostrarToast('El evento solicitado no está disponible.', 'error');
-                    console.warn('Evento no encontrado en la lista');
                 }
             } else {
-                // Si hay error en el fetch
-                mostrarToast('Error al obtener datos del evento. Intenta de nuevo más tarde.', 'error');
-                console.warn('No se pudieron obtener los datos de los eventos');
+                mostrarToast('Error al obtener datos del evento.', 'error');
             }
         })
         .catch(error => {
-            console.error('Error al obtener datos del evento:', error);
-            mostrarToast('Error de conexión. Intenta de nuevo más tarde.', 'error');
+            console.error('Error:', error);
+            mostrarToast('Error de conexión.', 'error');
         });
 }
 
 function agregarBotonesInscripcion() {
     const tarjetasEvento = document.querySelectorAll('.evento-card, .event-card, .card-evento');
-    const paginaActual = window.location.pathname.split('/').pop();
 
     tarjetasEvento.forEach((tarjeta) => {
         
@@ -87,15 +80,10 @@ function agregarBotonesInscripcion() {
             return; 
         }
 
-        // =====================================================================
-        // === AQUÍ ESTABA EL BUG ===
-        // Antes solo buscabas '.btn-inscribir'. 
-        // Ahora buscamos CUALQUIERA de los dos botones para no duplicar.
-        // =====================================================================
+        // Evitar duplicar botones
         if (tarjeta.querySelector('.btn-inscribir') || tarjeta.querySelector('.btn-unirse-equipo')) {
-            return; // Si ya existe alguno de los dos, no hacemos nada.
+            return; 
         }
-        // =====================================================================
         
         const eventoId = tarjeta.getAttribute('data-evento-id') || tarjeta.getAttribute('data-id');
         if (!eventoId) return;
@@ -131,13 +119,14 @@ function agregarBotonesInscripcion() {
             width: 100%;
         `;
 
-        const esTorneoEquipo = paginaActual === 'torneos.html' && tipoRegistro === 'Por equipos';
+        const esPorEquipo = tipoRegistro === 'Por equipos';
 
-        if (esTorneoEquipo) {
+        if (esPorEquipo) {
             // Verificar si ya no caben más equipos
             const equiposLlenos = tarjeta.getAttribute('data-equipos-llenos') === 'true';
 
             // 1. Botón "Registrar Mi Equipo" (Solo si NO está lleno)
+            // ESTE ES EL QUE RESTAURAMOS PARA QUE SE VEA IGUAL QUE ANTES
             if (!equiposLlenos) {
                 const btnCrearEquipo = document.createElement('button');
                 btnCrearEquipo.innerHTML = `
@@ -153,6 +142,7 @@ function agregarBotonesInscripcion() {
                 btnCrearEquipo.style.cssText = estilosBaseBoton + `margin-bottom: 10px;`;
                 
                 btnCrearEquipo.addEventListener('click', () => {
+                    // Acción directa al formulario de creación
                     mostrarFormularioEquipo(eventoId, nombreEvento, min, max, fechaInicio, fechaTermino);
                 });
                 contenedorBotones.appendChild(btnCrearEquipo);
@@ -195,13 +185,15 @@ function agregarBotonesInscripcion() {
             }
 
             btnUnirseEquipo.addEventListener('click', () => {
-                mostrarFormularioUnirseEquipo(eventoId, nombreEvento);
+                // AQUÍ LA CLAVE: Le pasamos '!equiposLlenos' como tercer parámetro.
+                // Esto hará que el modal de lista MUESTRE el botón de "Crear Equipo" adentro también.
+                mostrarFormularioUnirseEquipo(eventoId, nombreEvento, !equiposLlenos, min, max, fechaInicio, fechaTermino);
             });
 
             contenedorBotones.appendChild(btnUnirseEquipo);
 
         } else {
-            // Caso Individual
+            // Caso Individual (Se mantiene igual)
             const btnInscribir = document.createElement('button');
             btnInscribir.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
@@ -1550,7 +1542,7 @@ function enviarInscripcionEquipo(form, modal) {
  * Muestra el modal con la lista de equipos disponibles para unirse
  * Se añade al archivo Inscripcion.js después de la función enviarInscripcionEquipo
  */
-function mostrarFormularioUnirseEquipo(eventoId, nombreEvento) {
+function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquipo = false, min = 8, max = 0, fInicio = null, fTermino = null) {
     const modalExistente = document.getElementById('modal-unirse-equipo');
     if(modalExistente) modalExistente.remove();
 
@@ -1563,11 +1555,34 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento) {
         padding: 20px 10px; animation: fadeIn 0.3s ease;
     `;
     
+    // Generar el HTML del botón de crear (solo si permiteCrearEquipo es true)
+    let botonCrearHTML = '';
+    if (permiteCrearEquipo) {
+        botonCrearHTML = `
+            <div style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px dashed #00843D; border-radius: 12px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #003366; font-size: 18px;">¿No encuentras tu equipo?</h4>
+                <p style="margin: 0 0 15px 0; font-size: 14px; color: #555;">Puedes registrar un equipo nuevo e invitar a tus compañeros.</p>
+                <button id="btnIrACrearEquipo" style="
+                    background: #00843D; color: white; border: none; padding: 12px 25px; 
+                    border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px;
+                    display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s;
+                ">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Crear Nuevo Equipo
+                </button>
+            </div>
+        `;
+    }
+
     modal.innerHTML = `
         <div class="modal-contenido-responsive" style="background: white; border-radius: 16px; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; position: relative; max-width: 900px; width: 100%; padding: 40px;">
             
             <button type="button" class="btnCerrarXUnirse" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666; z-index: 1;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -1582,23 +1597,24 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento) {
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                 </div>
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unirse a un Equipo</h2>
-                <p style="color: #666; margin: 0; font-size: 15px;">Selecciona un equipo existente para unirte</p>
-                <h3 style="color: #007bff; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${nombreEvento}</h3>
+                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Equipos Disponibles</h2>
+                <h3 style="color: #007bff; margin: 0; font-size: 18px; font-weight: 600;">${nombreEvento}</h3>
             </div>
 
-            <div id="loading-equipos" style="text-align: center; padding: 40px;">
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" style="animation: spin 1s linear infinite;">
+            ${botonCrearHTML}
+
+            <div id="loading-equipos" style="text-align: center; padding: 20px;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" style="animation: spin 1s linear infinite;">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                 </svg>
-                <p style="color: #666; margin-top: 15px;">Cargando equipos disponibles...</p>
+                <p style="color: #666; margin-top: 10px;">Cargando equipos...</p>
             </div>
 
             <div id="lista-equipos" style="display: none;"></div>
 
             <div style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
                 <button type="button" id="btnCerrarUnirse" 
-                        style="padding: 14px 32px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s;">
+                        style="padding: 12px 30px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px;">
                     Cerrar
                 </button>
             </div>
@@ -1607,17 +1623,22 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento) {
     
     document.body.appendChild(modal);
 
-    // Cargar equipos
-fetch(`../php/public/obtenerEquipo.php?evento_id=${eventoId}`)
+    // Listener para el botón de "Crear Nuevo Equipo"
+    if (permiteCrearEquipo) {
+        document.getElementById('btnIrACrearEquipo').addEventListener('click', () => {
+            modal.remove(); // Cerramos modal actual
+            // Abrimos modal de registro
+            mostrarFormularioEquipo(eventoId, nombreEvento, min, max, fInicio, fTermino);
+        });
+    }
+
+    // Cargar equipos (Lógica existente)
+    fetch(`../php/public/obtenerEquipo.php?evento_id=${eventoId}`)
         .then(response => {
-            console.log('Estado de respuesta:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
         })
         .then(data => {
-            console.log('Datos recibidos:', data);
             document.getElementById('loading-equipos').style.display = 'none';
             const listaContainer = document.getElementById('lista-equipos');
             listaContainer.style.display = 'block';
@@ -1625,30 +1646,24 @@ fetch(`../php/public/obtenerEquipo.php?evento_id=${eventoId}`)
             if (data.success && data.equipos && data.equipos.length > 0) {
                 mostrarListaEquipos(data.equipos, listaContainer, eventoId, nombreEvento);
             } else {
+                // Mensaje si no hay equipos, ajustado si se puede crear o no
+                const mensajeExtra = permiteCrearEquipo 
+                    ? '¡Sé el primero en crear uno usando el botón de arriba!' 
+                    : 'No hay equipos disponibles en este momento.';
+                
                 listaContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 12px;">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="1.5" style="margin-bottom: 15px;">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        <p style="color: #666; font-size: 16px; margin: 0;">No hay equipos registrados para este evento aún.</p>
-                        <p style="color: #999; font-size: 14px; margin: 10px 0 0 0;">Sé el primero en crear un equipo.</p>
+                    <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 12px;">
+                        <p style="color: #666; font-size: 16px; margin: 0;">No se encontraron equipos registrados.</p>
+                        <p style="color: #00843D; font-size: 14px; margin: 10px 0 0 0; font-weight: 600;">${mensajeExtra}</p>
                     </div>
                 `;
             }
         })
         .catch(error => {
-            console.error('Error completo:', error);
             document.getElementById('loading-equipos').style.display = 'none';
             const listaContainer = document.getElementById('lista-equipos');
             listaContainer.style.display = 'block';
-            listaContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px;">
-                    <p style="color: #856404; margin: 0;">Error al cargar los equipos: ${error.message}</p>
-                    <p style="color: #856404; margin: 10px 0 0 0; font-size: 14px;">Verifica la consola para más detalles.</p>
-                </div>
-            `;
+            listaContainer.innerHTML = `<p style="color: red; text-align:center;">Error al cargar equipos.</p>`;
         });
 
     // Cerrar modal
@@ -1658,7 +1673,6 @@ fetch(`../php/public/obtenerEquipo.php?evento_id=${eventoId}`)
         if (e.target === modal) modal.remove();
     });
 }
-
 /**
  * Renderiza la lista de equipos disponibles
  */
