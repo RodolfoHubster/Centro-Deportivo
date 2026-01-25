@@ -82,7 +82,7 @@
 
     .page-content {
         padding: 20px;
-        margin: 20px 15px; /* Márgenes laterales reducidos */
+        margin: 20px auto; /* Márgenes laterales reducidos */
     }
 
     .filtros-containter {
@@ -95,7 +95,11 @@
 @media (max-width: 768px) {
     .page-content {
         padding: 20px;
-        margin: 20px 15px;
+        margin: 20px auto;
+    }
+
+    .page-content p {
+        font-size: .8rem;
     }
 
     .filtros-containter {

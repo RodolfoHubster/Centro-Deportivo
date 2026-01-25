@@ -43,6 +43,13 @@ try {
         $tipos_params .= 's';
         $valores_params[] = $_GET['tipo_actividad'];
     }
+
+    if (isset($_GET['campus']) && !empty($_GET['campus'])) {
+        // Buscamos coincidencias en el nombre del campus (ej. "Tijuana" encuentra "Campus Tijuana")
+        $filtros[] = "c.nombre LIKE ?"; 
+        $tipos_params .= 's';
+        $valores_params[] = '%' . $_GET['campus'] . '%';
+    }
     
     // Filtro por tipo de registro
     if (isset($_GET['tipo_registro']) && !empty($_GET['tipo_registro'])) {
