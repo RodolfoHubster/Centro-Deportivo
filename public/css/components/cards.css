@@ -5,8 +5,7 @@
    ============================================================= */
    .eventos-container {
     display: grid;
-    /* Bajamos el minmax a 260px para que quepa en CUALQUIER celular sin desbordar */
-    /* grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); */
+    /*grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));*/
     gap: 20px;
     margin-top: 30px;
     padding-bottom: 40px;
@@ -45,6 +44,7 @@
     
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-top-color 0.3s ease;
+    margin: 10px;
 }
 
 /* Hover */
@@ -195,4 +195,9 @@
         width: 100% !important; /* Asegurar ancho total */
         white-space: normal; /* Permitir saltos de línea en móvil si el texto es largo */
     }
+}
+
+.btn-toggle-desc:hover {
+    text-decoration: underline;
+    color: #0056b3 !important; /* Un azul más oscuro */
 }
