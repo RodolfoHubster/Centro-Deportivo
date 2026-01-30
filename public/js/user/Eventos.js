@@ -4,13 +4,21 @@
 let filtrosBase = {};
 
 document.addEventListener("DOMContentLoaded", () => {
-    const pagina = window.location.pathname.split('/').pop();
+    
+    // 1. Detección robusta de la página (convierte a minúsculas y busca palabras clave)
+    const path = window.location.pathname.toLowerCase();
 
-    // 1. Definir filtro base según la página
-    if (pagina.includes('torneos.html')) {
-        filtrosBase = { tipo_actividad: 'Torneo' };
-    } else if (pagina.includes('eventos.html')) {
-        filtrosBase = { excluir_tipo_actividad: 'Torneo' };
+    // Limpiamos los filtros base antes de asignar
+    filtrosBase = {}; 
+
+    if (path.includes('torneos.html')) {
+        // Si la URL dice "torneos" (con o sin .html), mostramos SOLO torneos
+        filtrosBase = { tipo_actividad: 'torneo' };
+        console.log("Modo: Torneos activos"); // Debug para consola
+    } else if (path.includes('eventos')) {
+        // Si la URL dice "eventos", ocultamos los torneos
+        filtrosBase = { excluir_tipo_actividad: 'torneo' };
+        console.log("Modo: Eventos generales"); // Debug para consola
     }
 
     const selectCampus = document.getElementById('filtro-campus');
