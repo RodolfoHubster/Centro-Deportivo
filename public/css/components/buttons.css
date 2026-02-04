@@ -77,3 +77,25 @@ button.btn-secondary:hover {
     background-color: var(--color-dorado-hover);
     transform: translateY(-2px);
 }
+
+/* BLINDAJE PARA EL BOTÓN DE CIERRE DEL MODAL */
+#btnCerrarX {
+    display: flex !important;       /* Asegura que sea flex para centrar */
+    opacity: 1 !important;          /* Evita que sea transparente */
+    visibility: visible !important; /* Asegura visibilidad */
+    background-color: rgba(255, 255, 255, 0.9) !important; /* Fondo blanco visible */
+    color: #333 !important;         /* Color de texto/icono base */
+}
+
+#btnCerrarX svg {
+    display: block !important;      /* Asegura que el SVG ocupe espacio */
+    width: 20px !important;         /* Tamaño fijo */
+    height: 20px !important;
+    opacity: 1 !important;
+}
+
+#btnCerrarX path {
+    stroke: #333333 !important;     /* FUERZA el color de las líneas a gris oscuro */
+    stroke-width: 3px !important;   /* Grosor visible */
+    fill: none !important;          /* Sin relleno */
+}

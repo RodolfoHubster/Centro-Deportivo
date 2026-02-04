@@ -258,12 +258,29 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     modal.innerHTML = `
         <div id="overlayModal" style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; position: relative;">
             
-            <button type="button" id="btnCerrarX" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
+            <button type="button" id="btnCerrarX" style="
+    position: absolute; 
+    top: 15px; 
+    right: 15px; 
+    background: rgba(255,255,255,0.8); /* Fondo blanquito para que se vea */
+    border: none; 
+    cursor: pointer; 
+    width: 35px; 
+    height: 35px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 0 !important;
+    border-radius: 50%; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1050;
+    transition: transform 0.2s;">
+    
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block;">
+        <path d="M18 6L6 18" stroke="#333333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 6L18 18" stroke="#333333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</button>
 
             <div style="text-align: center; margin-bottom: 30px;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
@@ -475,6 +492,10 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
 
         </div>
     `;
+
+    
+
+
     
     // Agregar estilos CSS
     const style = document.createElement('style');
