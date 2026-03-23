@@ -34,29 +34,25 @@ export function actualizarCamposSegunTipo(tipo, context = document) {
         if(selectCarrera) selectCarrera.required = true;
 
     // CASO 2: EMPLEADOS (Docente, Personal, etc.)
-    } else if (['Docente', 'Personal administrativo', 'Personal de servicio'].includes(tipo)) {
+    } else if (['Docente', 'Personal Académico', 'Personal de Servicio'].includes(tipo) || ['Docente', 'Personal administrativo', 'Personal de servicio'].includes(tipo)) {
         
-        // LÓGICA ESPECIAL: "Personal de servicio" tiene matrícula opcional
-        if (tipo === 'Personal de Servicio') {
-            labelMatricula.textContent = 'No. Empleado (Opcional)';
+        if (tipo === 'Personal de Servicio' || tipo === 'Personal de servicio') {
+            labelMatricula.textContent = 'Matrícula o No. de Empleado (Opcional)'; // <-- SOLO AQUI
             inputMatricula.placeholder = 'Opcional';
-            inputMatricula.required = false; // <--- Importante: Ya no es obligatorio
-            if(requiredMatricula) requiredMatricula.style.display = 'none'; // Ocultamos el asterisco rojo
+            inputMatricula.required = false;
+            if(requiredMatricula) requiredMatricula.style.display = 'none'; 
         } else {
-            // Para Docentes y Personal Académico sigue siendo obligatorio
             labelMatricula.textContent = 'No. Empleado';
             inputMatricula.placeholder = 'Núm. empleado';
             inputMatricula.required = true;
             if(requiredMatricula) requiredMatricula.style.display = 'inline';
         }
 
-        // El patrón se mantiene para validar formato SI el usuario escribe algo
         inputMatricula.setAttribute('pattern', '[0-9]{4,10}');
         
-        // Muestran Campus y Facultad, pero NO Carrera
         if(seccionAcademica) seccionAcademica.style.display = 'block';
         if(facultadContainer) facultadContainer.style.display = 'block';
-        if(carreraContainer) carreraContainer.style.display = 'none'; // Ocultar carrera
+        if(carreraContainer) carreraContainer.style.display = 'none'; 
         
         if(selectCampus) selectCampus.required = true;
         if(selectFacultad) selectFacultad.required = true;
@@ -73,7 +69,6 @@ export function actualizarCamposSegunTipo(tipo, context = document) {
         inputMatricula.removeAttribute('pattern');
         if(requiredMatricula) requiredMatricula.style.display = 'none';
         
-        // Ocultar todo lo académico
         if(seccionAcademica) seccionAcademica.style.display = 'none';
         if(facultadContainer) facultadContainer.style.display = 'none';
         if(carreraContainer) carreraContainer.style.display = 'none';
@@ -83,7 +78,6 @@ export function actualizarCamposSegunTipo(tipo, context = document) {
         if(selectCarrera) selectCarrera.required = false;
     }
 }
-
 // --- NUEVA FUNCIÓN: Cargar Campus ---
 export function cargarCampus(selectElement, rutaBase = '../php/public/') {
     if (!selectElement) return Promise.resolve(); // Retornar promesa resuelta si no hay elemento

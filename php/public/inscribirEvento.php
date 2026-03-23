@@ -84,6 +84,7 @@ try {
     $nombres = mysqli_real_escape_string($conexion, trim($_POST['nombres']));
     $correo = mysqli_real_escape_string($conexion, trim($_POST['correo']));
     $genero = mysqli_real_escape_string($conexion, trim($_POST['genero']));
+    $telefono = isset($_POST['telefono']) ? mysqli_real_escape_string($conexion, trim($_POST['telefono'])) : NULL; // <-- NUEVO
     
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : 'Estudiante';
@@ -176,6 +177,7 @@ try {
                                  apellido_paterno = ?, 
                                  apellido_materno = ?,
                                  correo = ?, 
+                                 telefono = ?,
                                  genero = ?, 
                                  carrera_id = ?, 
                                  rol = ?,
@@ -189,7 +191,7 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt,
-            'sssssisi',
+            'ssssssisi',
             $nombres,
             $apellido_paterno,
             $apellido_materno,
@@ -209,8 +211,8 @@ try {
         
         $sqlUsuario = "INSERT INTO usuario 
                        (matricula, apellido_paterno, apellido_materno, nombre,
-                        correo, genero, carrera_id, rol, activo, contrasena) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
+                        correo, telefono, genero, carrera_id, rol, activo, contrasena) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
         $stmt = mysqli_prepare($conexion, $sqlUsuario);
         
         if (!$stmt) {
@@ -219,12 +221,13 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt, 
-            'ssssssis', 
+            'sssssssis', 
             $matricula,
             $apellido_paterno,
             $apellido_materno,
             $nombres,
             $correo,
+            $telefono,
             $genero,
             $carrera_id,
             $tipo_participante
