@@ -258,7 +258,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     modal.innerHTML = `
         <div id="overlayModal" style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; position: relative;">
             
-            <button type="button" id="btnCerrarX" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666;">
+            <button type="button" id="btnCerrarX" style="position: absolute; top: 15px; right: 15px;z-index: 1000; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #d61a1a;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -379,6 +379,14 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                             style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
                 </div>
+
+                <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                            Teléfono <span style="color: #dc3545;">*</span>
+                        </label>
+                        <input type="tel" name="telefono" required pattern="[0-9]{10}" placeholder="Ej. 6641234567" class="form-input"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
+                    </div>
 
                 
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
@@ -616,6 +624,7 @@ function enviarInscripcion(form, modal) {
     datosEnvio.append('apellido_materno', formData.get('apellido_materno'));
     datosEnvio.append('nombres', formData.get('nombres'));
     datosEnvio.append('correo', formData.get('correo'));
+    datosEnvio.append('telefono', formData.get('telefono') || '');
     datosEnvio.append('genero', formData.get('genero'));
     datosEnvio.append('carrera', formData.get('carrera') || '');
     datosEnvio.append('tipo_participante', formData.get('tipo_participante'));
@@ -829,7 +838,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     modal.innerHTML = `
         <div class="modal-contenido-responsive" style="background: white; border-radius: 16px; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; position: relative;">
             
-            <button type="button" class="btnCerrarXEquipo" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666;">
+            <button type="button" class="btnCerrarXEquipo" style="position: absolute; top: 15px; right: 15px;z-index: 1000; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #d61a1a;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -1048,8 +1057,15 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Correo Electrónico UABC <span style="color: #dc3545;">*</span></label>
                 <input type="email" name="${nombreBase}[correo]" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
-            </div>            
-
+            </div> 
+            
+            ${esCapitan ? `
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">Teléfono (Capitán) <span style="color: #dc3545;">*</span></label>
+                <input type="tel" name="telefono" required pattern="[0-9]{10}" placeholder="10 dígitos" class="form-input" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+            </div>
+            ` : ''}
+    
             <div class="campus-container-equipo" style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #333;">
                     <span class="label-campus">Unidad Académica</span> <span style="color: #dc3545;" class="required-campus">*</span>
@@ -1370,7 +1386,7 @@ function actualizarCamposEquipo(tipo, cardElement) {
 
     } else if (tipo === 'Docente' || tipo === 'Personal Académico') {
         // --- DOCENTE Y PERSONAL ACADÉMICO ---
-        labelMatricula.textContent = 'Número de Empleado';
+        labelMatricula.textContent = 'No. Empleado';
         inputMatricula.placeholder = 'Núm. empleado';
         inputMatricula.required = true;
         inputMatricula.setAttribute('pattern', '[0-9]{4,10}');
@@ -1387,7 +1403,11 @@ function actualizarCamposEquipo(tipo, cardElement) {
     } else { 
         // --- EXTERNO Y PERSONAL DE SERVICIO ---
         // (Matrícula Opcional y sin campos académicos)
-        labelMatricula.textContent = 'Identificación (Opcional)';
+        if (tipo === 'Personal de Servicio') {
+            labelMatricula.textContent = 'Matrícula o No. de Empleado (Opcional)'; // <-- SOLO AQUI
+        } else {
+            labelMatricula.textContent = 'Identificación (Opcional)';
+        }
         inputMatricula.placeholder = 'Opcional';
         inputMatricula.required = false;
         inputMatricula.removeAttribute('pattern');
@@ -1581,7 +1601,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
     modal.innerHTML = `
         <div class="modal-contenido-responsive" style="background: white; border-radius: 16px; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; position: relative; max-width: 900px; width: 100%; padding: 40px;">
             
-            <button type="button" class="btnCerrarXUnirse" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666; z-index: 1;">
+            <button type="button" class="btnCerrarXUnirse" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #d61a1a; z-index: 1000;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -1812,7 +1832,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
     modal.innerHTML = `
         <div style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; position: relative;">
             
-            <button type="button" class="btnCerrarXUnirseIntegrante" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #666;">
+            <button type="button" class="btnCerrarXUnirseIntegrante" style="position: absolute; top: 15px; right: 15px;z-index: 1000; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #d61a1a; padding: 0;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>

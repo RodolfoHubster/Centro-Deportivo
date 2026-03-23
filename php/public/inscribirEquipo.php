@@ -44,6 +44,7 @@ try {
 
     // === CORRECCIÓN CLAVE PARA FECHAS Y HORARIOS ===
     // Si llegan vacíos "", los convertimos a NULL para evitar errores en la BD
+    $telefono_capitan = isset($_POST['telefono']) ? mysqli_real_escape_string($conexion, trim($_POST['telefono'])) : NULL; // <-- NUEVO
     $horario_raw = isset($_POST['horario_disponible']) ? trim($_POST['horario_disponible']) : '';
     $horario_disponible = !empty($horario_raw) ? mysqli_real_escape_string($conexion, $horario_raw) : NULL;
 
@@ -154,10 +155,10 @@ try {
     $sqlCheckUsuario = "SELECT id FROM usuario WHERE matricula = ?";
     $stmtCheck = mysqli_prepare($conexion, $sqlCheckUsuario);
 
-    $sqlUpdateUsuario = "UPDATE usuario SET nombre=?, apellido_paterno=?, apellido_materno=?, correo=?, genero=?, carrera_id=?, rol=?, activo=1 WHERE id=?";
+    $sqlUpdateUsuario = "UPDATE usuario SET nombre=?, apellido_paterno=?, apellido_materno=?, correo=?, telefono=?, genero=?, carrera_id=?, rol=?, activo=1 WHERE id=?";
     $stmtUpdate = mysqli_prepare($conexion, $sqlUpdateUsuario);
 
-    $sqlInsertUsuario = "INSERT INTO usuario (matricula, nombre, apellido_paterno, apellido_materno, correo, genero, carrera_id, rol, activo, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
+    $sqlInsertUsuario = "INSERT INTO usuario (matricula, nombre, apellido_paterno, apellido_materno, correo, telefono, genero, carrera_id, rol, activo, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
     $stmtInsert = mysqli_prepare($conexion, $sqlInsertUsuario);
 
     foreach ($integrantes_procesados as $integrante) {
@@ -185,15 +186,18 @@ try {
         mysqli_stmt_bind_param($stmtCheck, 's', $matricula);
         mysqli_stmt_execute($stmtCheck);
         $resultadoUsuario = mysqli_stmt_get_result($stmtCheck);
-        
+
+        // === NUEVO: Saber si este integrante es el capitán para asignarle el teléfono ===
+        $telefono_actual = ($matricula === $capitan_real_id) ? $telefono_capitan : NULL;
+
         if ($row = mysqli_fetch_assoc($resultadoUsuario)) {
             // === ACTUALIZAR ===
             $current_usuario_id = $row['id'];
-            mysqli_stmt_bind_param($stmtUpdate, 'sssssisi', $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $tipo_participante, $current_usuario_id);
+            mysqli_stmt_bind_param($stmtUpdate, 'ssssssisi', $nombres, $apellido_paterno, $apellido_materno, $correo, $telefono_actual, $genero, $carrera_id, $tipo_participante, $current_usuario_id);
             mysqli_stmt_execute($stmtUpdate);
         } else {
             // === INSERTAR ===
-            mysqli_stmt_bind_param($stmtInsert, 'ssssssis', $matricula, $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $tipo_participante);
+            mysqli_stmt_bind_param($stmtInsert, 'sssssssis', $matricula, $nombres, $apellido_paterno, $apellido_materno, $correo, $telefono_actual, $genero, $carrera_id, $tipo_participante);
             if (!mysqli_stmt_execute($stmtInsert)) {
                 if (strpos(mysqli_stmt_error($stmtInsert), 'correo') !== false) {
                     throw new Exception("El correo {$correo} ya está registrado.");
