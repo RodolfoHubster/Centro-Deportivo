@@ -57,7 +57,7 @@
     display: flex;
     padding: 25px;
     gap: 30px; 
-    align-items: flex-start;
+    align-items: stretch;
     width: 100%;
     box-sizing: border-box;
 }
@@ -80,6 +80,7 @@
     flex-direction: column;
     gap: 10px;
     flex: 0 0 200px; /* Ancho fijo */
+    justify-content: center;
 }
 
 /* Estilo unificado para los botones */
@@ -234,4 +235,65 @@
     .admin-modal-contenido { padding: 20px; width: 95%; }
     .admin-modal-botones { flex-direction: column; }
     #facultades-checkbox { grid-template-columns: 1fr; }
+}
+
+/* =========================================
+   SISTEMA DE TARJETAS EXPANDIBLES (ACORDEÓN)
+   ========================================= */
+
+/* Ocultar información extra y botones por defecto */
+.evento-detalles-extra {
+    display: none;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.evento-acciones {
+    display: none !important; /* Ocultamos los botones laterales */
+}
+
+/* Botón interactivo para expandir */
+.btn-expandir-tarjeta {
+    background: none;
+    border: none;
+    color: var(--color-verde-uabc);
+    font-weight: bold;
+    cursor: pointer;
+    padding: 10px 0 0 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95rem;
+    margin-top: 10px;
+}
+
+.btn-expandir-tarjeta svg {
+    transition: transform 0.3s ease; /* Animación de la flechita */
+}
+
+/* ESTADO EXPANDIDO (Cuando hacemos clic en JS) */
+.evento-card-admin.expandida .evento-detalles-extra {
+    display: block;
+    animation: fadeIn 0.3s ease-in; /* Aparece suavemente */
+}
+
+.evento-card-admin.expandida .btn-expandir-tarjeta svg {
+    transform: rotate(180deg); /* Voltea la flechita hacia arriba */
+}
+
+.evento-card-admin.expandida .evento-acciones {
+    display: flex !important; /* Restauramos los botones en escritorio */
+}
+
+/* Mantener el diseño de botones en celulares cuando está expandido */
+@media (max-width: 1100px) {
+    .evento-card-admin.expandida .evento-acciones {
+        display: grid !important; 
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

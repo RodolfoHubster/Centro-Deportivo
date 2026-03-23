@@ -114,6 +114,23 @@ function handleTipoRegistroChange(e) {
 }
 
 async function handleListaEventosClick(e) {
+
+    // --- NUEVA LÓGICA DE EXPANDIR/CONTRAER TARJETA ---
+    const btnExpandir = e.target.closest('.btn-expandir-tarjeta');
+    if (btnExpandir) {
+        // Encontramos la tarjeta padre y le alternamos la clase 'expandida'
+        const tarjeta = btnExpandir.closest('.evento-card-admin');
+        tarjeta.classList.toggle('expandida');
+        
+        // Cambiamos el texto del botón dependiendo si está abierta o cerrada
+        const spanTexto = btnExpandir.querySelector('span');
+        if (tarjeta.classList.contains('expandida')) {
+            spanTexto.textContent = 'Ocultar detalles';
+        } else {
+            spanTexto.textContent = 'Mostrar más detalles y acciones';
+        }
+        return;
+    }
     const boton = e.target.closest('button[data-action]');
     if (!boton) return; 
 
