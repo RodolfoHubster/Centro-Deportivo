@@ -40,13 +40,13 @@ try {
         $tipo_participante_temp = 'Personal de servicio';
         $_POST['tipo_participante'] = 'Personal de servicio'; // Actualizamos para el resto del script
     }
-    if ($tipo_participante_temp === 'Personal Académico') {
-        $tipo_participante_temp = 'Personal académico';
-        $_POST['tipo_participante'] = 'Personal académico'; 
+    if ($tipo_participante_temp === 'Personal Administrativo') {
+        $tipo_participante_temp = 'Personal administrativo';
+        $_POST['tipo_participante'] = 'Personal administrativo'; 
     }
     
     // Definimos los roles que tienen "permisos libres" (Matrícula opcional y Correo libre)
-    $roles_libres = ['Externo', 'Personal de servicio','Personal académico'];
+    $roles_libres = ['Externo', 'Personal de servicio','Personal administrativo'];
     $es_rol_libre = in_array($tipo_participante_temp, $roles_libres);
 
     $camposRequeridos = [
@@ -84,6 +84,7 @@ try {
     $nombres = mysqli_real_escape_string($conexion, trim($_POST['nombres']));
     $correo = mysqli_real_escape_string($conexion, trim($_POST['correo']));
     $genero = mysqli_real_escape_string($conexion, trim($_POST['genero']));
+    $telefono = isset($_POST['telefono']) ? mysqli_real_escape_string($conexion, trim($_POST['telefono'])) : NULL; // <-- NUEVO
     
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : 'Estudiante';
@@ -117,7 +118,7 @@ try {
         throw new Exception('Género inválido');
     }
     
-    $tipos_validos = ['Estudiante', 'Docente', 'Personal académico', 'Personal de servicio', 'Externo'];
+    $tipos_validos = ['Estudiante', 'Docente', 'Personal administrativo', 'Personal de servicio', 'Externo'];
     if (!in_array($tipo_participante, $tipos_validos)) {
         throw new Exception('Tipo de participante inválido');
     }
@@ -176,6 +177,7 @@ try {
                                  apellido_paterno = ?, 
                                  apellido_materno = ?,
                                  correo = ?, 
+                                 telefono = ?,
                                  genero = ?, 
                                  carrera_id = ?, 
                                  rol = ?,
@@ -189,7 +191,7 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt,
-            'sssssisi',
+            'ssssssisi',
             $nombres,
             $apellido_paterno,
             $apellido_materno,
@@ -209,8 +211,8 @@ try {
         
         $sqlUsuario = "INSERT INTO usuario 
                        (matricula, apellido_paterno, apellido_materno, nombre,
-                        correo, genero, carrera_id, rol, activo, contrasena) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
+                        correo, telefono, genero, carrera_id, rol, activo, contrasena) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
         $stmt = mysqli_prepare($conexion, $sqlUsuario);
         
         if (!$stmt) {
@@ -219,12 +221,13 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt, 
-            'ssssssis', 
+            'sssssssis', 
             $matricula,
             $apellido_paterno,
             $apellido_materno,
             $nombres,
             $correo,
+            $telefono,
             $genero,
             $carrera_id,
             $tipo_participante

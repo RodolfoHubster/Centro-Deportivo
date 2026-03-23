@@ -44,6 +44,7 @@ try {
     $nombres = isset($_POST['nombres']) ? mysqli_real_escape_string($conexion, trim($_POST['nombres'])) : '';
     $correo = isset($_POST['correo']) ? mysqli_real_escape_string($conexion, strtolower(trim($_POST['correo']))) : '';
     $genero = isset($_POST['genero']) ? mysqli_real_escape_string($conexion, trim($_POST['genero'])) : '';
+    $telefono = isset($_POST['telefono']) ? mysqli_real_escape_string($conexion, trim($_POST['telefono'])) : NULL; // <-- NUEVO
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     $campus_id = isset($_POST['campus']) && !empty($_POST['campus']) ? intval($_POST['campus']) : NULL;
     $facultad_id = isset($_POST['facultad']) && !empty($_POST['facultad']) ? intval($_POST['facultad']) : NULL;
@@ -163,15 +164,15 @@ try {
 
     if ($usuarioExistente) {
         $usuario_id = $usuarioExistente['id'];
-        $sqlUpdate = "UPDATE usuario SET nombre=?, apellido_paterno=?, apellido_materno=?, correo=?, genero=?, carrera_id=?, campus_id=?, facultad_id=?, rol=?, activo=1 WHERE id=?";
+        $sqlUpdate = "UPDATE usuario SET nombre=?, apellido_paterno=?, apellido_materno=?, correo=?, telefono=?, genero=?, carrera_id=?, campus_id=?, facultad_id=?, rol=?, activo=1 WHERE id=?";
         $stmtUpdate = mysqli_prepare($conexion, $sqlUpdate);
-        mysqli_stmt_bind_param($stmtUpdate, 'sssssiiisi', $nombres, $apellido_paterno, $apellido_materno, $correo, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante, $usuario_id);
+        mysqli_stmt_bind_param($stmtUpdate, 'ssssssiiisi', $nombres, $apellido_paterno, $apellido_materno, $correo, $telefono, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante, $usuario_id);
         mysqli_stmt_execute($stmtUpdate);
         mysqli_stmt_close($stmtUpdate);
     } else {
-        $sqlInsert = "INSERT INTO usuario (matricula, apellido_paterno, apellido_materno, nombre, correo, genero, carrera_id, campus_id, facultad_id, rol, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
+        $sqlInsert = "INSERT INTO usuario (matricula, apellido_paterno, apellido_materno, nombre, correo, telefono, genero, carrera_id, campus_id, facultad_id, rol, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
         $stmtInsert = mysqli_prepare($conexion, $sqlInsert);
-        mysqli_stmt_bind_param($stmtInsert, 'ssssssiiis', $matricula, $apellido_paterno, $apellido_materno, $nombres, $correo, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante);
+        mysqli_stmt_bind_param($stmtInsert, 'sssssssiiis', $matricula, $apellido_paterno, $apellido_materno, $nombres, $correo, $telefono, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante);
         if (!mysqli_stmt_execute($stmtInsert)) {
             if (mysqli_errno($conexion) == 1062) throw new Exception('El correo ya está registrado.');
             throw new Exception('Error al registrar usuario: ' . mysqli_stmt_error($stmtInsert));
