@@ -49,6 +49,25 @@
       </table>
 
     </div>
+
+    <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+          <label for="limiteRegistros" style="font-weight: bold; color: #333;">Mostrar:</label>
+          <select id="limiteRegistros" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
+              <option value="10">10 registros</option>
+              <option value="20">20 registros</option>
+              <option value="50">50 registros</option>
+              <option value="100">100 registros</option>
+          </select>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+          <span id="infoPaginacion" style="color: #666; font-size: 0.9rem;">Calculando...</span>
+          <div style="display: flex; gap: 5px;">
+              <button id="btnPrevPage" class="btn-paginacion" disabled>&lt; Anterior</button>
+              <button id="btnNextPage" class="btn-paginacion">Siguiente &gt;</button>
+          </div>
+      </div>
+    </div>
     <div style="text-align: right; margin-top: 20px; margin-bottom: 20px; display: flex; gap: 10px; justify-content: flex-end;">
       <button id="btnGenerarExcel" class="btn-reporte btn-excel">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

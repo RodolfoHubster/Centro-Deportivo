@@ -12,6 +12,8 @@ let eventoEditandoId = null;
 let usuarioId = null; 
 let todosLosEventos = []; 
 let periodoActivoGlobal = null;
+let paginaActualEventos = 1;
+let registrosPorPaginaEventos = 10;
 
 // 3. --- INICIALIZACIÓN DE LA PÁGINA ---
 window.addEventListener('DOMContentLoaded', inicializarPaginaGestionEventos);
@@ -72,49 +74,6 @@ async function inicializarPaginaGestionEventos() {
 
     configurarListenersEventos();
     ui.inicializarTextareaAutoGrow();
-}
-
-// 4. --- CONFIGURAR EVENT LISTENERS ---
-function configurarListenersEventos() {
-    // Botones del Modal
-    document.getElementById('btnNuevoEvento').addEventListener('click', handleNuevoEventoClick);
-    document.getElementById('btnCancelar').addEventListener('click', ui.cerrarModal);
-    document.getElementById('formEvento').addEventListener('submit', handleFormSubmit);
-    
-    document.getElementById('evento-tipo-registro').addEventListener('change', handleTipoRegistroChange);
-    document.getElementById('evento-categoria').addEventListener('change', handleCategoriaChange);
-
-    // Listener para filtrado en cascada del Modal
-    const divCampus = document.getElementById('campus-checkbox');
-    if (divCampus) {
-        divCampus.addEventListener('change', handleCampusChange);
-    }
-
-    // Delegación de eventos para la lista
-    document.getElementById('lista-eventos').addEventListener('click', handleListaEventosClick);
-
-    // Listeners para los filtros de la tabla principal
-    // --- AGREGAMOS 'filtro-campus-admin' A LA LISTA ---
-    const filtrosIDs = [
-        'filtro-buscar-admin', 'filtro-facultad-admin', 'filtro-campus-admin', 
-        'filtro-categoria-admin', 'filtro-tipo-admin', 'filtro-periodo-admin', 
-        'filtro-estado-admin'
-    ];
-    
-    filtrosIDs.forEach(id => {
-        const elem = document.getElementById(id);
-        if(elem) elem.addEventListener(elem.tagName === 'INPUT' ? 'input' : 'change', aplicarFiltrosAdmin);
-    });
-    
-    // Botón Limpiar Filtros
-    document.getElementById('btnLimpiarFiltrosAdmin').addEventListener('click', () => {
-        filtrosIDs.forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.value = '';
-        });
-        document.getElementById('filtro-estado-admin').value = 'activo'; 
-        aplicarFiltrosAdmin(); 
-    });
 }
 
 // 5. --- HANDLERS Y FUNCIONES ---
@@ -310,43 +269,6 @@ try {
 // ==========================================================
 // === LÓGICA DE FILTRADO DE LA TABLA PRINCIPAL ===
 // ==========================================================
-function aplicarFiltrosAdmin() {
-    const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
-    const facultad = document.getElementById('filtro-facultad-admin').value;
-    const campus = document.getElementById('filtro-campus-admin') ? document.getElementById('filtro-campus-admin').value : ''; // <--- NUEVO
-    const categoria = document.getElementById('filtro-categoria-admin').value;
-    const tipo = document.getElementById('filtro-tipo-admin').value;
-    const periodo = document.getElementById('filtro-periodo-admin').value;
-    const estado = document.getElementById('filtro-estado-admin').value; 
-
-    const eventosFiltrados = todosLosEventos.filter(evento => {
-        // 1. Filtro Estado
-        if (estado === 'activo' && evento.activo != 1) return false;
-        if (estado === 'inactivo' && evento.activo != 0) return false;
-        
-        // 2. Filtro Campus (NUEVO)
-        // Compara el ID del campus del evento con el seleccionado
-        if (campus && String(evento.campus_id) !== String(campus)) return false;
-
-        // 3. Filtro Facultad
-        // Verifica si la facultad seleccionada está dentro de las facultades del evento
-        const eventoFacultades = (evento.facultades_ids || '').split(',');
-        if (facultad && !eventoFacultades.includes(facultad)) return false;
-
-        // 4. Filtro Búsqueda (Nombre o Lugar)
-        if (busqueda && !evento.nombre.toLowerCase().includes(busqueda) && 
-            !(evento.lugar && evento.lugar.toLowerCase().includes(busqueda))) return false;
-        
-        // 5. Otros filtros exactos
-        if (categoria && evento.categoria_deporte !== categoria) return false;
-        if (tipo && evento.tipo_actividad !== tipo) return false;
-        if (periodo && evento.periodo != periodo) return false;
-        
-        return true;
-    });
-
-    ui.mostrarEventos(eventosFiltrados);
-}
 
 // ... [Después de la función 'aplicarFiltrosAdmin']
 
@@ -401,3 +323,120 @@ document.addEventListener('DOMContentLoaded', () => {
         if(contenido) contenido.addEventListener('click', (e) => e.stopPropagation());
     }
 });
+
+// 4. --- CONFIGURAR EVENT LISTENERS ---
+function configurarListenersEventos() {
+    // Botones del Modal
+    document.getElementById('btnNuevoEvento').addEventListener('click', handleNuevoEventoClick);
+    document.getElementById('btnCancelar').addEventListener('click', ui.cerrarModal);
+    document.getElementById('formEvento').addEventListener('submit', handleFormSubmit);
+    
+    document.getElementById('evento-tipo-registro').addEventListener('change', handleTipoRegistroChange);
+    document.getElementById('evento-categoria').addEventListener('change', handleCategoriaChange);
+
+    const divCampus = document.getElementById('campus-checkbox');
+    if (divCampus) divCampus.addEventListener('change', handleCampusChange);
+
+    document.getElementById('lista-eventos').addEventListener('click', handleListaEventosClick);
+
+    // Listeners para los filtros de la tabla principal
+    const filtrosIDs = [
+        'filtro-buscar-admin', 'filtro-facultad-admin', 'filtro-campus-admin', 
+        'filtro-categoria-admin', 'filtro-tipo-admin', 'filtro-periodo-admin', 
+        'filtro-estado-admin'
+    ];
+    
+    filtrosIDs.forEach(id => {
+        const elem = document.getElementById(id);
+        if(elem) elem.addEventListener(elem.tagName === 'INPUT' ? 'input' : 'change', () => {
+            paginaActualEventos = 1; // Al filtrar, regresamos a la página 1
+            aplicarFiltrosAdmin();
+        });
+    });
+    
+    // Botón Limpiar Filtros
+    document.getElementById('btnLimpiarFiltrosAdmin').addEventListener('click', () => {
+        filtrosIDs.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = '';
+        });
+        document.getElementById('filtro-estado-admin').value = 'activo'; 
+        paginaActualEventos = 1; // Resetear paginación
+        aplicarFiltrosAdmin(); 
+    });
+
+    // --- LISTENERS DE PAGINACIÓN ---
+    const selectLimite = document.getElementById('limiteRegistros');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+
+    if (selectLimite) {
+        selectLimite.addEventListener('change', (e) => {
+            registrosPorPaginaEventos = parseInt(e.target.value);
+            paginaActualEventos = 1;
+            aplicarFiltrosAdmin();
+        });
+    }
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (paginaActualEventos > 1) {
+                paginaActualEventos--;
+                aplicarFiltrosAdmin();
+            }
+        });
+    }
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            paginaActualEventos++;
+            aplicarFiltrosAdmin();
+        });
+    }
+}
+
+// ==========================================================
+// === LÓGICA DE FILTRADO Y PAGINACIÓN ===
+// ==========================================================
+function aplicarFiltrosAdmin() {
+    const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
+    const facultad = document.getElementById('filtro-facultad-admin').value;
+    const campus = document.getElementById('filtro-campus-admin') ? document.getElementById('filtro-campus-admin').value : ''; 
+    const categoria = document.getElementById('filtro-categoria-admin').value;
+    const tipo = document.getElementById('filtro-tipo-admin').value;
+    const periodo = document.getElementById('filtro-periodo-admin').value;
+    const estado = document.getElementById('filtro-estado-admin').value; 
+
+    const eventosFiltrados = todosLosEventos.filter(evento => {
+        if (estado === 'activo' && evento.activo != 1) return false;
+        if (estado === 'inactivo' && evento.activo != 0) return false;
+        if (campus && String(evento.campus_id) !== String(campus)) return false;
+        const eventoFacultades = (evento.facultades_ids || '').split(',');
+        if (facultad && !eventoFacultades.includes(facultad)) return false;
+        if (busqueda && !evento.nombre.toLowerCase().includes(busqueda) && 
+            !(evento.lugar && evento.lugar.toLowerCase().includes(busqueda))) return false;
+        if (categoria && evento.categoria_deporte !== categoria) return false;
+        if (tipo && evento.tipo_actividad !== tipo) return false;
+        if (periodo && evento.periodo != periodo) return false;
+        return true;
+    });
+
+    // --- CÁLCULO DE PAGINACIÓN ---
+    const totalPaginas = Math.ceil(eventosFiltrados.length / registrosPorPaginaEventos) || 1;
+    if (paginaActualEventos > totalPaginas) paginaActualEventos = totalPaginas;
+
+    const infoPaginacion = document.getElementById('infoPaginacion');
+    if (infoPaginacion) infoPaginacion.textContent = `Página ${paginaActualEventos} de ${totalPaginas} (Total: ${eventosFiltrados.length})`;
+    
+    const btnPrev = document.getElementById('btnPrevPage');
+    if (btnPrev) btnPrev.disabled = (paginaActualEventos === 1);
+    
+    const btnNext = document.getElementById('btnNextPage');
+    if (btnNext) btnNext.disabled = (paginaActualEventos >= totalPaginas);
+
+    // Cortamos los eventos para mostrar solo los de esta página
+    const inicio = (paginaActualEventos - 1) * registrosPorPaginaEventos;
+    const fin = inicio + registrosPorPaginaEventos;
+    const eventosPagina = eventosFiltrados.slice(inicio, fin);
+
+    // Dibujamos
+    ui.mostrarEventos(eventosPagina);
+}

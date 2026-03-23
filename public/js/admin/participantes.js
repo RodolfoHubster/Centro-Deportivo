@@ -9,7 +9,9 @@ import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras, cargarCamp
 let eventoIdActual = null;
 let usuarioIdEditando = null;
 let eventoActualData = null;
-
+let todosLosParticipantes = []; 
+let paginaActualParticipantes = 1;
+let registrosPorPaginaParticipantes = 10;
 // Función auxiliar para liberar el correo y cambiar el label en el Admin
 function ajustarValidacionCorreoAdmin(tipo, form) {
     const inputCorreo = form.querySelector('input[name="correo"]');
@@ -127,7 +129,33 @@ document.addEventListener("DOMContentLoaded", () => {
         if (genericModal && e.target.id === 'generic-modal-container') {
             document.getElementById('generic-modal-container').innerHTML = '';
         }
+
     });
+    const selectLimite = document.getElementById('limiteRegistros');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+
+    if (selectLimite) {
+        selectLimite.addEventListener('change', (e) => {
+            registrosPorPaginaParticipantes = parseInt(e.target.value);
+            paginaActualParticipantes = 1;
+            renderizarTablaParticipantes();
+        });
+    }
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (paginaActualParticipantes > 1) {
+                paginaActualParticipantes--;
+                renderizarTablaParticipantes();
+            }
+        });
+    }
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            paginaActualParticipantes++;
+            renderizarTablaParticipantes();
+        });
+    }
 });
 
 // 5. FUNCIÓN PARA OBTENER DATOS DEL EVENTO
@@ -1105,8 +1133,8 @@ function renderizarResumenCupo(evento) {
 
 /* public/js/admin/participantes.js */
 
+// 13. FUNCIÓN PARA CARGAR PARTICIPANTES Y PAGINAR
 async function cargarParticipantes(eventoId) {
-    const tbody = document.getElementById("cuerpo-tabla");
     const titulo = document.getElementById("titulo-evento");
     const subtitulo = document.getElementById("subtitulo-evento");
     
@@ -1116,16 +1144,17 @@ async function cargarParticipantes(eventoId) {
         if(!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
         const data = await response.json();
-        console.log("DATOS RECIBIDOS DEL PHP:", data);
+        
         if (data.success) {
             if(data.nombre_evento) titulo.textContent = `Participantes: ${data.nombre_evento}`;
             
-            const totalParticipantes = data.participantes.length;
+            // GUARDAMOS TODOS LOS PARTICIPANTES EN LA VARIABLE GLOBAL
+            todosLosParticipantes = data.participantes;
+            const totalParticipantes = todosLosParticipantes.length;
 
-            // --- Lógica de Contadores y Barra ---
             if(eventoActualData) {
                if (eventoActualData.tipo_registro === 'Por equipos') {
-                   const equipoIds = new Set(data.participantes.filter(p => p.equipo_id !== null).map(p => p.equipo_id));
+                   const equipoIds = new Set(todosLosParticipantes.filter(p => p.equipo_id !== null).map(p => p.equipo_id));
                    eventoActualData.registros_actuales = equipoIds.size;
                    subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
                } else {
@@ -1137,121 +1166,114 @@ async function cargarParticipantes(eventoId) {
             } else {
                 subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
             }
-            // ------------------------------------
             
-            if (data.participantes.length > 0) {
-                
-                // CAMBIO CLAVE: Ya no miramos al primer participante.
-                // Miramos la configuración real del evento que viene del PHP.
-                const esEventoPorEquipos = data.tipo_registro === 'Por equipos';
-                
-                tbody.innerHTML = ""; 
+            // Renderizar la primera página
+            paginaActualParticipantes = 1;
+            renderizarTablaParticipantes();
 
-                if (esEventoPorEquipos) {
-                    // === LÓGICA POR EQUIPOS (MEJORADA) ===
-                    let equipoActualId = 'INICIO'; // Valor centinela
-                    let contadorEquipo = 1;
-
-                    data.participantes.forEach(p => {
-                        // Detectar cambio de grupo (Equipo o Sin Equipo)
-                        // Usamos String() para manejar comparar null con null correctamente si fuera el caso
-                        if (String(p.equipo_id) !== String(equipoActualId)) {
-                            equipoActualId = p.equipo_id;
-                            
-                            const filaEncabezado = document.createElement('tr');
-                            let contenidoEncabezado = '';
-                            let estiloFondo = '';
-                            let estiloBorde = '';
-
-                            if (p.equipo_id) {
-                                // Es un equipo real
-                                contenidoEncabezado = `EQUIPO ${contadorEquipo}: ${p.nombre_equipo || 'Sin Nombre'}`;
-                                estiloFondo = '#e8f5e9'; // Verde claro
-                                estiloBorde = '#00843D';
-                                contadorEquipo++;
-                            } else {
-                                // Es null -> Usuarios sin asignar
-                                contenidoEncabezado = `⚠️ PARTICIPANTES SIN EQUIPO ASIGNADO`;
-                                estiloFondo = '#fff3cd'; // Amarillo alerta
-                                estiloBorde = '#ffc107';
-                            }
-
-                            filaEncabezado.innerHTML = `
-                                <td colspan="8" style="padding: 10px; background: ${estiloFondo}; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid ${estiloBorde};">
-                                    ${contenidoEncabezado}
-                                </td>
-                            `;
-                            tbody.appendChild(filaEncabezado);
-                        }
-                        
-                        // Renderizado de la fila del participante (IGUAL QUE ANTES)
-                        const fila = document.createElement("tr");
-                        const usuarioObj = encodeURIComponent(JSON.stringify(p));
-                        
-                        const etiquetaCapitan = p.es_capitan == 1 
-                            ? '<span class="tag-capitan" style="background:#f9b233; color:#333; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.8em;">CAPITÁN</span>' 
-                            : '';
-                        
-                        const rolDisplay = `${p.rol} ${etiquetaCapitan}`;
-                        const horarioDisplay = p.horario_disponible 
-                            ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` 
-                            : '<span style="color:#999; font-style:italic;">N/A</span>';
-                        const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
-
-                        fila.innerHTML = `
-                            <td>${p.matricula}</td>
-                            <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
-                            <td>${p.correo}</td>
-                            <td>${p.genero || 'No especificado'}</td>
-                            <td>${rolDisplay}</td>
-                            <td>${diaDisplay}</td>
-                            <td>${horarioDisplay}</td>
-                            <td style="display:flex; gap:5px;">
-                                <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
-                                <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
-                            </td>
-                        `;
-                        tbody.appendChild(fila);
-                    });
-                } else {
-                    // === LÓGICA INDIVIDUAL ===
-                    data.participantes.forEach(p => {
-                        const fila = document.createElement("tr");
-                        const usuarioObj = encodeURIComponent(JSON.stringify(p));
-
-                        const horarioDisplay = p.horario_disponible 
-                            ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` 
-                            : '<span style="color:#999; font-style:italic;">N/A</span>';
-
-                        // --- IMPORTANTE: Definir diaDisplay también aquí ---
-                        const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
-                        // --------------------------------------------------
-
-                        fila.innerHTML = `
-                            <td>${p.matricula}</td>
-                            <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
-                            <td>${p.correo}</td>
-                            <td>${p.genero || 'No especificado'}</td>
-                            <td>${p.rol}</td>
-                            <td>${diaDisplay}</td>     <td>${horarioDisplay}</td> <td style="display:flex; gap:5px;">
-                                <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
-                                <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
-                            </td>
-                        `;
-                        tbody.appendChild(fila);
-                    });
-                }
-                
-            } else {
-                // Ajustamos el colspan a 8 para que cubra toda la tabla vacía
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay participantes inscritos.</td></tr>';
-            }
         } else {
-            tbody.innerHTML = `<tr><td colspan="8" style="color:red;">Error: ${data.mensaje}</td></tr>`;
+            document.getElementById("cuerpo-tabla").innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Error: ${data.mensaje}</td></tr>`;
         }
     } catch (error) {
-        console.error(error);
-        tbody.innerHTML = `<tr><td colspan="8" style="color:red;">Error técnico: ${error.message}</td></tr>`;
+        document.getElementById("cuerpo-tabla").innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Error técnico: ${error.message}</td></tr>`;
+    }
+}
+
+// NUEVA FUNCIÓN QUE SE ENCARGA DE DIBUJAR (CON PAGINACIÓN)
+function renderizarTablaParticipantes() {
+    const tbody = document.getElementById("cuerpo-tabla");
+    
+    // --- CÁLCULO DE PAGINACIÓN ---
+    const totalPaginas = Math.ceil(todosLosParticipantes.length / registrosPorPaginaParticipantes) || 1;
+    if (paginaActualParticipantes > totalPaginas) paginaActualParticipantes = totalPaginas;
+
+    const infoPaginacion = document.getElementById('infoPaginacion');
+    if(infoPaginacion) infoPaginacion.textContent = `Página ${paginaActualParticipantes} de ${totalPaginas} (Total: ${todosLosParticipantes.length})`;
+    
+    const btnPrev = document.getElementById('btnPrevPage');
+    if(btnPrev) btnPrev.disabled = (paginaActualParticipantes === 1);
+    
+    const btnNext = document.getElementById('btnNextPage');
+    if(btnNext) btnNext.disabled = (paginaActualParticipantes >= totalPaginas);
+
+    const inicio = (paginaActualParticipantes - 1) * registrosPorPaginaParticipantes;
+    const fin = inicio + registrosPorPaginaParticipantes;
+    const datosPagina = todosLosParticipantes.slice(inicio, fin);
+
+    // --- DIBUJADO DE LA TABLA ---
+    tbody.innerHTML = ""; 
+
+    if (datosPagina.length > 0) {
+        const esEventoPorEquipos = eventoActualData && eventoActualData.tipo_registro === 'Por equipos';
+
+        if (esEventoPorEquipos) {
+            let equipoActualId = 'INICIO'; 
+            let contadorEquipo = 1;
+
+            datosPagina.forEach(p => {
+                if (String(p.equipo_id) !== String(equipoActualId)) {
+                    equipoActualId = p.equipo_id;
+                    const filaEncabezado = document.createElement('tr');
+                    let contenidoEncabezado = p.equipo_id ? `EQUIPO ${contadorEquipo}: ${p.nombre_equipo || 'Sin Nombre'}` : `⚠️ PARTICIPANTES SIN EQUIPO ASIGNADO`;
+                    let estiloFondo = p.equipo_id ? '#e8f5e9' : '#fff3cd'; 
+                    let estiloBorde = p.equipo_id ? '#00843D' : '#ffc107';
+                    if(p.equipo_id) contadorEquipo++;
+
+                    filaEncabezado.innerHTML = `
+                        <td colspan="8" style="padding: 10px; background: ${estiloFondo}; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid ${estiloBorde};">
+                            ${contenidoEncabezado}
+                        </td>
+                    `;
+                    tbody.appendChild(filaEncabezado);
+                }
+                
+                const fila = document.createElement("tr");
+                const usuarioObj = encodeURIComponent(JSON.stringify(p));
+                const etiquetaCapitan = p.es_capitan == 1 ? '<span class="tag-capitan" style="background:#f9b233; color:#333; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.8em;">CAPITÁN</span>' : '';
+                const rolDisplay = `${p.rol} ${etiquetaCapitan}`;
+                const horarioDisplay = p.horario_disponible ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` : '<span style="color:#999; font-style:italic;">N/A</span>';
+                const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
+
+                fila.innerHTML = `
+                    <td>${p.matricula}</td>
+                    <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
+                    <td>${p.correo}</td>
+                    <td>${p.genero || 'No especificado'}</td>
+                    <td>${rolDisplay}</td>
+                    <td>${diaDisplay}</td>
+                    <td>${horarioDisplay}</td>
+                    <td style="display:flex; gap:5px;">
+                        <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
+                        <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+        } else {
+            datosPagina.forEach(p => {
+                const fila = document.createElement("tr");
+                const usuarioObj = encodeURIComponent(JSON.stringify(p));
+                const horarioDisplay = p.horario_disponible ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` : '<span style="color:#999; font-style:italic;">N/A</span>';
+                const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
+
+                fila.innerHTML = `
+                    <td>${p.matricula}</td>
+                    <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
+                    <td>${p.correo}</td>
+                    <td>${p.genero || 'No especificado'}</td>
+                    <td>${p.rol}</td>
+                    <td>${diaDisplay}</td>
+                    <td>${horarioDisplay}</td>
+                    <td style="display:flex; gap:5px;">
+                        <button onclick="abrirModalEditar('${usuarioObj}')" style="padding:5px 10px; background:#ffc107; border:none; border-radius:4px; cursor:pointer;">Editar</button>
+                        <button onclick="eliminarParticipante(${p.inscripcion_id}, '${p.nombre}')" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+        }
+    } else {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay participantes en esta página.</td></tr>';
     }
 }
 
