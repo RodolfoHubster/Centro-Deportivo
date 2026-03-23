@@ -13,7 +13,7 @@ let usuarioId = null;
 let todosLosEventos = []; 
 let periodoActivoGlobal = null;
 let paginaActualEventos = 1;
-let registrosPorPaginaEventos = 10;
+let registrosPorPaginaEventos = 5;
 
 // 3. --- INICIALIZACIÓN DE LA PÁGINA ---
 window.addEventListener('DOMContentLoaded', inicializarPaginaGestionEventos);
@@ -267,62 +267,52 @@ try {
 }
 
 // ==========================================================
-// === LÓGICA DE FILTRADO DE LA TABLA PRINCIPAL ===
+// === LÓGICA DE FILTRADO Y PAGINACIÓN ===
 // ==========================================================
+function aplicarFiltrosAdmin() {
+    const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
+    const facultad = document.getElementById('filtro-facultad-admin').value;
+    const campus = document.getElementById('filtro-campus-admin') ? document.getElementById('filtro-campus-admin').value : ''; 
+    const categoria = document.getElementById('filtro-categoria-admin').value;
+    const tipo = document.getElementById('filtro-tipo-admin').value;
+    const periodo = document.getElementById('filtro-periodo-admin').value;
+    const estado = document.getElementById('filtro-estado-admin').value; 
 
-// ... [Después de la función 'aplicarFiltrosAdmin']
+    const eventosFiltrados = todosLosEventos.filter(evento => {
+        if (estado === 'activo' && evento.activo != 1) return false;
+        if (estado === 'inactivo' && evento.activo != 0) return false;
+        if (campus && String(evento.campus_id) !== String(campus)) return false;
+        const eventoFacultades = (evento.facultades_ids || '').split(',');
+        if (facultad && !eventoFacultades.includes(facultad)) return false;
+        if (busqueda && !evento.nombre.toLowerCase().includes(busqueda) && 
+            !(evento.lugar && evento.lugar.toLowerCase().includes(busqueda))) return false;
+        if (categoria && evento.categoria_deporte !== categoria) return false;
+        if (tipo && evento.tipo_actividad !== tipo) return false;
+        if (periodo && evento.periodo != periodo) return false;
+        return true;
+    });
 
-// ==========================================================
-// === LÓGICA DEL MODAL DE ÉXITO DINÁMICO (Crear/Editar) ===
-// ==========================================================
-function mostrarModalExitoGlobal(titulo, mensajeDetalle) {
-    const modal = document.getElementById('modalExitoGlobal');
-    if (!modal) {
-        // Fallback: si el modal no se encuentra (por ejemplo, por CSS), usa el mensaje normal
-        return mostrarMensaje(titulo + ' - ' + mensajeDetalle, 'success');
-    } 
+    // --- CÁLCULO DE PAGINACIÓN ---
+    const totalPaginas = Math.ceil(eventosFiltrados.length / registrosPorPaginaEventos) || 1;
+    if (paginaActualEventos > totalPaginas) paginaActualEventos = totalPaginas;
 
-    const tituloEl = document.getElementById('tituloExito');
-    const mensajeEl = document.getElementById('mensajeExito');
-    const btnAceptar = document.getElementById('btnAceptarExito');
-
-    tituloEl.textContent = titulo;
-    mensajeEl.innerHTML = mensajeDetalle;
+    const infoPaginacion = document.getElementById('infoPaginacion');
+    if (infoPaginacion) infoPaginacion.textContent = `Página ${paginaActualEventos} de ${totalPaginas} (Total: ${eventosFiltrados.length})`;
     
-
-    modal.style.display = 'flex'; // Mostrar el modal
-
-    const cerrarModal = () => {
-        modal.style.display = 'none';
-        btnAceptar.removeEventListener('click', cerrarModal);
-        modal.removeEventListener('click', cerrarFueraDeContenido);
-    };
+    const btnPrev = document.getElementById('btnPrevPage');
+    if (btnPrev) btnPrev.disabled = (paginaActualEventos === 1);
     
-    const cerrarFueraDeContenido = (e) => {
-        if (e.target === modal) {
-            cerrarModal();
-        }
-    }
-    
-    btnAceptar.addEventListener('click', cerrarModal);
-    modal.addEventListener('click', cerrarFueraDeContenido);
+    const btnNext = document.getElementById('btnNextPage');
+    if (btnNext) btnNext.disabled = (paginaActualEventos >= totalPaginas);
+
+    // Cortamos los eventos para mostrar solo los de esta página
+    const inicio = (paginaActualEventos - 1) * registrosPorPaginaEventos;
+    const fin = inicio + registrosPorPaginaEventos;
+    const eventosPagina = eventosFiltrados.slice(inicio, fin);
+
+    // Dibujamos
+    ui.mostrarEventos(eventosPagina);
 }
-
-// --- Cierre de modal ---
-document.addEventListener('DOMContentLoaded', () => {
-    const btnCerrarModalX = document.getElementById('btnCerrarModalX');
-    const modal = document.getElementById('modalEvento');
-    
-    if (btnCerrarModalX) btnCerrarModalX.addEventListener('click', ui.cerrarModal);
-    
-    if(modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) ui.cerrarModal();
-        });
-        const contenido = modal.querySelector('.admin-modal-contenido');
-        if(contenido) contenido.addEventListener('click', (e) => e.stopPropagation());
-    }
-});
 
 // 4. --- CONFIGURAR EVENT LISTENERS ---
 function configurarListenersEventos() {
@@ -394,49 +384,51 @@ function configurarListenersEventos() {
 }
 
 // ==========================================================
-// === LÓGICA DE FILTRADO Y PAGINACIÓN ===
+// === LÓGICA DEL MODAL DE ÉXITO DINÁMICO (Crear/Editar) ===
 // ==========================================================
-function aplicarFiltrosAdmin() {
-    const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
-    const facultad = document.getElementById('filtro-facultad-admin').value;
-    const campus = document.getElementById('filtro-campus-admin') ? document.getElementById('filtro-campus-admin').value : ''; 
-    const categoria = document.getElementById('filtro-categoria-admin').value;
-    const tipo = document.getElementById('filtro-tipo-admin').value;
-    const periodo = document.getElementById('filtro-periodo-admin').value;
-    const estado = document.getElementById('filtro-estado-admin').value; 
+function mostrarModalExitoGlobal(titulo, mensajeDetalle) {
+    const modal = document.getElementById('modalExitoGlobal');
+    if (!modal) {
+        return mostrarMensaje(titulo + ' - ' + mensajeDetalle, 'success');
+    } 
 
-    const eventosFiltrados = todosLosEventos.filter(evento => {
-        if (estado === 'activo' && evento.activo != 1) return false;
-        if (estado === 'inactivo' && evento.activo != 0) return false;
-        if (campus && String(evento.campus_id) !== String(campus)) return false;
-        const eventoFacultades = (evento.facultades_ids || '').split(',');
-        if (facultad && !eventoFacultades.includes(facultad)) return false;
-        if (busqueda && !evento.nombre.toLowerCase().includes(busqueda) && 
-            !(evento.lugar && evento.lugar.toLowerCase().includes(busqueda))) return false;
-        if (categoria && evento.categoria_deporte !== categoria) return false;
-        if (tipo && evento.tipo_actividad !== tipo) return false;
-        if (periodo && evento.periodo != periodo) return false;
-        return true;
-    });
+    const tituloEl = document.getElementById('tituloExito');
+    const mensajeEl = document.getElementById('mensajeExito');
+    const btnAceptar = document.getElementById('btnAceptarExito');
 
-    // --- CÁLCULO DE PAGINACIÓN ---
-    const totalPaginas = Math.ceil(eventosFiltrados.length / registrosPorPaginaEventos) || 1;
-    if (paginaActualEventos > totalPaginas) paginaActualEventos = totalPaginas;
-
-    const infoPaginacion = document.getElementById('infoPaginacion');
-    if (infoPaginacion) infoPaginacion.textContent = `Página ${paginaActualEventos} de ${totalPaginas} (Total: ${eventosFiltrados.length})`;
+    tituloEl.textContent = titulo;
+    mensajeEl.innerHTML = mensajeDetalle;
     
-    const btnPrev = document.getElementById('btnPrevPage');
-    if (btnPrev) btnPrev.disabled = (paginaActualEventos === 1);
+    modal.style.display = 'flex'; 
+
+    const cerrarModal = () => {
+        modal.style.display = 'none';
+        btnAceptar.removeEventListener('click', cerrarModal);
+        modal.removeEventListener('click', cerrarFueraDeContenido);
+    };
     
-    const btnNext = document.getElementById('btnNextPage');
-    if (btnNext) btnNext.disabled = (paginaActualEventos >= totalPaginas);
-
-    // Cortamos los eventos para mostrar solo los de esta página
-    const inicio = (paginaActualEventos - 1) * registrosPorPaginaEventos;
-    const fin = inicio + registrosPorPaginaEventos;
-    const eventosPagina = eventosFiltrados.slice(inicio, fin);
-
-    // Dibujamos
-    ui.mostrarEventos(eventosPagina);
+    const cerrarFueraDeContenido = (e) => {
+        if (e.target === modal) {
+            cerrarModal();
+        }
+    }
+    
+    btnAceptar.addEventListener('click', cerrarModal);
+    modal.addEventListener('click', cerrarFueraDeContenido);
 }
+
+// --- Cierre de modal ---
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCerrarModalX = document.getElementById('btnCerrarModalX');
+    const modal = document.getElementById('modalEvento');
+    
+    if (btnCerrarModalX) btnCerrarModalX.addEventListener('click', ui.cerrarModal);
+    
+    if(modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) ui.cerrarModal();
+        });
+        const contenido = modal.querySelector('.admin-modal-contenido');
+        if(contenido) contenido.addEventListener('click', (e) => e.stopPropagation());
+    }
+});
