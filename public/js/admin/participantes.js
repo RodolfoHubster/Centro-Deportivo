@@ -1148,8 +1148,13 @@ async function cargarParticipantes(eventoId) {
         if (data.success) {
             if(data.nombre_evento) titulo.textContent = `Participantes: ${data.nombre_evento}`;
             
-            // GUARDAMOS TODOS LOS PARTICIPANTES EN LA VARIABLE GLOBAL
-            todosLosParticipantes = data.participantes;
+            // PROTECCIÓN: Si la base de datos no manda participantes (está vacío), forzamos un arreglo vacío []
+            todosLosParticipantes = data.participantes || [];
+            
+            // Si quieres probar la paginación aunque tengas 1 o 2 registrados, 
+            // descomenta la siguiente línea para clonarlos artificialmente:
+            // if (todosLosParticipantes.length > 0) todosLosParticipantes = [...todosLosParticipantes, ...todosLosParticipantes, ...todosLosParticipantes, ...todosLosParticipantes, ...todosLosParticipantes];
+
             const totalParticipantes = todosLosParticipantes.length;
 
             if(eventoActualData) {
@@ -1162,7 +1167,10 @@ async function cargarParticipantes(eventoId) {
                    const cupoMaximo = parseInt(eventoActualData.cupo_maximo) || 0;
                    subtitulo.textContent = `Total de participantes registrados: ${totalParticipantes}${cupoMaximo > 0 ? ` / ${cupoMaximo}` : ' (Sin límite)'}`;
                }
-               renderizarResumenCupo(eventoActualData);
+               // Solo renderizamos la barra de cupo si existe la función
+               if (typeof renderizarResumenCupo === 'function') {
+                   renderizarResumenCupo(eventoActualData);
+               }
             } else {
                 subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
             }
@@ -1172,9 +1180,15 @@ async function cargarParticipantes(eventoId) {
             renderizarTablaParticipantes();
 
         } else {
-            document.getElementById("cuerpo-tabla").innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Error: ${data.mensaje}</td></tr>`;
+            // Si el backend responde pero con success false (ej. "No hay participantes")
+            subtitulo.textContent = `Total registrados: 0`;
+            document.getElementById('infoPaginacion').textContent = `Página 1 de 1 (Total: 0)`;
+            document.getElementById("cuerpo-tabla").innerHTML = `<tr><td colspan="8" style="text-align:center;">${data.mensaje || 'No hay participantes registrados.'}</td></tr>`;
         }
     } catch (error) {
+        console.error("Error al cargar participantes:", error);
+        subtitulo.textContent = `Error de conexión`;
+        document.getElementById('infoPaginacion').textContent = `Error`;
         document.getElementById("cuerpo-tabla").innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Error técnico: ${error.message}</td></tr>`;
     }
 }
@@ -1183,19 +1197,28 @@ async function cargarParticipantes(eventoId) {
 function renderizarTablaParticipantes() {
     const tbody = document.getElementById("cuerpo-tabla");
     
+    // 1. Protección de seguridad adicional
+    if (!todosLosParticipantes || !Array.isArray(todosLosParticipantes)) {
+        todosLosParticipantes = [];
+    }
+    
     // --- CÁLCULO DE PAGINACIÓN ---
     const totalPaginas = Math.ceil(todosLosParticipantes.length / registrosPorPaginaParticipantes) || 1;
     if (paginaActualParticipantes > totalPaginas) paginaActualParticipantes = totalPaginas;
 
+    // 2. Actualizar textos de paginación de manera segura
     const infoPaginacion = document.getElementById('infoPaginacion');
-    if(infoPaginacion) infoPaginacion.textContent = `Página ${paginaActualParticipantes} de ${totalPaginas} (Total: ${todosLosParticipantes.length})`;
+    if (infoPaginacion) {
+        infoPaginacion.textContent = `Página ${paginaActualParticipantes} de ${totalPaginas} (Total: ${todosLosParticipantes.length})`;
+    }
     
     const btnPrev = document.getElementById('btnPrevPage');
-    if(btnPrev) btnPrev.disabled = (paginaActualParticipantes === 1);
+    if(btnPrev) btnPrev.disabled = (paginaActualParticipantes <= 1);
     
     const btnNext = document.getElementById('btnNextPage');
     if(btnNext) btnNext.disabled = (paginaActualParticipantes >= totalPaginas);
 
+    // Cortamos los datos
     const inicio = (paginaActualParticipantes - 1) * registrosPorPaginaParticipantes;
     const fin = inicio + registrosPorPaginaParticipantes;
     const datosPagina = todosLosParticipantes.slice(inicio, fin);
@@ -1230,14 +1253,14 @@ function renderizarTablaParticipantes() {
                 const fila = document.createElement("tr");
                 const usuarioObj = encodeURIComponent(JSON.stringify(p));
                 const etiquetaCapitan = p.es_capitan == 1 ? '<span class="tag-capitan" style="background:#f9b233; color:#333; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.8em;">CAPITÁN</span>' : '';
-                const rolDisplay = `${p.rol} ${etiquetaCapitan}`;
+                const rolDisplay = `${p.rol || ''} ${etiquetaCapitan}`;
                 const horarioDisplay = p.horario_disponible ? `<span style="color:#00843D; font-weight:500;">${p.horario_disponible}</span>` : '<span style="color:#999; font-style:italic;">N/A</span>';
                 const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
 
                 fila.innerHTML = `
-                    <td>${p.matricula}</td>
-                    <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
-                    <td>${p.correo}</td>
+                    <td>${p.matricula || '-'}</td>
+                    <td>${p.nombre || ''} ${p.apellido_paterno || ''} ${p.apellido_materno || ''}</td>
+                    <td>${p.correo || '-'}</td>
                     <td>${p.genero || 'No especificado'}</td>
                     <td>${rolDisplay}</td>
                     <td>${diaDisplay}</td>
@@ -1257,11 +1280,11 @@ function renderizarTablaParticipantes() {
                 const diaDisplay = p.dias_disponibles ? p.dias_disponibles : '-';
 
                 fila.innerHTML = `
-                    <td>${p.matricula}</td>
-                    <td>${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}</td>
-                    <td>${p.correo}</td>
+                    <td>${p.matricula || '-'}</td>
+                    <td>${p.nombre || ''} ${p.apellido_paterno || ''} ${p.apellido_materno || ''}</td>
+                    <td>${p.correo || '-'}</td>
                     <td>${p.genero || 'No especificado'}</td>
-                    <td>${p.rol}</td>
+                    <td>${p.rol || ''}</td>
                     <td>${diaDisplay}</td>
                     <td>${horarioDisplay}</td>
                     <td style="display:flex; gap:5px;">
@@ -1273,7 +1296,8 @@ function renderizarTablaParticipantes() {
             });
         }
     } else {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay participantes en esta página.</td></tr>';
+        // Si no hay datos, mostramos el mensaje de vacío
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay participantes inscritos en este evento.</td></tr>';
     }
 }
 
