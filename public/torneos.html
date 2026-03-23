@@ -8,34 +8,72 @@
 </head>
 <body>
 
-  <!-- HEADER NAV -->
   <div id="header-placeholder"></div>
 
-  <!-- CONTENIDO -->
   <main class="page-content">
     <h1>Torneos</h1>
+    <p style="margin-bottom: 20px;">Consulta la lista de torneos disponibles, arma tu equipo y participa.</p>
 
-    <div class="filtros-container" style="margin-bottom: 20px;">
-      <select id="filtro-campus" class="form-select" style="padding: 8px; border-radius: 5px;">
-          <option value="">Todos los Campus</option>
-          <option value="Mexicali">Mexicali</option>
-          <option value="Tijuana">Tijuana</option>
-          <option value="Ensenada">Ensenada</option>
-          <!--<option value="Tecate">Tecate</option>-->
-          <!--<option value="San Quintín">San Quintín</option>-->
-      </select>
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+        <h3 style="margin-top: 0; color: #003366; font-size: 1.1rem; margin-bottom: 15px;">Filtra y encuentra tu torneo:</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            
+            <div>
+                <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Buscar:</label>
+                <input type="text" id="filtro-buscar-publico" placeholder="Nombre del torneo o lugar..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+            </div>
+
+            <div>
+                <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Campus:</label>
+                <select id="filtro-campus-publico" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                    <option value="">Todos los Campus</option>
+                    <option value="Mexicali">Mexicali</option>
+                    <option value="Tijuana">Tijuana</option>
+                    <option value="Ensenada">Ensenada</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Deporte / Categoría:</label>
+                <select id="filtro-categoria-publico" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                    <option value="">Cualquier Deporte</option>
+                    <option value="Fútbol">Fútbol</option>
+                    <option value="Fútbol Rápido">Fútbol Rápido</option>
+                    <option value="Básquetbol">Básquetbol</option>
+                    <option value="Voleibol">Voleibol</option>
+                    <option value="Handball">Handball</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+
+        </div>
+        <button id="btnLimpiarFiltrosPublico" style="margin-top: 15px; padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Limpiar Filtros</button>
     </div>
+    <div id="lista-eventos" class="eventos-container"></div>
 
-    <p>Consulta la lista de torneos disponibles y participa con tu equipo.</p>
-    
-    <div id="lista-eventos"></div>
+    <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 40px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+          <label for="limiteRegistros" style="font-weight: bold; color: #333;">Mostrar:</label>
+          <select id="limiteRegistros" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
+              <option value="6">6 torneos</option>
+              <option value="12">12 torneos</option>
+              <option value="24">24 torneos</option>
+          </select>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+          <span id="infoPaginacion" style="color: #666; font-size: 0.9rem;">Calculando...</span>
+          <div style="display: flex; gap: 5px;">
+              <button id="btnPrevPage" class="btn-paginacion" disabled>&lt; Anterior</button>
+              <button id="btnNextPage" class="btn-paginacion">Siguiente &gt;</button>
+          </div>
+      </div>
+    </div>
+    </main>
 
-  </main>
-
-  <!-- SOLO EN eventos.html, torneos.html, actividades.html -->
   <script src="js/user/Eventos.js"></script>
   <script src="js/user/Inscripcion.js" type="module"></script>
-  <div id="footer-placeholder"></div> <script src="js/headFooter.js"></script>
+  <div id="footer-placeholder"></div> 
+  <script src="js/headFooter.js"></script>
 
 </body>
 </html>
