@@ -233,9 +233,9 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
                         </label>
                         
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal Académico" 
+                            <input type="radio" name="tipo_participante" value="Personal Administrativo" 
                                     style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                            <span style="font-size: 15px; font-weight: 500;">Personal Administrativo</span>
                         </label>
 
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
@@ -693,8 +693,8 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                             <span style="font-size: 15px; font-weight: 500;">Docente</span>
                         </label>
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal Académico" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                            <input type="radio" name="tipo_participante" value="Personal Administrativo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal Administrativo</span>
                         </label>
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Personal de Servicio" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">

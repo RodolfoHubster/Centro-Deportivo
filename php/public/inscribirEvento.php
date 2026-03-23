@@ -40,13 +40,13 @@ try {
         $tipo_participante_temp = 'Personal de servicio';
         $_POST['tipo_participante'] = 'Personal de servicio'; // Actualizamos para el resto del script
     }
-    if ($tipo_participante_temp === 'Personal Académico') {
-        $tipo_participante_temp = 'Personal académico';
-        $_POST['tipo_participante'] = 'Personal académico'; 
+    if ($tipo_participante_temp === 'Personal Administrativo') {
+        $tipo_participante_temp = 'Personal administrativo';
+        $_POST['tipo_participante'] = 'Personal administrativo'; 
     }
     
     // Definimos los roles que tienen "permisos libres" (Matrícula opcional y Correo libre)
-    $roles_libres = ['Externo', 'Personal de servicio','Personal académico'];
+    $roles_libres = ['Externo', 'Personal de servicio','Personal administrativo'];
     $es_rol_libre = in_array($tipo_participante_temp, $roles_libres);
 
     $camposRequeridos = [
@@ -117,7 +117,7 @@ try {
         throw new Exception('Género inválido');
     }
     
-    $tipos_validos = ['Estudiante', 'Docente', 'Personal académico', 'Personal de servicio', 'Externo'];
+    $tipos_validos = ['Estudiante', 'Docente', 'Personal administrativo', 'Personal de servicio', 'Externo'];
     if (!in_array($tipo_participante, $tipos_validos)) {
         throw new Exception('Tipo de participante inválido');
     }

@@ -89,7 +89,7 @@ try {
     $ids_reales = []; // Para verificar duplicados
     
     $roles_libres = ['Externo', 'Personal de servicio'];
-    $tipos_validos = ['Estudiante', 'Docente', 'Personal académico', 'Personal de servicio', 'Externo'];
+    $tipos_validos = ['Estudiante', 'Docente', 'Personal administrativo', 'Personal de servicio', 'Externo'];
 
     foreach ($integrantes as $index => $integrante) {
         
@@ -97,7 +97,7 @@ try {
         $tipo_raw = $integrante['tipo_participante'] ?? 'Estudiante';
         // Ajustes manuales por si acaso
         if ($tipo_raw === 'Personal de Servicio') $tipo_raw = 'Personal de servicio';
-        if ($tipo_raw === 'Personal Académico') $tipo_raw = 'Personal académico';
+        if ($tipo_raw === 'Personal Administrativo') $tipo_raw = 'Personal administrativo';
         
         $integrante['tipo_participante'] = $tipo_raw;
 
