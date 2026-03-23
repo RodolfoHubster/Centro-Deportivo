@@ -258,7 +258,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     modal.innerHTML = `
         <div id="overlayModal" style="background: white; padding: 40px; border-radius: 16px; max-width: 800px; width: 100%; margin: 20px auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; position: relative;">
             
-            <button type="button" id="btnCerrarX" style="position: absolute; top: 15px; right: 15px;z-index: 1000; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #d61a1a;">
+            <button type="button" id="btnCerrarX" style="position: absolute; top: 15px; right: 15px;z-index: 1000; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #d61a1a; padding: 0;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -300,9 +300,9 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                         </label>
 
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal Académico" checked 
+                            <input type="radio" name="tipo_participante" value="Personal Administrativo" checked 
                                     style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                            <span style="font-size: 15px; font-weight: 500;">Personal Administrativo</span>
                         </label>
 
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
@@ -374,7 +374,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
                         Correo Electrónico<span style="color: #dc3545;">*</span>
                     </label>
-                    <input type="email" name="correo" required placeholder="ejemplo@uabc.edu.mx" class="form-input"
+                    <input type="email" name="correo" required placeholder="ejemplo (sin @uabc.edu.mx)" class="form-input"
                             pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx"
                             style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; box-sizing: border-box;">
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
@@ -539,23 +539,39 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     // Manejar cambio de tipo de participante
     // Definir lógica de validación de correo
     const ajustarValidacionCorreo = (tipo) => {
-        // Buscamos el input de correo dentro del modal actual
         const inputCorreo = modal.querySelector('input[name="correo"]');
-        const helpCorreo = inputCorreo.nextElementSibling; // El texto <small> de ayuda
+        const helpCorreo = inputCorreo.nextElementSibling; 
         
-        // Roles que tienen permiso de usar cualquier correo
         const rolesLibres = ['Externo', 'Personal de Servicio'];
 
         if (rolesLibres.includes(tipo)) {
-            // CASO: Correo Libre (Gmail, Hotmail, etc.)
-            inputCorreo.removeAttribute('pattern'); // Quitamos la restricción estricta
+            // CASO: Correo Libre (Externos)
+            inputCorreo.removeAttribute('pattern'); 
             inputCorreo.placeholder = 'ejemplo@correo.com'; 
-            if(helpCorreo) helpCorreo.style.display = 'none'; // Ocultamos el mensaje de "Debe ser UABC"
+            if (inputCorreo.value === '@uabc.edu.mx' || inputCorreo.value === '@uabc.mx') {
+                inputCorreo.value = ''; // Se lo borramos porque no es UABC
+            }
+            if(helpCorreo) helpCorreo.style.display = 'none'; 
         } else {
-            // CASO: Correo Institucional Obligatorio
+            // CASO: Correo Institucional
             inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
             inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+            
+            // PRE-LLENAR EL CORREO:
+            if (inputCorreo.value === '') {
+                inputCorreo.value = '@uabc.edu.mx';
+            }
             if(helpCorreo) helpCorreo.style.display = 'block';
+        }
+
+        // TRUCO: Si la caja solo dice @uabc.edu.mx, al dar clic el cursor se va al principio
+        if (!inputCorreo.dataset.cursorEvent) {
+            inputCorreo.addEventListener('focus', function() {
+                if (this.value === '@uabc.edu.mx') {
+                    setTimeout(() => this.setSelectionRange(0, 0), 10);
+                }
+            });
+            inputCorreo.dataset.cursorEvent = "true";
         }
     };
 
@@ -1009,7 +1025,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                         <input type="radio" name="${nombreBase}[tipo_participante]" value="Docente"> Docente
                     </label>
                     <label class="radio-option">
-                        <input type="radio" name="${nombreBase}[tipo_participante]" value="Personal Académico"> Personal Académico
+                        <input type="radio" name="${nombreBase}[tipo_participante]" value="Personal Administrativo"> Personal Administrativo
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="${nombreBase}[tipo_participante]" value="Personal de Servicio"> Personal de Servicio
@@ -1347,24 +1363,37 @@ function actualizarCamposEquipo(tipo, cardElement) {
     const rolesCorreoLibre = ['Externo', 'Personal de Servicio'];
 
     if (rolesCorreoLibre.includes(tipo)) {
-        // CASO: Correo Libre (Gmail, Hotmail, etc.)
+        // CASO: Correo Libre
         if (inputCorreo) {
-            inputCorreo.removeAttribute('pattern'); // Quitamos la validación estricta
+            inputCorreo.removeAttribute('pattern'); 
             inputCorreo.placeholder = 'ejemplo@correo.com';
-            if (labelCorreo) {
-                labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
+            if (inputCorreo.value === '@uabc.edu.mx') {
+                inputCorreo.value = ''; // Lo limpiamos
             }
+            if (labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
         }
     } else {
-        // CASO: Correo Institucional Obligatorio (Estudiante, Docente, Académico)
+        // CASO: Correo Institucional Obligatorio
         if (inputCorreo) {
             inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
             inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
-            // CAMBIO DE TEXTO: Ponemos "UABC"
-            if (labelCorreo) {
-                labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
+            
+            // PRE-LLENAR:
+            if (inputCorreo.value === '') {
+                inputCorreo.value = '@uabc.edu.mx';
             }
+            if (labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
         }
+    }
+
+    // TRUCO DEL CURSOR PARA EQUIPOS
+    if (inputCorreo && !inputCorreo.dataset.cursorEvent) {
+        inputCorreo.addEventListener('focus', function() {
+            if (this.value === '@uabc.edu.mx') {
+                setTimeout(() => this.setSelectionRange(0, 0), 10);
+            }
+        });
+        inputCorreo.dataset.cursorEvent = "true";
     }
 
     // 3. LÓGICA DE MATRÍCULA Y CAMPOS ACADÉMICOS
@@ -1384,7 +1413,7 @@ function actualizarCamposEquipo(tipo, cardElement) {
         if(requiredCarrera) requiredCarrera.style.display = 'inline';
         carreraContainer.style.display = 'block';
 
-    } else if (tipo === 'Docente' || tipo === 'Personal Académico') {
+    } else if (tipo === 'Docente' || tipo === 'Personal Administrativo') {
         // --- DOCENTE Y PERSONAL ACADÉMICO ---
         labelMatricula.textContent = 'No. Empleado';
         inputMatricula.placeholder = 'Núm. empleado';
@@ -1876,8 +1905,8 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                         </label>
 
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal Académico" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Personal Académico</span>
+                            <input type="radio" name="tipo_participante" value="Personal Administrativo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
+                            <span style="font-size: 15px; font-weight: 500;">Personal Administrativo</span>
                         </label>
 
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
@@ -1929,7 +1958,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Correo Electrónico UABC <span style="color: #dc3545;">*</span></label>
-                    <input type="email" name="correo" id="input-correo" required pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    <input type="email" name="correo" id="input-correo" required placeholder="ejemplo (sin @uabc.edu.mx)" pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
                     <small id="correo-hint" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
                 </div>
 
@@ -2002,6 +2031,21 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
             .catch(err => console.error("No se pudo obtener horario equipo:", err));
     }
 
+    // === INICIALIZAR CORREO UABC AL ABRIR EL MODAL UNIRSE ===
+    const inputCorreoDefault = document.getElementById('input-correo');
+    if (inputCorreoDefault && inputCorreoDefault.value === '') {
+        inputCorreoDefault.value = '@uabc.edu.mx';
+        if (!inputCorreoDefault.dataset.cursorEvent) {
+            inputCorreoDefault.addEventListener('focus', function() {
+                if (this.value === '@uabc.edu.mx') {
+                    setTimeout(() => this.setSelectionRange(0, 0), 10);
+                }
+            });
+            inputCorreoDefault.dataset.cursorEvent = "true";
+        }
+    }
+
+
     // Función para validar campo en tiempo real
     function validarCampo(input, forzarValidacion = false) {
         const tipo = document.querySelector('input[name="tipo_participante"]:checked').value;
@@ -2025,17 +2069,26 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
             if (input.name === 'correo') {
                 // Definimos los roles que requieren UABC estrictamente
                 // (Agregamos 'Personal Académico' para ser consistentes)
-                const rolesEstrictos = ['Estudiante', 'Docente', 'Personal Académico'];
+                const rolesLibres = ['Externo', 'Personal de Servicio'];
 
-                if (rolesEstrictos.includes(tipo)) {
-                    // Validación Estricta (UABC)
-                    const pattern = /^[a-zA-Z0-9._+\-]+@uabc\.(edu\.)?mx$/;
-                    esValido = pattern.test(input.value);
+                if (rolesLibres.includes(tipo)) {
+                // CASO: Correo Libre
+                correoHint.style.display = 'none';
+                inputCorreo.removeAttribute('pattern');
+                inputCorreo.placeholder = 'ejemplo@correo.com';
+                if (inputCorreo.value === '@uabc.edu.mx') {
+                    inputCorreo.value = '';
+                }
+                if(labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
                 } else {
-                    // Validación Libre (Externo y Personal de Servicio)
-                    // Cualquier correo válido (Gmail, Hotmail, etc.)
-                    const pattern = /^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                    esValido = pattern.test(input.value);
+                    // CASO: Correo UABC
+                    correoHint.style.display = 'block';
+                    inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+                    inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
+                    if (inputCorreo.value === '') {
+                        inputCorreo.value = '@uabc.edu.mx';
+                    }
+                    if(labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
                 }
             }
 
@@ -2124,6 +2177,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
             
             actualizarCamposSegunTipo(tipo, document);
             
+            // Actualizar hint del correo según tipo
             // Actualizar hint del correo según tipo
             const correoHint = document.getElementById('correo-hint');
             const inputCorreo = document.getElementById('input-correo');

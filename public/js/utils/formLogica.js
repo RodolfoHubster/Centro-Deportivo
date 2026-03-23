@@ -34,7 +34,7 @@ export function actualizarCamposSegunTipo(tipo, context = document) {
         if(selectCarrera) selectCarrera.required = true;
 
     // CASO 2: EMPLEADOS (Docente, Personal, etc.)
-    } else if (['Docente', 'Personal Académico', 'Personal de Servicio'].includes(tipo) || ['Docente', 'Personal académico', 'Personal de servicio'].includes(tipo)) {
+    } else if (['Docente', 'Personal Académico', 'Personal de Servicio'].includes(tipo) || ['Docente', 'Personal administrativo', 'Personal de servicio'].includes(tipo)) {
         
         if (tipo === 'Personal de Servicio' || tipo === 'Personal de servicio') {
             labelMatricula.textContent = 'Matrícula o No. de Empleado (Opcional)'; // <-- SOLO AQUI
