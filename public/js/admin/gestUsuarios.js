@@ -75,6 +75,24 @@ function mostrarModalExitoUsuario(titulo, mensajeDetalle, onAceptarCallback = nu
     // Asignar listeners
     btnAceptar.addEventListener('click', cerrarModal);
     modal.addEventListener('click', cerrarFueraDeContenido);
+
+    // --- LISTENERS PARA LOS FILTROS DE USUARIOS ---
+    const filtrosIDs = ['filtro-buscar-usuario', 'filtro-rol-usuario', 'filtro-estado-usuario'];
+    filtrosIDs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', aplicarFiltrosUsuarios);
+        }
+    });
+
+    const btnLimpiar = document.getElementById('btnLimpiarFiltrosUsuarios');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', () => {
+            document.getElementById('filtro-buscar-usuario').value = '';
+            document.getElementById('filtro-rol-usuario').value = '';
+            document.getElementById('filtro-estado-usuario').value = '';
+            aplicarFiltrosUsuarios();
+        });
 }
 
 async function cargarUsuarios() {
@@ -84,13 +102,14 @@ async function cargarUsuarios() {
 
         if (data.success) {
             todosLosUsuarios = data.usuarios;
-            mostrarUsuarios(todosLosUsuarios);
+            aplicarFiltrosUsuarios();
         } else {
             mostrarMensaje(data.mensaje, 'error');
         }
     } catch (error) {
         mostrarMensaje('Error de conexión al cargar usuarios', 'error');
     }
+}
 }
 
 function mostrarUsuarios(usuarios) {
@@ -141,6 +160,37 @@ function mostrarUsuarios(usuarios) {
     });
 }
 
+// === Función para Filtrar Usuarios ===
+function aplicarFiltrosUsuarios() {
+    const busqueda = document.getElementById('filtro-buscar-usuario').value.toLowerCase();
+    const rol = document.getElementById('filtro-rol-usuario').value;
+    const estado = document.getElementById('filtro-estado-usuario').value;
+
+    const usuariosFiltrados = todosLosUsuarios.filter(user => {
+        // 1. Filtro por Estado
+        if (estado === 'activo' && user.activo != 1) return false;
+        if (estado === 'inactivo' && user.activo != 0) return false;
+
+        // 2. Filtro por Rol
+        if (rol && user.rol !== rol) return false;
+
+        // 3. Filtro por Búsqueda (busca en nombre completo, matrícula o correo)
+        if (busqueda) {
+            const nombreCompleto = `${user.nombre} ${user.apellido_paterno} ${user.apellido_materno || ''}`.toLowerCase();
+            const matricula = String(user.matricula).toLowerCase();
+            const correo = String(user.correo).toLowerCase();
+            
+            if (!nombreCompleto.includes(busqueda) && !matricula.includes(busqueda) && !correo.includes(busqueda)) {
+                return false;
+            }
+        }
+
+        return true; // Si pasa todas las validaciones, lo mostramos
+    });
+
+    // Dibujamos solo los que pasaron el filtro
+    mostrarUsuarios(usuariosFiltrados);
+}
 // ... (MANTÉN EL RESTO DE TUS FUNCIONES: guardarUsuario, handleListaClick, etc. IGUAL QUE ANTES)
 // Solo asegúrate de cerrar la llave de la función mostrarUsuarios antes de pegar el resto.
 
