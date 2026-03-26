@@ -30,25 +30,43 @@ pública para los usuarios.
 
 ## 📁 Estructura del Proyecto
 
-Centro-Deportivo/
-├── php/
-│ ├── admin/ # Endpoints PHP para el panel de administración
-│ ├── includes/ # Archivos de conexión y utilidades PHP compartidas
-│ └── public/ # Endpoints PHP para la parte pública
-├── public/
-│ ├── js/
-│ │ ├── admin/ # Scripts del panel de administración
-│ │ ├── components/ # Componentes reutilizables (ej. modales QR)
-│ │ ├── services/ # Comunicación con el backend (fetch/API)
-│ │ ├── ui/ # Manipulación del DOM
-│ │ ├── utils/ # Funciones utilitarias genéricas
-│ │ ├── user/ # Scripts de la parte pública
-│ │ └── headFooter.js
-│ └── ... # HTML, CSS, imágenes y otros assets
-├── .htaccess # Configuración del servidor Apache
-├── composer.json # Dependencias PHP
-└── README.md
+### 🗄️ Backend — `php/`
+| Carpeta | Descripción |
+|--------|-------------|
+| `php/admin/` | Endpoints PHP del panel de administración |
+| `php/includes/` | Conexión a DB y utilidades compartidas |
+| `php/public/` | Endpoints PHP para usuarios |
 
+### 🌐 Frontend — `public/`
+| Archivo / Carpeta | Descripción |
+|------------------|-------------|
+| `public/index.html` | Página de inicio |
+| `public/login.html` | Inicio de sesión admin |
+| `public/eventos.html` | Vista pública de eventos |
+| `public/torneos.html` | Vista pública de torneos |
+| `public/contacto.html` | Página de contacto |
+| `public/admin/` | Páginas HTML del panel admin |
+| `public/css/` | Hojas de estilo |
+| `public/images/` | Recursos gráficos |
+| `public/includes/` | Componentes reutilizables (header/footer) |
+
+### ⚙️ JavaScript Modular — `public/js/`
+| Módulo | Descripción |
+|--------|-------------|
+| `js/admin/` | Orquestadores del panel admin |
+| `js/components/` | Componentes UI (ej. modales QR) |
+| `js/services/` | Comunicación con el backend (fetch) |
+| `js/ui/` | Manipulación del DOM |
+| `js/utils/` | Funciones genéricas reutilizables |
+| `js/user/` | Scripts de la vista pública |
+| `js/headFooter.js` | Carga dinámica de header y footer |
+
+### 🔧 Raíz del proyecto
+| Archivo | Descripción |
+|---------|-------------|
+| `.htaccess` | Configuración y reglas de Apache |
+| `composer.json` | Dependencias PHP |
+| `README.md` | Documentación del proyecto |
 
 ---
 
