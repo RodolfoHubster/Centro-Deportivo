@@ -96,7 +96,29 @@
     <div id="lista-eventos">
       <p>Cargando eventos...</p>
     </div>
+
+    <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+          <label for="limiteRegistros" style="font-weight: bold; color: #333;">Mostrar:</label>
+          <select id="limiteRegistros" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
+              <option value="10">5 eventos</option>
+              <option value="10">10 eventos</option>
+              <option value="20">20 eventos</option>
+              <option value="50">50 eventos</option>
+              <option value="100">100 eventos</option>
+          </select>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+          <span id="infoPaginacion" style="color: #666; font-size: 0.9rem;">Página 1 de 1</span>
+          <div style="display: flex; gap: 5px;">
+              <button id="btnPrevPage" class="btn-paginacion" disabled>&lt; Anterior</button>
+              <button id="btnNextPage" class="btn-paginacion">Siguiente &gt;</button>
+          </div>
+      </div>
+  </div>
   </main>
+
+
 
   <div id="modalEvento">
     <div class="admin-modal-contenido" style="position: relative;">

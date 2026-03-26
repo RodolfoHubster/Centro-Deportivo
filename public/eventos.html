@@ -13,15 +13,39 @@
 
     <h1>Eventos Deportivos</h1>
     
-    <div class="filtros-container" style="margin-bottom: 20px;">
-      <select id="filtro-campus" class="form-select" style="padding: 8px; border-radius: 5px;">
-          <option value="">Todos los Campus</option>
-          <option value="Mexicali">Mexicali</option>
-          <option value="Tijuana">Tijuana</option>
-          <option value="Ensenada">Ensenada</option>
-          <!--<option value="Tecate">Tecate</option> -->
-          <!--<option value="San Quintín">San Quintín</option> -->
-      </select>
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+      <h3 style="margin-top: 0; color: #003366; font-size: 1.1rem; margin-bottom: 15px;">Filtra y encuentra tu evento:</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+          
+          <div>
+              <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Buscar:</label>
+              <input type="text" id="filtro-buscar-publico" placeholder="Nombre del evento o lugar..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+          </div>
+
+          <div>
+              <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Campus:</label>
+              <select id="filtro-campus-publico" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                  <option value="">Todos los Campus</option>
+                  <option value="Mexicali">Mexicali</option>
+                  <option value="Tijuana">Tijuana</option>
+                  <option value="Ensenada">Ensenada</option>
+              </select>
+          </div>
+
+          <div>
+            <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Categoría:</label>
+            <select id="filtro-categoria-publico" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                <option value="">Cualquier Categoría</option>
+                <option value="Carrera">Carrera</option>
+                <option value="Rally">Rally</option>
+                <option value="Activación Física">Activación Física</option>
+                <option value="Paseo Ciclista">Paseo Ciclista</option>
+                <option value="Otro">Otro</option>
+            </select>
+        </div>
+
+      </div>
+      <button id="btnLimpiarFiltrosPublico" style="margin-top: 15px; padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Limpiar Filtros</button>
   </div>
 
   </div>
