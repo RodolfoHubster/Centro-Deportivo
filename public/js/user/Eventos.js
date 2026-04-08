@@ -1,146 +1,196 @@
-/* js/user/Eventos.js - VERSIÓN FINAL CONECTADA A BD */
+/* js/user/Eventos.js - VERSIÓN FINAL UNIFICADA (Eventos + Torneos + Filtros + Paginación) */
 
-// Variable global para filtros
-let filtrosBase = {};
+let todosLosEventosPublicos = [];
+let paginaActualEventos = 1;
+let registrosPorPaginaEventos = 6;
+let modoTorneos = false;
 
 document.addEventListener("DOMContentLoaded", () => {
-    
-    // 1. Detección robusta de la página (convierte a minúsculas y busca palabras clave)
+    // 1. Detección de la página (Eventos o Torneos)
     const path = window.location.pathname.toLowerCase();
-
-    // Limpiamos los filtros base antes de asignar
-    filtrosBase = {}; 
-
-    if (path.includes('torneos.html')) {
-        // Si la URL dice "torneos" (con o sin .html), mostramos SOLO torneos
-        filtrosBase = { tipo_actividad: 'torneo' };
-        console.log("Modo: Torneos activos"); // Debug para consola
-    } else if (path.includes('eventos')) {
-        // Si la URL dice "eventos", ocultamos los torneos
-        filtrosBase = { excluir_tipo_actividad: 'torneo' };
-        console.log("Modo: Eventos generales"); // Debug para consola
+    if (path.includes('torneos')) {
+        modoTorneos = true;
+        console.log("Modo: Torneos activos");
+    } else {
+        modoTorneos = false;
+        console.log("Modo: Eventos generales");
     }
 
-    const selectCampus = document.getElementById('filtro-campus');
+    // 2. Cargar los eventos de la base de datos
+    cargarEventosBaseDatos();
     
-    // 2. Carga inicial
-    aplicarFiltrosCampus();
-
-    // 3. Escuchar cambios en el filtro
-    if (selectCampus) {
-        selectCampus.addEventListener('change', () => {
-            aplicarFiltrosCampus();
-        });
-    }
+    // 3. Activar los botones de filtro y paginación
+    configurarListenersFiltrosYPaginacion();
 });
 
-function aplicarFiltrosCampus() {
-    const select = document.getElementById('filtro-campus');
-    const valorCampus = select ? select.value : '';
-    
-    // Mezclamos el filtro base con el campus seleccionado
-    const filtrosFinales = { ...filtrosBase };
-
-    if (valorCampus) {
-        filtrosFinales.campus = valorCampus;
-    }
-
-    cargarEventos(filtrosFinales);
-}
-
-/**
- * Función principal para obtener datos del servidor
- */
-function cargarEventos(filtros = {}) {
+// --- OBTENCIÓN DE DATOS ---
+async function cargarEventosBaseDatos() {
     const contenedorEventos = document.getElementById('lista-eventos');
-    if (!contenedorEventos) return;
-
-    // Mostrar mensaje de carga
-    contenedorEventos.innerHTML = `
-        <div style="text-align: center; width: 100%; padding: 40px;">
-            <p>Cargando eventos...</p>
-        </div>
-    `;
-
-    // Construir URL con parámetros
-    let url = "../php/public/obtenerEventos.php";
-    const params = new URLSearchParams(filtros);
-    const queryString = params.toString();
-    
-    if (queryString) {
-        url += `?${queryString}`;
+    if (contenedorEventos) {
+        contenedorEventos.innerHTML = `<div style="text-align: center; width: 100%; padding: 40px;"><p>Cargando información...</p></div>`;
     }
 
-    // --- CONEXIÓN REAL A LA BASE DE DATOS ---
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en la red al obtener eventos');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Limpiamos el mensaje de carga
-            contenedorEventos.innerHTML = '';
+    try {
+        const respuesta = await fetch('../php/public/obtenerEventos.php');
+        if (!respuesta.ok) throw new Error('Error en la red');
+        const data = await respuesta.json();
+        
+        // Ajuste dependiendo de cómo responda tu PHP (array directo o dentro de .eventos)
+        let eventosObtenidos = Array.isArray(data) ? data : (data.eventos || []);
 
-            if (data.success && Array.isArray(data.eventos) && data.eventos.length > 0) {
-                mostrarEventos(data.eventos);
-            } else {
-                // Mensaje si no hay eventos en la BD para esos filtros
-                contenedorEventos.innerHTML = `
-                    <div style="text-align: center; width: 100%; padding: 40px; background-color: #f9f9f9; border-radius: 8px;">
-                        <p style="font-size: 1.2rem; color: #666; margin-bottom: 10px;">
-                            No hay eventos disponibles con estos filtros.
-                        </p>
-                        <small style="color: #999;">Intenta seleccionar "Todos los Campus" u otra categoría.</small>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            contenedorEventos.innerHTML = `
-                <div style="text-align: center; color: red; padding: 20px;">
-                    <p>Error al cargar los eventos. Por favor intenta más tarde.</p>
-                </div>
-            `;
+        // Guardamos los eventos que coincidan con la página actual (Torneo o No Torneo) y que estén activos
+        todosLosEventosPublicos = eventosObtenidos.filter(e => {
+            if (e.activo != 1) return false;
+            if (modoTorneos && e.tipo_actividad !== 'Torneo') return false;
+            if (!modoTorneos && e.tipo_actividad === 'Torneo') return false;
+            return true;
         });
+
+        aplicarFiltrosPublicos(); // Dibujamos por primera vez
+    } catch (error) {
+        console.error('Error:', error);
+        if (contenedorEventos) {
+            contenedorEventos.innerHTML = `<div style="text-align: center; color: red; padding: 20px;"><p>Error al cargar los datos. Por favor intenta más tarde.</p></div>`;
+        }
+    }
 }
 
-/**
- * Renderiza las tarjetas con el diseño aprobado (Botón en esquina + Toggle)
- */
+// --- CONFIGURACIÓN DE LOS BOTONES DE LA INTERFAZ ---
+function configurarListenersFiltrosYPaginacion() {
+    const filtrosIDs = ['filtro-buscar-publico', 'filtro-campus-publico', 'filtro-categoria-publico'];
+    
+    filtrosIDs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', () => {
+            paginaActualEventos = 1; // Si filtran, regresamos a página 1
+            aplicarFiltrosPublicos();
+        });
+    });
+
+    const btnLimpiar = document.getElementById('btnLimpiarFiltrosPublico');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', () => {
+            document.getElementById('filtro-buscar-publico').value = '';
+            document.getElementById('filtro-campus-publico').value = '';
+            document.getElementById('filtro-categoria-publico').value = '';
+            paginaActualEventos = 1;
+            aplicarFiltrosPublicos();
+        });
+    }
+
+    // Paginación
+    const selectLimite = document.getElementById('limiteRegistros');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+
+    if (selectLimite) {
+        selectLimite.addEventListener('change', (e) => {
+            registrosPorPaginaEventos = parseInt(e.target.value);
+            paginaActualEventos = 1;
+            aplicarFiltrosPublicos();
+        });
+    }
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (paginaActualEventos > 1) {
+                paginaActualEventos--;
+                aplicarFiltrosPublicos();
+            }
+        });
+    }
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            paginaActualEventos++;
+            aplicarFiltrosPublicos();
+        });
+    }
+}
+
+// --- MOTOR DE BÚSQUEDA Y PAGINACIÓN ---
+function aplicarFiltrosPublicos() {
+    const elBuscar = document.getElementById('filtro-buscar-publico');
+    const elCampus = document.getElementById('filtro-campus-publico');
+    const elCategoria = document.getElementById('filtro-categoria-publico');
+
+    const busqueda = elBuscar ? elBuscar.value.toLowerCase() : '';
+    const campus = elCampus ? elCampus.value : '';
+    const categoria = elCategoria ? elCategoria.value : '';
+
+    const eventosFiltrados = todosLosEventosPublicos.filter(evento => {
+        // Filtro Categoría
+        if (categoria && evento.categoria_deporte !== categoria && evento.tipo_actividad !== categoria) return false;
+        
+        // Filtro Campus
+        if (campus && !String(evento.campus_nombre || evento.campus_id).includes(campus)) return false;
+
+        // Filtro Búsqueda
+        if (busqueda) {
+            const nombre = String(evento.nombre || '').toLowerCase();
+            const lugar = String(evento.lugar || '').toLowerCase();
+            const descripcion = String(evento.descripcion || '').toLowerCase();
+            if (!nombre.includes(busqueda) && !lugar.includes(busqueda) && !descripcion.includes(busqueda)) return false;
+        }
+        return true;
+    });
+
+    // Cálculos de paginación
+    const totalPaginas = Math.ceil(eventosFiltrados.length / registrosPorPaginaEventos) || 1;
+    if (paginaActualEventos > totalPaginas) paginaActualEventos = totalPaginas;
+
+    const infoPaginacion = document.getElementById('infoPaginacion');
+    if (infoPaginacion) infoPaginacion.textContent = `Página ${paginaActualEventos} de ${totalPaginas} (Total: ${eventosFiltrados.length})`;
+    
+    const btnPrev = document.getElementById('btnPrevPage');
+    if (btnPrev) btnPrev.disabled = (paginaActualEventos === 1);
+    
+    const btnNext = document.getElementById('btnNextPage');
+    if (btnNext) btnNext.disabled = (paginaActualEventos >= totalPaginas);
+
+    const inicio = (paginaActualEventos - 1) * registrosPorPaginaEventos;
+    const fin = inicio + registrosPorPaginaEventos;
+    const eventosPagina = eventosFiltrados.slice(inicio, fin);
+
+    mostrarEventos(eventosPagina);
+}
+
+// --- DIBUJADO DE LAS TARJETAS (Usando tu diseño original) ---
 function mostrarEventos(eventos) {
-    const main = document.querySelector("main");
-    let contenedor = document.getElementById('lista-eventos');
+    let contenedor = document.getElementById('lista-eventos'); // Asegúrate que tu div tenga este ID en el HTML
     
     if (!contenedor) {
+        const main = document.querySelector("main");
         contenedor = document.createElement('div');
         contenedor.id = 'lista-eventos';
         contenedor.className = 'eventos-container';
-        main.appendChild(contenedor);
+        if (main) main.appendChild(contenedor);
+    }
+
+    contenedor.innerHTML = ''; // Limpiamos la tabla
+
+    if (eventos.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align: center; grid-column: 1 / -1; width: 100%; padding: 40px; background-color: #f9f9f9; border-radius: 8px;">
+                <p style="font-size: 1.2rem; color: #666; margin-bottom: 10px;">No hay eventos/torneos disponibles con estos filtros.</p>
+            </div>
+        `;
+        return;
     }
 
     eventos.forEach(evento => {
         const tarjeta = document.createElement("div");
         tarjeta.className = "evento-card";
-        
-        // POSICIÓN RELATIVA OBLIGATORIA
         tarjeta.style.cssText = "position: relative !important;"; 
 
-        // 1. ATRIBUTOS DATA (Para Inscripcion.js)
         tarjeta.setAttribute('data-evento-id', evento.id);
         tarjeta.setAttribute('data-tipo-registro', evento.tipo_registro || 'Individual');
         tarjeta.setAttribute('data-integrantes-min', evento.integrantes_min || 1);
         tarjeta.setAttribute('data-integrantes-max', evento.integrantes_max || 0);
 
-        // 2. LÓGICA DE ESTADO (Badges)
         let badgeHTML = '';
         let llenoTotal = false; 
         let equiposLlenos = false; 
         
         const cupoMaximo = parseInt(evento.cupo_maximo, 10) || 0;
-        // Usamos el campo calculado por el servidor si existe, sino 0
         const registrosActuales = parseInt(evento.registros_actuales, 10) || 0;
         const esPorEquipo = evento.tipo_registro === 'Por equipos';
 
@@ -173,28 +223,15 @@ function mostrarEventos(eventos) {
                </div>`
             : '';
 
-        // 3. HTML BLINDADO (Botón Toggle + Contenido Oculto)
         tarjeta.innerHTML = `
             <button onclick="toggleEventoCompleto(this, event)" style="
-                position: absolute !important;
-                top: 15px !important;
-                right: 15px !important;
-                width: 30px !important; 
-                height: 30px !important;
-                background: transparent !important;
-                border: none !important;
-                box-shadow: none !important;
-                font-size: 1.5rem !important;
-                color: #555 !important;
-                cursor: pointer !important;
-                z-index: 100 !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                transition: transform 0.3s ease !important;
-                outline: none !important;">
+                position: absolute !important; top: 15px !important; right: 15px !important;
+                width: 30px !important; height: 30px !important; background: transparent !important;
+                border: none !important; box-shadow: none !important; font-size: 1.5rem !important;
+                color: #555 !important; cursor: pointer !important; z-index: 100 !important;
+                padding: 0 !important; margin: 0 !important; display: flex !important;
+                align-items: center !important; justify-content: center !important;
+                transition: transform 0.3s ease !important; outline: none !important;">
                 ▼
             </button>
 
@@ -236,11 +273,9 @@ function mostrarEventos(eventos) {
                 </div>
             </div>
         `;
-
         contenedor.appendChild(tarjeta);
     });
 
-    // Reactivar funcionalidad de inscripciones si existe
     if (typeof agregarBotonesInscripcion === 'function') {
         agregarBotonesInscripcion();
     }
@@ -248,22 +283,18 @@ function mostrarEventos(eventos) {
 
 function formatearFecha(fecha) {
     if (!fecha) return 'No definida';
-    // Crear fecha sin conversión de zona horaria (tratamos el string como local)
     const fechaObj = new Date(fecha + 'T00:00:00');
     return fechaObj.toLocaleDateString('es-MX', { 
         day: 'numeric', month: 'short', year: 'numeric' 
     });
 }
 
-// ==========================================
-// FUNCIÓN DE TOGGLE (GLOBAL)
-// ==========================================
+// Lógica para desplegar la tarjeta
 window.toggleEventoCompleto = function(btn, event) {
     if (event) {
         event.stopPropagation();
         event.preventDefault();
     }
-
     const tarjeta = btn.closest('.evento-card');
     const contenido = tarjeta.querySelector('.evento-contenido-oculto');
     

@@ -199,15 +199,26 @@ export function mostrarEventos(eventos) {
                         ${evento.nombre} 
                         ${etiquetaFinalizado} 
                     </h3>
-                    <p style="margin: 5px 0; color: #666;">${evento.descripcion || 'Sin descripción'}</p>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
-                        <div><strong>Fechas:</strong><br>${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}</div>
-                        <div><strong>Lugar:</strong><br>${evento.lugar}</div>
-                        <div><strong>Facultades:</strong><br>${evento.facultades_nombres || 'Abierto a todas'}</div>
-                        <div><strong>Periodo:</strong><br>${evento.periodo || 'N/A'}</div>
-                        <div><strong>Tipo:</strong><br>${evento.tipo_actividad || 'N/A'}</div>
-                        <div><strong>Categoría:</strong><br>${evento.categoria_deporte || 'N/A'}</div>
-                        <div><strong>Cupo:</strong><br><span style="color: ${cupoColor}; font-weight: bold;">${cupoTexto}</span></div>
+                    
+                    <button class="btn-expandir-tarjeta">
+                        <span>Mostrar más detalles y acciones</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <div class="evento-detalles-extra">
+                        <p style="margin: 15px 0 5px 0; color: #666;">${evento.descripcion || 'Sin descripción'}</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
+                            <div><strong>Fechas:</strong><br>${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}</div>
+                            <div><strong>Lugar:</strong><br>${evento.lugar}</div>
+                            <div><strong>Facultades:</strong><br>${evento.facultades_nombres || 'Abierto a todas'}</div>
+                            <div><strong>Periodo:</strong><br>${evento.periodo || 'N/A'}</div>
+                            <div><strong>Tipo:</strong><br>${evento.tipo_actividad || 'N/A'}</div>
+                            <div><strong>Categoría:</strong><br>${evento.categoria_deporte || 'N/A'}</div>
+                            <div><strong>Cupo:</strong><br><span style="color: ${cupoColor}; font-weight: bold;">${cupoTexto}</span></div>
+                        </div>
                     </div>
                 </div>
 

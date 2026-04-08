@@ -15,7 +15,7 @@ function configurarListeners() {
 
     // Botones existentes
     document.getElementById('btnNuevoUsuario').addEventListener('click', prepararModalParaCrear);
-    document.getElementById('btnCancelar').addEventListener('click', cerrarModal); // Este es el botón "Cancelar" explícito (podemos hacer que este sí borre el formulario si quieres)
+    document.getElementById('btnCancelar').addEventListener('click', cerrarModal); 
     document.getElementById('btnCerrarModalX').addEventListener('click', cerrarModal);
     document.getElementById('formUsuario').addEventListener('submit', guardarUsuario);
     document.getElementById('btnEliminarPermanente').addEventListener('click', handleEliminarPermanenteClick);
@@ -23,25 +23,42 @@ function configurarListeners() {
 
     // --- CERRAR AL DAR CLICK AFUERA ---
     window.addEventListener('click', (e) => {
-        // Si el elemento clickeado es el fondo oscuro (modalUsuario) y no el contenido blanco
         if (e.target === modal) {
-            cerrarModal(); // Cierra sin borrar los datos
+            cerrarModal(); 
         }
     });
 
     // --- CERRAR CON TECLA ESC ---
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.style.display === 'flex') {
-            cerrarModal(); // Cierra sin borrar los datos
+            cerrarModal(); 
         }
     });
+
+    // --- LISTENERS PARA LOS FILTROS DE USUARIOS ---
+    const filtrosIDs = ['filtro-buscar-usuario', 'filtro-rol-usuario', 'filtro-estado-usuario'];
+    filtrosIDs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', aplicarFiltrosUsuarios);
+        }
+    });
+
+    const btnLimpiar = document.getElementById('btnLimpiarFiltrosUsuarios');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', () => {
+            document.getElementById('filtro-buscar-usuario').value = '';
+            document.getElementById('filtro-rol-usuario').value = '';
+            document.getElementById('filtro-estado-usuario').value = '';
+            aplicarFiltrosUsuarios();
+        });
+    }
 }
 
 // === Función para mostrar el modal de éxito dinámico ===
 function mostrarModalExitoUsuario(titulo, mensajeDetalle, onAceptarCallback = null) {
     const modal = document.getElementById('modalExitoGlobal');
     if (!modal) {
-        // Fallback: usar el mensaje normal si el modal no se encuentra
         return mostrarMensaje(titulo + ' - ' + mensajeDetalle, 'success'); 
     } 
 
@@ -52,7 +69,7 @@ function mostrarModalExitoUsuario(titulo, mensajeDetalle, onAceptarCallback = nu
     tituloEl.textContent = titulo;
     mensajeEl.innerHTML = mensajeDetalle;
 
-    modal.style.display = 'flex'; // Mostrar el modal
+    modal.style.display = 'flex'; 
 
     const cerrarModal = () => {
         modal.style.display = 'none';
@@ -65,18 +82,17 @@ function mostrarModalExitoUsuario(titulo, mensajeDetalle, onAceptarCallback = nu
         modal.removeEventListener('click', cerrarFueraDeContenido);
     };
     
-    // Listener para cerrar al hacer clic fuera del contenido
     const cerrarFueraDeContenido = (e) => {
         if (e.target === modal) {
             cerrarModal();
         }
     }
     
-    // Asignar listeners
     btnAceptar.addEventListener('click', cerrarModal);
     modal.addEventListener('click', cerrarFueraDeContenido);
 }
 
+// === Cargar Usuarios desde el servidor ===
 async function cargarUsuarios() {
     try {
         const response = await fetch('../../php/admin/obtenerUsuarios.php');
@@ -84,7 +100,7 @@ async function cargarUsuarios() {
 
         if (data.success) {
             todosLosUsuarios = data.usuarios;
-            mostrarUsuarios(todosLosUsuarios);
+            aplicarFiltrosUsuarios();
         } else {
             mostrarMensaje(data.mensaje, 'error');
         }
@@ -93,17 +109,47 @@ async function cargarUsuarios() {
     }
 }
 
+// === Función para Filtrar Usuarios ===
+function aplicarFiltrosUsuarios() {
+    const busqueda = document.getElementById('filtro-buscar-usuario').value.toLowerCase();
+    const rol = document.getElementById('filtro-rol-usuario').value;
+    const estado = document.getElementById('filtro-estado-usuario').value;
+
+    const usuariosFiltrados = todosLosUsuarios.filter(user => {
+        // 1. Filtro por Estado
+        if (estado === 'activo' && user.activo != 1) return false;
+        if (estado === 'inactivo' && user.activo != 0) return false;
+
+        // 2. Filtro por Rol
+        if (rol && user.rol !== rol) return false;
+
+        // 3. Filtro por Búsqueda (busca en nombre completo, matrícula o correo)
+        if (busqueda) {
+            const nombreCompleto = `${user.nombre} ${user.apellido_paterno} ${user.apellido_materno || ''}`.toLowerCase();
+            const matricula = String(user.matricula).toLowerCase();
+            const correo = String(user.correo).toLowerCase();
+            
+            if (!nombreCompleto.includes(busqueda) && !matricula.includes(busqueda) && !correo.includes(busqueda)) {
+                return false;
+            }
+        }
+
+        return true; 
+    });
+
+    mostrarUsuarios(usuariosFiltrados);
+}
+
 function mostrarUsuarios(usuarios) {
     const container = document.getElementById('lista-usuarios');
     if (usuarios.length === 0) {
-        container.innerHTML = '<p style="text-align: center;">No hay usuarios promotores o administradores.</p>';
+        container.innerHTML = '<p style="text-align: center;">No se encontraron usuarios.</p>';
         return;
     }
 
     container.innerHTML = ''; 
     usuarios.forEach(user => {
         
-        // 1. Lógica de Roles y Colores
         let colorRol = user.rol === 'Administrador' ? '#f9b233' : '#003366'; 
         let estadoLabel = '';
         let botonAccion = '';
@@ -111,18 +157,14 @@ function mostrarUsuarios(usuarios) {
         if (user.activo == 0) {
             colorRol = '#6c757d'; 
             estadoLabel = `<span style="font-weight: bold; color: #6c757d;">Inactivo</span>`;
-            // Botón REACTIVAR (Verde forzado)
             botonAccion = `<button class="btn-reactivar-usuario" data-id="${user.id}" data-nombre="${user.nombre}" style="background-color: #28a745 !important; color: white !important;">Reactivar</button>`;
         } else {
             estadoLabel = `<span style="font-weight: bold; color: #28a745;">Activo</span>`;
-            // Botón DESACTIVAR (Rojo forzado)
             botonAccion = `<button class="btn-eliminar-usuario" data-id="${user.id}" data-nombre="${user.nombre}" style="background-color: #dc3545 !important; color: white !important;">Desactivar</button>`;
         }
 
-        // 2. Generar HTML
         container.innerHTML += `
             <div class="usuario-card" style="--color-rol: ${colorRol};">
-                
                 <div class="info-usuario">
                     <h3 style="color: #003366;">${user.apellido_paterno} ${user.apellido_materno || ''} ${user.nombre}</h3>
                     <p><strong>Correo:</strong> ${user.correo}</p>
@@ -130,26 +172,20 @@ function mostrarUsuarios(usuarios) {
                     <p><strong>Rol:</strong> <span style="font-weight: bold; color: var(--color-rol);">${user.rol}</span></p>
                     <p><strong>Estado:</strong> ${estadoLabel}</p>
                 </div>
-
                 <div class="acciones-usuario">
                     <button class="btn-editar-usuario" data-id="${user.id}" style="background-color: #ffc107 !important; color: #333 !important;">Editar</button>
                     ${botonAccion}
                 </div>
-
             </div>
         `;
     });
 }
-
-// ... (MANTÉN EL RESTO DE TUS FUNCIONES: guardarUsuario, handleListaClick, etc. IGUAL QUE ANTES)
-// Solo asegúrate de cerrar la llave de la función mostrarUsuarios antes de pegar el resto.
 
 async function guardarUsuario(e) {
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
     
-    // Si estamos en modo edición, adjuntamos el ID del usuario
     if (modoEdicion && editandoId) {
         formData.append('id', editandoId);
     }
@@ -162,7 +198,6 @@ async function guardarUsuario(e) {
         const data = await response.json();
 
         if (data.success) {
-            // OBTENER EL NOMBRE DEL USUARIO
             const nombreCompleto = `${formData.get('nombre')} ${formData.get('apellido_paterno')} ${formData.get('apellido_materno') || ''}`.trim();
             
             const operacion = modoEdicion ? '¡Operación Exitosa!' : '¡Operación Exitosa!';
@@ -206,7 +241,6 @@ function handleEliminarPermanenteClick() {
 }
 
 async function eliminarUsuario(id) {
-    // OBTENER EL NOMBRE DEL USUARIO ANTES DE DESACTIVAR
     const usuario = todosLosUsuarios.find(u => u.id == id);
     const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim() : 'el usuario';
     
@@ -226,7 +260,6 @@ async function eliminarUsuario(id) {
 }
 
 async function reactivarUsuario(id) {
-    // OBTENER EL NOMBRE DEL USUARIO ANTES DE REACTIVAR
     const usuario = todosLosUsuarios.find(u => u.id == id);
     const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim() : 'el usuario';
     
@@ -239,14 +272,13 @@ async function reactivarUsuario(id) {
     
     if (data.success) {
         const mensajeDetalle = `El usuario <strong>${nombreCompleto}</strong> se reactivó correctamente.`;
-        mostrarModalExitoUsuario('¡Operación Exitosa!', mensajeDetalle, cargarUsuarios);
+        mostrarModalExitoUsuario('¡Operación Exitosa!', recargarUsuarios);
     } else {
         mostrarMensaje(data.mensaje, 'error');
     }
 }
 
 async function eliminarUsuarioPermanente(id) {
-    // OBTENER EL NOMBRE DEL USUARIO ANTES DE ELIMINAR
     const usuario = todosLosUsuarios.find(u => u.id == id);
     const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim() : 'el usuario';
     
@@ -266,24 +298,17 @@ async function eliminarUsuarioPermanente(id) {
     }
 }
 
-// public/js/admin/gestUsuarios.js
-
 function prepararModalParaCrear() {
-    // 1. LÓGICA INTELIGENTE:
-    // Si venimos de "Editar" (modoEdicion === true), limpiamos el formulario para empezar de cero.
-    // Si ya estábamos en "Crear" (modoEdicion === false), NO limpiamos para no perder datos si cerraste por error.
     if (modoEdicion === true) {
         document.getElementById('formUsuario').reset();
-        document.getElementById('usuario-id').value = ''; // Aseguramos borrar el ID oculto
+        document.getElementById('usuario-id').value = ''; 
     }
 
-    // 2. Configurar el estado para CREAR
     modoEdicion = false;
     editandoId = null;
     
     document.getElementById('tituloModal').textContent = 'Crear Nuevo Usuario';
     
-    // Configuración de contraseña obligatoria para nuevos usuarios
     const passReq = document.getElementById('password-required');
     if(passReq) passReq.style.display = 'inline';
     
@@ -293,7 +318,6 @@ function prepararModalParaCrear() {
     const passInput = document.getElementById('usuario-password');
     if(passInput) passInput.required = true;
     
-    // Ocultar zona de peligro
     const dangerZone = document.getElementById('danger-zone');
     if(dangerZone) dangerZone.style.display = 'none';
     
@@ -313,6 +337,12 @@ function prepararModalParaEditar(id) {
     document.getElementById('usuario-correo').value = usuario.correo;
     document.getElementById('usuario-rol').value = usuario.rol;
     document.getElementById('danger-zone').style.display = 'block';
+    
+    const passReq = document.getElementById('password-required');
+    if(passReq) passReq.style.display = 'none';
+    const passInput = document.getElementById('usuario-password');
+    if(passInput) passInput.required = false;
+
     abrirModal();
 }
 
