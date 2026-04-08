@@ -83,12 +83,18 @@
 
 /* Estilos de cada columna */
 .footer-column h3 {
+    margin-top: 0 !important;
     font-size: 1.2rem;
     font-weight: bold;
     color: white;
     margin-bottom: 15px;
-    border-bottom: 2px solid #6a6a6a; /* Subrayado separador */
+    border-bottom: 2px solid #6a6a6a;
     padding-bottom: 10px;
+
+    /* ✅ AGREGAR ESTAS 3 LÍNEAS */
+    min-height: 4rem;       /* Espacio mínimo para el título más largo */
+    display: flex;
+    align-items: flex-end;  /* Texto pegado abajo → border-bottom siempre al mismo nivel */
 }
 
 .footer-column ul {
