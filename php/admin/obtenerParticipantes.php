@@ -7,7 +7,7 @@ include '../includes/conexion.php';
 try {
     $evento_id = isset($_GET['evento_id']) ? intval($_GET['evento_id']) : 0;
 
-    // CONSULTA
+    // CONSULTA - Se agrega u.telefono
     $sql = "SELECT 
                 u.id AS usuario_id,
                 u.matricula,
@@ -17,6 +17,7 @@ try {
                 u.correo,
                 u.genero,
                 u.rol,
+                u.telefono, 
                 i.id AS inscripcion_id,
                 i.es_capitan,
                 i.equipo_id,

@@ -158,7 +158,8 @@ try {
     $sqlUpdateUsuario = "UPDATE usuario SET nombre=?, apellido_paterno=?, apellido_materno=?, correo=?, telefono=?, genero=?, carrera_id=?, rol=?, activo=1 WHERE id=?";
     $stmtUpdate = mysqli_prepare($conexion, $sqlUpdateUsuario);
 
-    $sqlInsertUsuario = "INSERT INTO usuario (matricula, nombre, apellido_paterno, apellido_materno, correo, telefono, genero, carrera_id, rol, activo, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
+    // Se han ajustado las columnas y los placeholders para que coincidan (9 campos + '1' de activo)
+    $sqlInsertUsuario = "INSERT INTO usuario (matricula, nombre, apellido_paterno, apellido_materno, correo, telefono, genero, carrera_id, rol, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
     $stmtInsert = mysqli_prepare($conexion, $sqlInsertUsuario);
 
     foreach ($integrantes_procesados as $integrante) {

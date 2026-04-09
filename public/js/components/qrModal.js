@@ -106,9 +106,44 @@ export function generarQR(id_evento, tipo_actividad) { // MODIFICADO
     // Generar el QR (se asegura que el div exista primero)
     new QRCode(document.getElementById("codigoQR"), {
         text: enlaceEvento, width: 220, height: 220,
-        colorDark: "#003366", colorLight: "#ffffff",
+        colorDark: "#339933", colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
     });
+
+    // --- NUEVO CÓDIGO PARA AGREGAR EL LOGO ---
+    setTimeout(() => {
+        const qrContainer = document.getElementById("codigoQR");
+        const canvas = qrContainer.querySelector("canvas");
+        
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            const logo = new Image();
+            
+            // Aquí pones la ruta de tu logo. Según tu proyecto podría ser el de la UABC o el del centro:
+            logo.src = '../images/cimarrones-tijuana.png'; // o '../images/LogoUABC.png'
+            
+            logo.onload = () => {
+                // El logo ocupará el 25% del QR para no romper la lectura
+                const logoSize = canvas.width * 0.25; 
+                const x = (canvas.width - logoSize) / 2;
+                const y = (canvas.height - logoSize) / 2;
+                
+                // (Opcional) Dibujar un cuadro blanco detrás del logo para que contraste bien con el azul oscuro
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x - 4, y - 4, logoSize + 8, logoSize + 8);
+                
+                // Dibujamos el logo en el centro del canvas
+                ctx.drawImage(logo, x, y, logoSize, logoSize);
+                
+                // TRUCO IMPORTANTE: Actualizamos la imagen base64 para que tu botón de "Descargar"
+                // baje el QR ya con el logo pegado.
+                const img = qrContainer.querySelector("img");
+                if (img) {
+                    img.src = canvas.toDataURL("image/png");
+                }
+            };
+        }
+    }, 100);
     
     // Eventos de botones
     document.getElementById('btnDescargarQR').addEventListener('click', () => {
@@ -211,9 +246,36 @@ export function mostrarModalExitoConQR(id_evento, mensaje, tipo_actividad) { // 
     
     new QRCode(document.getElementById("codigoQRExito"), {
         text: enlaceEvento, width: 240, height: 240,
-        colorDark: "#003366", colorLight: "#ffffff",
+        colorDark: "#339933", colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
     });
+
+    // --- NUEVO CÓDIGO PARA AGREGAR EL LOGO ---
+    setTimeout(() => {
+        const qrContainer = document.getElementById("codigoQRExito"); // <- Cambio de ID aquí
+        const canvas = qrContainer.querySelector("canvas");
+        
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            const logo = new Image();
+            logo.src = '../images/cimarrones-tijuana.png'; // Tu logo
+            
+            logo.onload = () => {
+                const logoSize = canvas.width * 0.25; 
+                const x = (canvas.width - logoSize) / 2;
+                const y = (canvas.height - logoSize) / 2;
+                
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x - 4, y - 4, logoSize + 8, logoSize + 8);
+                ctx.drawImage(logo, x, y, logoSize, logoSize);
+                
+                const img = qrContainer.querySelector("img");
+                if (img) {
+                    img.src = canvas.toDataURL("image/png");
+                }
+            };
+        }
+    }, 100);
     
     document.getElementById('btnDescargarQRExito').addEventListener('click', () => {
         const img = document.getElementById("codigoQRExito").querySelector("img");
