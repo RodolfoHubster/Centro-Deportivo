@@ -119,10 +119,8 @@ try {
         $sql .= " WHERE " . implode(" AND ", $whereConditions);
     }
     
-    // ORDENAMIENTO JERÁRQUICO: Tipo -> Evento -> Equipo -> Capitán
     $sql .= " ORDER BY tipo_registro ASC, evento_nombre ASC, nombre_equipo ASC, es_capitan DESC, nombre_completo ASC";
     
-    // Ejecutar Consulta
     if (!empty($params)) {
         $stmt = mysqli_prepare($conexion, $sql);
         mysqli_stmt_bind_param($stmt, $types, ...$params);
@@ -132,7 +130,6 @@ try {
         $resultado = mysqli_query($conexion, $sql);
     }
 
-    // Procesar Datos
     $datos = [];
     $total_hombres = 0; $total_mujeres = 0; $total_otros = 0;
     $nombreEvento = '';
@@ -150,8 +147,9 @@ try {
             $tipoRegistroEvento = $row['tipo_registro']; 
         }
 
-        if ($row['genero'] === 'Masculino' || $row['genero'] === 'Hombre') $total_hombres++;
-        else if ($row['genero'] === 'Femenino' || $row['genero'] === 'Mujer') $total_mujeres++;
+        $gen = trim(mb_strtolower($row['genero']));
+        if ($gen === 'masculino' || $gen === 'hombre') $total_hombres++;
+        else if ($gen === 'femenino' || $gen === 'mujer') $total_mujeres++;
         else $total_otros++;
 
         $datos[] = $row;
@@ -159,12 +157,14 @@ try {
 
     // Configuración de Columnas
     $cols = [
-        ['titulo' => 'Matrícula', 'campo' => 'participante_matricula', 'ancho' => 15],
-        ['titulo' => 'Nombre Completo', 'campo' => 'nombre_completo', 'ancho' => 35],
-        ['titulo' => 'Correo', 'campo' => 'correo_institucional', 'ancho' => 30],
-        ['titulo' => 'Género', 'campo' => 'genero', 'ancho' => 15],
-        ['titulo' => 'Tipo', 'campo' => 'tipo_participante', 'ancho' => 15],
+        ['titulo' => 'Apellido Paterno', 'campo' => 'ap_paterno', 'ancho' => 20],
+        ['titulo' => 'Apellido Materno', 'campo' => 'ap_materno', 'ancho' => 20],
+        ['titulo' => 'Nombre',           'campo' => 'solo_nombre', 'ancho' => 20],
+        ['titulo' => 'Matrícula',        'campo' => 'participante_matricula', 'ancho' => 15],
         ['titulo' => 'Carrera / Facultad', 'campo' => 'carrera_display', 'ancho' => 30],
+        ['titulo' => 'Correo',           'campo' => 'correo_institucional', 'ancho' => 30],
+        ['titulo' => 'Tipo',             'campo' => 'tipo_participante', 'ancho' => 15],
+        ['titulo' => 'Género',           'campo' => 'genero', 'ancho' => 15],
     ];
 
     $mostrarRol = true; 
@@ -173,7 +173,7 @@ try {
     }
 
     if ($mostrarRol) {
-        array_splice($cols, 2, 0, [['titulo' => 'Rol', 'campo' => 'rol_calculado', 'ancho' => 15]]);
+        array_splice($cols, 4, 0, [['titulo' => 'Rol', 'campo' => 'rol_calculado', 'ancho' => 15]]);
     }
 
     if (!$esReporteEvento) {
@@ -181,7 +181,6 @@ try {
     }
     
     $cols[] = ['titulo' => 'Fecha Reg.', 'campo' => 'fecha_inscripcion', 'ancho' => 20];
-
 
     // CREAR EXCEL
     $verde_principal = '009600';
@@ -193,8 +192,9 @@ try {
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Reporte');
 
-    // Título Principal
     $maxLetra = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($cols));
+    
+    // Título Principal
     $tituloPrincipal = $esReporteEvento ? 'CENTRO DEPORTIVO - PARTICIPANTES' : 'CENTRO DEPORTIVO - REPORTE GENERAL';
     $sheet->setCellValue('A1', $tituloPrincipal);
     $sheet->mergeCells('A1:' . $maxLetra . '1');
@@ -212,69 +212,48 @@ try {
         $filaActual = 4;
     }
 
-    // --- SECCIÓN DE FILTROS APLICADOS (RESTAURADA COMPLETA) ---
+    // Filtros Aplicados
     if (!$esReporteEvento) {
         $sheet->setCellValue('A' . $filaActual, 'FILTROS APLICADOS:');
         $sheet->getStyle('A' . $filaActual)->getFont()->setBold(true);
-        $sheet->getStyle('A' . $filaActual)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_claro);
+        $filaActual++;
         
         $filtrosTexto = "";
-        
-        // Búsqueda
-        if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
-            $filtrosTexto .= "Búsqueda: " . $_GET['buscar'] . " | ";
-        }
-        
-        // Género y Tipo
+        if (isset($_GET['buscar']) && !empty($_GET['buscar'])) $filtrosTexto .= "Búsqueda: " . $_GET['buscar'] . " | ";
         $filtrosTexto .= "Género: " . (isset($_GET['genero']) && $_GET['genero'] !== 'todos' ? $_GET['genero'] : 'Todos') . " | ";
         $filtrosTexto .= "Tipo: " . (isset($_GET['tipo_participante']) && $_GET['tipo_participante'] !== 'todos' ? $_GET['tipo_participante'] : 'Todos');
-        
-        // Carrera
-        if (isset($_GET['carrera']) && $_GET['carrera'] !== 'todas') {
-            $nombreCarrera = obtenerNombrePorFiltro($conexion, 'carrera', $_GET['carrera']);
-            $filtrosTexto .= " | Carrera: " . $nombreCarrera;
-        } else {
-            $filtrosTexto .= " | Carrera: Todas";
-        }
-        
-        // Facultad
-        if (isset($_GET['facultad']) && $_GET['facultad'] !== 'todas') {
-            $nombreFacultad = obtenerNombrePorFiltro($conexion, 'facultad', $_GET['facultad']);
-            $filtrosTexto .= " | Facultad: " . $nombreFacultad;
-        } else {
-            $filtrosTexto .= " | Facultad: Todas";
-        }
+        if (isset($_GET['carrera']) && $_GET['carrera'] !== 'todas') $filtrosTexto .= " | Carrera: " . obtenerNombrePorFiltro($conexion, 'carrera', $_GET['carrera']);
+        if (isset($_GET['facultad']) && $_GET['facultad'] !== 'todas') $filtrosTexto .= " | Facultad: " . obtenerNombrePorFiltro($conexion, 'facultad', $_GET['facultad']);
+        if (isset($_GET['campus']) && $_GET['campus'] !== 'todos') $filtrosTexto .= " | Campus: " . obtenerNombrePorFiltro($conexion, 'campus', $_GET['campus']);
 
-        // Campus
-        if (isset($_GET['campus']) && $_GET['campus'] !== 'todos') {
-            $nombreCampus = obtenerNombrePorFiltro($conexion, 'campus', $_GET['campus']);
-            $filtrosTexto .= " | Campus: " . $nombreCampus;
-        } else {
-            $filtrosTexto .= " | Campus: Todos";
-        }
-        
-        $filaActual++;
         $sheet->setCellValue('A' . $filaActual, $filtrosTexto);
         $sheet->mergeCells('A' . $filaActual . ':' . $maxLetra . $filaActual);
         $filaActual += 2;
     }
 
-    // Estadísticas
+    // --- CORRECCIÓN DE ESTADÍSTICAS ---
+    $sheet->setCellValue('A' . $filaActual, 'RESUMEN DE ASISTENCIA');
+    $sheet->getStyle('A' . $filaActual)->getFont()->setBold(true);
+    $filaActual++;
+
     $sheet->setCellValue('A' . $filaActual, 'Total');
     $sheet->setCellValue('B' . $filaActual, 'Hombres');
     $sheet->setCellValue('C' . $filaActual, 'Mujeres');
     $sheet->setCellValue('D' . $filaActual, 'Otros');
-    $sheet->setCellValue('E' . $filaActual, count($datos));
+    
+    // Aquí es donde se ponen los números
+    $sheet->setCellValue('A' . ($filaActual+1), count($datos));
     $sheet->setCellValue('B' . ($filaActual+1), $total_hombres);
     $sheet->setCellValue('C' . ($filaActual+1), $total_mujeres);
     $sheet->setCellValue('D' . ($filaActual+1), $total_otros);
     
-    $sheet->getStyle('A' . $filaActual . ':E' . $filaActual)->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
-    $sheet->getStyle('A' . $filaActual . ':E' . $filaActual)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_principal);
-    $sheet->getStyle('A' . $filaActual . ':E' . ($filaActual+1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    $sheet->getStyle('A' . $filaActual . ':E' . ($filaActual+1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    $rangoEstats = 'A' . $filaActual . ':D' . ($filaActual+1);
+    $sheet->getStyle('A' . $filaActual . ':D' . $filaActual)->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+    $sheet->getStyle('A' . $filaActual . ':D' . $filaActual)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_principal);
+    $sheet->getStyle($rangoEstats)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle($rangoEstats)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
     
-    $filaActual += 3;
+    $filaActual += 4;
 
     // Encabezados de Tabla
     $colIdx = 1;
@@ -289,63 +268,54 @@ try {
     
     $filaActual++;
 
-    // Variables de control
+    // Ciclo de Datos
     $ultimoTipoRegistro = null;
     $ultimoEquipo = null;
     $contadorEquipo = 0;
     $fill = false;
 
     foreach ($datos as $row) {
+        $partesNombre = explode(' ', trim($row['nombre_completo']), 3);
+        $row['ap_paterno'] = $partesNombre[0] ?? '';
+        $row['ap_materno'] = $partesNombre[1] ?? '';
+        $row['solo_nombre'] = $partesNombre[2] ?? '';
+
         $tipoActual = $row['tipo_registro']; 
         $row['rol_calculado'] = ($row['es_capitan'] == 1) ? 'CAPITÁN' : (($tipoActual == 'Por equipos') ? 'Integrante' : '');
 
-        // 1. SEPARADOR DE SECCIÓN (Individual vs Equipo)
         if (!$esReporteEvento && $tipoActual !== $ultimoTipoRegistro) {
             $tituloSeccion = ($tipoActual === 'Por equipos') ? '--- EVENTOS POR EQUIPOS ---' : '--- EVENTOS INDIVIDUALES ---';
-            
             $sheet->setCellValue('A' . $filaActual, $tituloSeccion);
             $sheet->mergeCells('A' . $filaActual . ':' . $maxLetra . $filaActual);
-            
             $sheet->getStyle('A' . $filaActual)->getFont()->setBold(true)->setSize(12)->getColor()->setARGB('FFFFFFFF');
             $sheet->getStyle('A' . $filaActual)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $azul_seccion);
             $sheet->getStyle('A' . $filaActual)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            
-            $ultimoTipoRegistro = $tipoActual;
-            $ultimoEquipo = null;
-            $contadorEquipo = 0;
-            $filaActual++;
+            $ultimoTipoRegistro = $tipoActual; $ultimoEquipo = null; $contadorEquipo = 0; $filaActual++;
         }
 
-        // 2. SEPARADOR DE EQUIPO
         if ($tipoActual === 'Por equipos') {
             $equipoActual = $row['nombre_equipo'] ?? 'SIN EQUIPO';
-            
             if ($equipoActual !== $ultimoEquipo) {
                 $contadorEquipo++;
                 $textoEquipo = ($equipoActual === 'SIN EQUIPO') ? '⚠️ SIN EQUIPO ASIGNADO' : "EQUIPO $contadorEquipo: " . $equipoActual . " (" . $row['evento_nombre'] . ")";
-                
                 $sheet->setCellValue('A' . $filaActual, $textoEquipo);
                 $sheet->mergeCells('A' . $filaActual . ':' . $maxLetra . $filaActual);
-                
                 $sheet->getStyle('A' . $filaActual)->getFont()->setBold(true)->getColor()->setARGB('FF' . $verde_principal);
                 $sheet->getStyle('A' . $filaActual)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF' . $verde_claro);
                 $sheet->getStyle('A' . $filaActual)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('A' . $filaActual . ':' . $maxLetra . $filaActual)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-                
-                $ultimoEquipo = $equipoActual;
-                $filaActual++;
-                $fill = false;
+                $ultimoEquipo = $equipoActual; $filaActual++; $fill = false;
             }
         }
 
-        // Datos
         $colIdx = 1;
         $colorFondo = $fill ? 'FF' . $verde_claro : 'FFFFFFFF';
         foreach ($cols as $col) {
             $letra = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
             $valor = $row[$col['campo']] ?? '';
-            
-            if ($col['campo'] === 'fecha_inscripcion') $valor = date('d/m/Y H:i', strtotime($valor));
+            if ($col['campo'] === 'fecha_inscripcion' && !empty($valor)) {
+                $valor = date('d/m/Y H:i', strtotime($valor));
+            }
             
             $sheet->setCellValue($letra . $filaActual, $valor);
             $sheet->getStyle($letra . $filaActual)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($colorFondo);

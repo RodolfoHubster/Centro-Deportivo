@@ -196,6 +196,7 @@ try {
             $apellido_paterno,
             $apellido_materno,
             $correo,
+            $telefono,
             $genero,
             $carrera_id,
             $tipo_participante,

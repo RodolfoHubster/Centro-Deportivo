@@ -595,7 +595,11 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
         if (!inputCorreo.dataset.cursorEvent) {
             inputCorreo.addEventListener('focus', function() {
                 if (this.value === '@uabc.edu.mx') {
-                    setTimeout(() => this.setSelectionRange(0, 0), 10);
+                    try {
+                        setTimeout(() => this.setSelectionRange(0, 0), 10);
+                    } catch (e) {
+                        // Se ignora el error si el tipo 'email' no soporta selección
+                    }
                 }
             });
             inputCorreo.dataset.cursorEvent = "true";
@@ -1415,13 +1419,20 @@ function actualizarCamposEquipo(tipo, cardElement) {
 
     // TRUCO DEL CURSOR PARA EQUIPOS
     if (inputCorreo && !inputCorreo.dataset.cursorEvent) {
-        inputCorreo.addEventListener('focus', function() {
-            if (this.value === '@uabc.edu.mx') {
-                setTimeout(() => this.setSelectionRange(0, 0), 10);
-            }
-        });
-        inputCorreo.dataset.cursorEvent = "true";
-    }
+    inputCorreo.addEventListener('focus', function() {
+        if (this.value === '@uabc.edu.mx') {
+            // Truco: Cambiamos el tipo a 'text' momentáneamente para permitir la selección
+            const originalType = this.type;
+            this.type = 'text'; 
+            
+            setTimeout(() => {
+                this.setSelectionRange(0, 0);
+                this.type = originalType; // Lo regresamos a 'email'
+            }, 1);
+        }
+    });
+    inputCorreo.dataset.cursorEvent = "true";
+}
 
     // 3. LÓGICA DE MATRÍCULA Y CAMPOS ACADÉMICOS
     if (tipo === 'Estudiante') {

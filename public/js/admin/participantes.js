@@ -1148,42 +1148,50 @@ async function cargarParticipantes(eventoId) {
         if (data.success) {
             if(data.nombre_evento) titulo.textContent = `Participantes: ${data.nombre_evento}`;
             
-            // PROTECCIÓN: Si la base de datos no manda participantes (está vacío), forzamos un arreglo vacío []
             todosLosParticipantes = data.participantes || [];
-            
-            // Si quieres probar la paginación aunque tengas 1 o 2 registrados, 
-            // descomenta la siguiente línea para clonarlos artificialmente:
-            // if (todosLosParticipantes.length > 0) todosLosParticipantes = [...todosLosParticipantes, ...todosLosParticipantes, ...todosLosParticipantes, ...todosLosParticipantes, ...todosLosParticipantes];
-
             const totalParticipantes = todosLosParticipantes.length;
 
             if(eventoActualData) {
-               if (eventoActualData.tipo_registro === 'Por equipos') {
-                   const equipoIds = new Set(todosLosParticipantes.filter(p => p.equipo_id !== null).map(p => p.equipo_id));
-                   eventoActualData.registros_actuales = equipoIds.size;
-                   subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
-               } else {
-                   eventoActualData.registros_actuales = totalParticipantes;
-                   const cupoMaximo = parseInt(eventoActualData.cupo_maximo) || 0;
-                   subtitulo.textContent = `Total de participantes registrados: ${totalParticipantes}${cupoMaximo > 0 ? ` / ${cupoMaximo}` : ' (Sin límite)'}`;
-               }
-               // Solo renderizamos la barra de cupo si existe la función
-               if (typeof renderizarResumenCupo === 'function') {
-                   renderizarResumenCupo(eventoActualData);
-               }
+                if (eventoActualData.tipo_registro === 'Por equipos') {
+                    const equipoIds = new Set(todosLosParticipantes.filter(p => p.equipo_id !== null).map(p => p.equipo_id));
+                    eventoActualData.registros_actuales = equipoIds.size;
+                    subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
+
+                   // === NUEVO: Lógica para mostrar el botón de capitanes ===
+                    const btnCapitanes = document.getElementById('btnDescargarCapitanes');
+                    if (btnCapitanes) {
+                       btnCapitanes.style.display = 'block'; // Mostrarlo solo si es por equipos
+                        btnCapitanes.onclick = () => {
+                            window.location.href = `../../php/admin/generarExcelCapitanes.php?evento_id=${eventoId}`;
+                        };
+                    }
+                   // ========================================================
+
+                } else {
+                    eventoActualData.registros_actuales = totalParticipantes;
+                    const cupoMaximo = parseInt(eventoActualData.cupo_maximo) || 0;
+                    subtitulo.textContent = `Total de participantes registrados: ${totalParticipantes}${cupoMaximo > 0 ? ` / ${cupoMaximo}` : ' (Sin límite)'}`;
+                
+                   // OPCIONAL: Asegurarte de que el botón se oculte si cambias a un evento individual
+                    const btnCapitanes = document.getElementById('btnDescargarCapitanes');
+                    if (btnCapitanes) btnCapitanes.style.display = 'none';
+                }
+
+                if (typeof renderizarResumenCupo === 'function') {
+                    renderizarResumenCupo(eventoActualData);
+                }
             } else {
                 subtitulo.textContent = `Total registrados: ${totalParticipantes}`;
             }
             
-            // Renderizar la primera página
             paginaActualParticipantes = 1;
             renderizarTablaParticipantes();
 
         } else {
-            // Si el backend responde pero con success false (ej. "No hay participantes")
+            // ... resto de tu código de error ...
             subtitulo.textContent = `Total registrados: 0`;
             document.getElementById('infoPaginacion').textContent = `Página 1 de 1 (Total: 0)`;
-            document.getElementById("cuerpo-tabla").innerHTML = `<tr><td colspan="8" style="text-align:center;">${data.mensaje || 'No hay participantes registrados.'}</td></tr>`;
+            document.getElementById("cuerpo-tabla").innerHTML = `<tr><td colspan="9" style="text-align:center;">${data.mensaje || 'No hay participantes registrados.'}</td></tr>`;
         }
     } catch (error) {
         console.error("Error al cargar participantes:", error);
@@ -1197,16 +1205,13 @@ async function cargarParticipantes(eventoId) {
 function renderizarTablaParticipantes() {
     const tbody = document.getElementById("cuerpo-tabla");
     
-    // 1. Protección de seguridad adicional
     if (!todosLosParticipantes || !Array.isArray(todosLosParticipantes)) {
         todosLosParticipantes = [];
     }
     
-    // --- CÁLCULO DE PAGINACIÓN ---
     const totalPaginas = Math.ceil(todosLosParticipantes.length / registrosPorPaginaParticipantes) || 1;
     if (paginaActualParticipantes > totalPaginas) paginaActualParticipantes = totalPaginas;
 
-    // 2. Actualizar textos de paginación de manera segura
     const infoPaginacion = document.getElementById('infoPaginacion');
     if (infoPaginacion) {
         infoPaginacion.textContent = `Página ${paginaActualParticipantes} de ${totalPaginas} (Total: ${todosLosParticipantes.length})`;
@@ -1218,12 +1223,10 @@ function renderizarTablaParticipantes() {
     const btnNext = document.getElementById('btnNextPage');
     if(btnNext) btnNext.disabled = (paginaActualParticipantes >= totalPaginas);
 
-    // Cortamos los datos
     const inicio = (paginaActualParticipantes - 1) * registrosPorPaginaParticipantes;
     const fin = inicio + registrosPorPaginaParticipantes;
     const datosPagina = todosLosParticipantes.slice(inicio, fin);
 
-    // --- DIBUJADO DE LA TABLA ---
     tbody.innerHTML = ""; 
 
     if (datosPagina.length > 0) {
@@ -1242,14 +1245,18 @@ function renderizarTablaParticipantes() {
                     let estiloBorde = p.equipo_id ? '#00843D' : '#ffc107';
                     if(p.equipo_id) contadorEquipo++;
 
+                    // Ajustado el colspan a 9 para incluir la nueva columna
                     filaEncabezado.innerHTML = `
-                        <td colspan="8" style="padding: 10px; background: ${estiloFondo}; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid ${estiloBorde};">
+                        <td colspan="9" style="padding: 10px; background: ${estiloFondo}; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid ${estiloBorde};">
                             ${contenidoEncabezado}
                         </td>
                     `;
                     tbody.appendChild(filaEncabezado);
                 }
                 
+                // LÓGICA DE TELÉFONO: Solo mostrar si es capitán
+                const telefonoDisplay = (p.es_capitan == 1) ? p.telefono : '<span style="color:#999;">-</span>';
+
                 const fila = document.createElement("tr");
                 const usuarioObj = encodeURIComponent(JSON.stringify(p));
                 const etiquetaCapitan = p.es_capitan == 1 ? '<span class="tag-capitan" style="background:#f9b233; color:#333; padding:2px 5px; border-radius:4px; font-weight:bold; font-size:0.8em;">CAPITÁN</span>' : '';
@@ -1263,6 +1270,7 @@ function renderizarTablaParticipantes() {
                     <td>${p.correo || '-'}</td>
                     <td>${p.genero || 'No especificado'}</td>
                     <td>${rolDisplay}</td>
+                    <td>${telefonoDisplay}</td>
                     <td>${diaDisplay}</td>
                     <td>${horarioDisplay}</td>
                     <td style="display:flex; gap:5px;">
@@ -1273,6 +1281,7 @@ function renderizarTablaParticipantes() {
                 tbody.appendChild(fila);
             });
         } else {
+            // REGISTRO INDIVIDUAL: Mostrar teléfono de todos
             datosPagina.forEach(p => {
                 const fila = document.createElement("tr");
                 const usuarioObj = encodeURIComponent(JSON.stringify(p));
@@ -1285,6 +1294,7 @@ function renderizarTablaParticipantes() {
                     <td>${p.correo || '-'}</td>
                     <td>${p.genero || 'No especificado'}</td>
                     <td>${p.rol || ''}</td>
+                    <td>${p.telefono || '-'}</td>
                     <td>${diaDisplay}</td>
                     <td>${horarioDisplay}</td>
                     <td style="display:flex; gap:5px;">
@@ -1296,8 +1306,7 @@ function renderizarTablaParticipantes() {
             });
         }
     } else {
-        // Si no hay datos, mostramos el mensaje de vacío
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay participantes inscritos en este evento.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No hay participantes inscritos en este evento.</td></tr>';
     }
 }
 
