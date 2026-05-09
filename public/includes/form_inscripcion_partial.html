@@ -94,6 +94,31 @@
         </select>
     </div>
 
+    <div id="seccion-disponibilidad-usuario" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 15px 0;">
+    <h4 style="margin-top: 0; color: #333; font-size: 16px; margin-bottom: 15px;">Disponibilidad para jugar</h4>
+    
+    <div class="form-group" style="margin-bottom: 15px;">
+        <label style="font-weight: bold; display: block; margin-bottom: 8px;">1. Selecciona los días que puedes asistir:</label>
+        <div id="contenedor-checks-dias" style="display: flex; flex-wrap: wrap; gap: 10px;">
+            </div>
+    </div>
+
+    <div class="form-group">
+        <label style="font-weight: bold; display: block; margin-bottom: 8px;">2. Selecciona tu preferencia de horario:</label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+            <label style="background: white; padding: 5px 10px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;">
+                <input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)"> Mañana (8:00-12:00)
+            </label>
+            <label style="background: white; padding: 5px 10px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;">
+                <input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)"> Tarde (13:00-17:00)
+            </label>
+            <label style="background: white; padding: 5px 10px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;">
+                <input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)"> Noche (18:00-21:00)
+            </label>
+        </div>
+    </div>
+</div>
+
     <div style="margin-top: 30px; text-align: right;">
         <button type="submit" id="btnGuardarFormulario" style="padding: 15px 30px; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px;">
             Guardar Cambios

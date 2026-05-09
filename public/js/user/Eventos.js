@@ -185,6 +185,7 @@ function mostrarEventos(eventos) {
         tarjeta.setAttribute('data-tipo-registro', evento.tipo_registro || 'Individual');
         tarjeta.setAttribute('data-integrantes-min', evento.integrantes_min || 1);
         tarjeta.setAttribute('data-integrantes-max', evento.integrantes_max || 0);
+        tarjeta.setAttribute('data-dias-juego', evento.dias_juego || '');
 
         let badgeHTML = '';
         let llenoTotal = false; 

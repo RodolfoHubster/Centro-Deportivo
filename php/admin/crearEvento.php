@@ -91,6 +91,12 @@ try {
     $integrantes_max = isset($_POST['integrantes_max']) && $_POST['integrantes_max'] !== '' ? intval($_POST['integrantes_max']) : null;
     $facultades = isset($_POST['facultades']) && is_array($_POST['facultades']) ? $_POST['facultades'] : [];
     
+    // NUEVO: Procesar Días de Juego
+    $dias_juego = "";
+    if (isset($_POST['dias_juego']) && is_array($_POST['dias_juego'])) {
+        $dias_juego = mysqli_real_escape_string($conexion, implode(',', $_POST['dias_juego']));
+    }
+
     // 3. VALIDACIONES
     $fecha_inicio_obj = DateTime::createFromFormat('Y-m-d', $fecha_inicio);
     $fecha_termino_obj = DateTime::createFromFormat('Y-m-d', $fecha_termino);
@@ -110,7 +116,7 @@ try {
                         nombre, descripcion, fecha_inicio, fecha_termino, periodo, lugar, 
                         id_actividad, tipo_registro, categoria_deporte, tipo_actividad,
                         ubicacion_tipo, campus_id, id_promotor, codigo_qr, token_registro,
-                        cupo_maximo, integrantes_min, integrantes_max, 
+                        cupo_maximo, integrantes_min, integrantes_max, dias_juego,
                         registros_actuales, activo, fecha_creacion
                       ) VALUES (
                         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, NOW()
@@ -121,11 +127,11 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt,
-            'ssssssisssssiiiii', 
+            'ssssssisssssiiiiis', 
             $nombre, $descripcion, $fecha_inicio, $fecha_termino, $periodo, $lugar,
             $id_actividad, $tipo_registro, $categoria_deporte, $tipo_actividad,
             $ubicacion_tipo, $campus_id, $id_promotor, $codigo_qr, $token_registro,
-            $cupo_maximo, $integrantes_min, $integrantes_max
+            $cupo_maximo, $integrantes_min, $integrantes_max, $dias_juego
         );
     } else {
         // CASO 2: SIN ACTIVIDAD
@@ -133,10 +139,10 @@ try {
                         nombre, descripcion, fecha_inicio, fecha_termino, periodo, lugar,
                         tipo_registro, categoria_deporte, tipo_actividad,
                         ubicacion_tipo, campus_id, id_promotor, codigo_qr, token_registro,
-                        cupo_maximo, integrantes_min, integrantes_max, 
+                        cupo_maximo, integrantes_min, integrantes_max, dias_juego,
                         registros_actuales, activo, fecha_creacion
                       ) VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, NOW()
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, NOW()
                       )";
         
         $stmt = mysqli_prepare($conexion, $sqlEvento);
@@ -144,11 +150,11 @@ try {
         
         mysqli_stmt_bind_param(
             $stmt,
-            'ssssssssssiissiii', // 17 tipos de datos
+            'ssssssssssiissiiis', // 17 tipos de datos
             $nombre, $descripcion, $fecha_inicio, $fecha_termino, $periodo, $lugar,
             $tipo_registro, $categoria_deporte, $tipo_actividad,
             $ubicacion_tipo, $campus_id, $id_promotor, $codigo_qr, $token_registro,
-            $cupo_maximo, $integrantes_min, $integrantes_max
+            $cupo_maximo, $integrantes_min, $integrantes_max, $dias_juego
         );
     }
     

@@ -262,7 +262,20 @@ export function poblarFormularioParaEditar(evento, periodoActivoNombre) {
     
     const periodoMostrar = evento.periodo || periodoActivoNombre || 'Sin Asignar';
     document.getElementById('evento-periodo').value = periodoMostrar;
-    
+
+    // 2. LÓGICA DE DÍAS DE JUEGO (Limpiar y marcar)
+    const todosLosChecksDias = document.querySelectorAll('input[name="dias_juego[]"]');
+    todosLosChecksDias.forEach(check => check.checked = false);
+
+    // Marcar los días si existen (ahora funciona para Individual y Por equipos)
+    if (evento.dias_juego) {
+        const diasSeleccionados = String(evento.dias_juego).split(',');
+        diasSeleccionados.forEach(dia => {
+            const checkbox = document.querySelector(`input[name="dias_juego[]"][value="${dia.trim()}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+
     mostrarCamposEquipo(evento.tipo_registro);
 
     // === LÓGICA DE CAMPUS Y FACULTADES ===
