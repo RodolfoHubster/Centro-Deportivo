@@ -73,6 +73,10 @@ try {
     $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
     $id_promotor = intval($_POST['id_promotor']);
     
+    $dias_juego = "";
+    if (isset($_POST['dias_juego']) && is_array($_POST['dias_juego'])) {
+        $dias_juego = mysqli_real_escape_string($conexion, implode(',', $_POST['dias_juego']));
+    }
     // ---------------------------------------------------------
     // CAMBIO IMPORTANTE: LOGICA PARA LEER CHECKBOXES DE CAMPUS
     // ---------------------------------------------------------
@@ -128,7 +132,8 @@ try {
                     id_promotor = ?,
                     cupo_maximo = ?,
                     integrantes_min = ?,
-                    integrantes_max = ?
+                    integrantes_max = ?,
+                    dias_juego=?
                   WHERE id = ?";
                   
     $stmt = mysqli_prepare($conexion, $sqlEvento);
@@ -139,7 +144,7 @@ try {
     
     mysqli_stmt_bind_param(
         $stmt,
-        'ssssssisssssiiiii',
+        'ssssssisssssiiiisi',
         $nombre,
         $descripcion,
         $fecha_inicio,
@@ -156,6 +161,7 @@ try {
         $cupo_maximo,
         $integrantes_min,  
         $integrantes_max,
+        $dias_juego,
         $evento_id // El ID va al final para el WHERE
     );
     

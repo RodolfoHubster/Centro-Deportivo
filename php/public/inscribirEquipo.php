@@ -43,13 +43,23 @@ try {
     $integrantes = $_POST['integrantes'];
 
     // === CORRECCIÓN CLAVE PARA FECHAS Y HORARIOS ===
-    // Si llegan vacíos "", los convertimos a NULL para evitar errores en la BD
     $telefono_capitan = isset($_POST['telefono']) ? mysqli_real_escape_string($conexion, trim($_POST['telefono'])) : NULL; // <-- NUEVO
-    $horario_raw = isset($_POST['horario_disponible']) ? trim($_POST['horario_disponible']) : '';
-    $horario_disponible = !empty($horario_raw) ? mysqli_real_escape_string($conexion, $horario_raw) : NULL;
 
-    $dias_raw = isset($_POST['dias_disponibles']) ? trim($_POST['dias_disponibles']) : '';
-    $dias_disponibles = !empty($dias_raw) ? mysqli_real_escape_string($conexion, $dias_raw) : NULL;
+    // === Capturar el horario (De Array a Texto) ===
+    $horario_disponible = NULL;
+    if (isset($_POST['horarios_usuario']) && is_array($_POST['horarios_usuario'])) {
+        $horario_disponible = mysqli_real_escape_string($conexion, implode(', ', $_POST['horarios_usuario']));
+    } elseif (isset($_POST['horarios_disponibles']) && is_array($_POST['horarios_disponibles'])) {
+        $horario_disponible = mysqli_real_escape_string($conexion, implode(', ', $_POST['horarios_disponibles']));
+    }
+
+    // === Capturar días disponibles (De Array a Texto) ===
+    $dias_disponibles = NULL;
+    if (isset($_POST['dias_usuario']) && is_array($_POST['dias_usuario'])) {
+        $dias_disponibles = mysqli_real_escape_string($conexion, implode(', ', $_POST['dias_usuario']));
+    } elseif (isset($_POST['dias_disponibles']) && is_array($_POST['dias_disponibles'])) {
+        $dias_disponibles = mysqli_real_escape_string($conexion, implode(', ', $_POST['dias_disponibles']));
+    }
     // ===============================================
 
     // ===================================

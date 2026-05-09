@@ -412,43 +412,31 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                     </div>
 
                 
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
-                        Disponibilidad de Juego <span style="color: #dc3545;">*</span>
-                    </label>
+                <div id="seccion-disponibilidad-usuario" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 25px;">
+                    <h4 style="margin-top: 0; color: #003366; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                        
-                        <div style="grid-column: span 2;"> <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Día Preferido:</span>
-                            <select name="dias_disponibles" required class="form-input"
-                                    style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
-                                <option value="">Selecciona un día...</option>
-                                <option value="Lunes">Lunes</option>
-                                <option value="Martes">Martes</option>
-                                <option value="Miércoles">Miércoles</option>
-                                <option value="Jueves">Jueves</option>
-                                <option value="Viernes">Viernes</option>
-                                <option value="Sábado">Sábado</option>
-                                <option value="Domingo">Domingo</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Desde las:</span>
-                            <input type="time" name="hora_inicio" required class="form-input"
-                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
-                        </div>
-
-                        <div>
-                            <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Hasta las:</span>
-                            <input type="time" name="hora_fin" required class="form-input"
-                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
-                        </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">1. Selecciona los días que puedes asistir:</label>
+                        <div id="contenedor-checks-dias" style="display: flex; flex-wrap: wrap; gap: 12px;"></div>
                     </div>
                     
-                    <small style="color: #888; font-size: 11px; display: block; margin-top: 8px; font-style: italic;">
-                        * Selecciona el día y rango de horas en que puedes asistir.
-                    </small>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Selecciona tu preferencia de horario:</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
+                                <span style="font-size: 14px;">Mañana</span>
+                            </label>
+                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
+                                <span style="font-size: 14px;">Tarde</span>
+                            </label>
+                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
+                                <span style="font-size: 14px;">Noche</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="margin-bottom: 10px;", id="campus-container">
@@ -482,6 +470,22 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                     <small id="help-carrera" style="color: #666; font-style: italic; display: block; margin-top: 5px; font-size: 12px;">
                         Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área
                     </small>
+                </div>
+
+                <div id="seccion-disponibilidad-usuario" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+                    <h4 style="margin-top: 0; color: #003366; font-size: 15px; margin-bottom: 12px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 13px;">1. Selecciona los días que puedes asistir:</label>
+                        <div id="contenedor-checks-dias" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 13px;">2. Selecciona tu preferencia de horario:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)"> <span>Mañana</span></label>
+                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)"> <span>Tarde</span></label>
+                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)"> <span>Noche</span></label>
+                        </div>
+                    </div>
                 </div>
 
                 <input type="hidden" name="evento_id" value="${eventoId}">
@@ -528,13 +532,19 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
             background: #f3f4f6 !important;
             color: #dc3545 !important;
         }
-        .radio-option input[type="radio"]:checked + span {
+        .radio-option input[type="radio"]:checked + span,
+        .radio-option input[type="checkbox"]:checked + span {
             color: #00843D;
             font-weight: 600;
         }
-        .radio-option:has(input[type="radio"]:checked) {
+        .radio-option:has(input[type="radio"]:checked),
+        .radio-option:has(input[type="checkbox"]:checked) {
             border-color: #00843D !important;
             background: #f1f8f4 !important;
+        }
+        .radio-option input[type="radio"],
+        .radio-option input[type="checkbox"] {
+            margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #00843D; flex-shrink: 0;
         }
         .form-input:focus {
             outline: none;
@@ -550,6 +560,29 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     `;
     document.head.appendChild(style);
     document.body.appendChild(modal);
+
+    // LÓGICA DINÁMICA DE DÍAS
+    const tarjetaAsociada = document.querySelector(`.evento-card[data-evento-id="${eventoId}"]`);
+    const diasJuego = tarjetaAsociada ? tarjetaAsociada.getAttribute('data-dias-juego') : '';
+    
+    const seccionDisp = document.getElementById('seccion-disponibilidad-usuario');
+    const contenedorDias = document.getElementById('contenedor-checks-dias');
+    
+    if (diasJuego && diasJuego.trim() !== "") {
+        const diasDelEvento = String(diasJuego).split(','); 
+        contenedorDias.innerHTML = ''; // Limpiar
+        diasDelEvento.forEach(dia => {
+            const diaLimpio = dia.trim();
+            contenedorDias.innerHTML += `
+                <label class="radio-option" style="padding: 8px 15px; white-space: nowrap; flex: 0 0 auto;">
+                    <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}"> 
+                    <span>${diaLimpio}</span>
+                </label>`;
+        });
+        seccionDisp.style.display = 'block'; 
+    } else {
+        seccionDisp.style.display = 'none'; 
+    }
     
     // Cargar facultades (Versión nueva usando formLogica)
     const selectCampus = document.getElementById('select-campus');
@@ -913,41 +946,23 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                             style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
                 </div>
 
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
-                    Disponibilidad de Juego del Equipo <span style="color: #dc3545;">*</span>
-                </label>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                    
-                    <div style="grid-column: span 2;">
-                        <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Día Preferido:</span>
-                        <select name="dias_disponibles" required class="form-input"
-                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
-                            <option value="">Selecciona un día...</option>
-                            <option value="Lunes">Lunes</option>
-                            <option value="Martes">Martes</option>
-                            <option value="Miércoles">Miércoles</option>
-                            <option value="Jueves">Jueves</option>
-                            <option value="Viernes">Viernes</option>
-                            <option value="Sábado">Sábado</option>
-                            <option value="Domingo">Domingo</option>
-                        </select>
+                <div id="seccion-disponibilidad-equipo" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                        Disponibilidad de Juego del Equipo <span style="color: #dc3545;">*</span>
+                    </label>
+                    <div style="margin-bottom: 15px;">
+                        <span style="font-size: 13px; color: #666; font-weight: 600; display: block; margin-bottom: 8px;">1. Días que el equipo puede jugar:</span>
+                        <div id="contenedor-checks-dias-equipo" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
                     </div>
-
                     <div>
-                        <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Desde las:</span>
-                        <input type="time" name="hora_inicio" required class="form-input"
-                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
-                    </div>
-
-                    <div>
-                        <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 600;">Hasta las:</span>
-                        <input type="time" name="hora_fin" required class="form-input"
-                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                        <span style="font-size: 13px; color: #666; font-weight: 600; display: block; margin-bottom: 8px;">2. Horarios preferidos:</span>
+                        <div class="radio-group-responsive">
+                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)"> <span>Mañana</span></label>
+                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)"> <span>Tarde</span></label>
+                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)"> <span>Noche</span></label>
+                        </div>
                     </div>
                 </div>
-            </div>
                 
                 <div id="integrantes-container"></div>
                 
@@ -977,6 +992,33 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     
     document.body.appendChild(modal);
 
+    // LÓGICA DINÁMICA DE DÍAS (EQUIPO)
+    // ✅ CORRECCIÓN: Buscamos por el atributo de datos sin importar la clase CSS
+    const tarjetaAsociadaEq = document.querySelector(`[data-evento-id="${eventoId}"]`) || document.querySelector(`[data-id="${eventoId}"]`);
+    const diasJuegoEq = tarjetaAsociadaEq ? tarjetaAsociadaEq.getAttribute('data-dias-juego') : '';
+    
+    const seccionDispEq = document.getElementById('seccion-disponibilidad-equipo');
+    const contenedorDiasEq = document.getElementById('contenedor-checks-dias-equipo');
+    
+    // Si la tarjeta tiene días, o si prefieres forzar a que siempre se muestre, dejamos el bloque visible
+    if (diasJuegoEq && diasJuegoEq.trim() !== "") {
+        const diasDelEventoEq = String(diasJuegoEq).split(','); 
+        contenedorDiasEq.innerHTML = '';
+        diasDelEventoEq.forEach(dia => {
+            const diaLimpio = dia.trim();
+            contenedorDiasEq.innerHTML += `
+                <label class="radio-option" style="padding: 8px 15px; white-space: nowrap; flex: 0 0 auto;">
+                    <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}"> 
+                    <span>${diaLimpio}</span>
+                </label>`;
+        });
+        seccionDispEq.style.display = 'block'; 
+    } else {
+        // Si el evento NO tiene días definidos en la tarjeta, puedes decidir ocultarlo o mostrarlo vacío.
+        // Si quieres que SIEMPRE aparezcan los horarios, cambia esto a 'block'.
+        seccionDispEq.style.display = 'none'; 
+    }
+
     // CAMBIO 3: ESTILOS DINÁMICOS Y MEDIA QUERIES
     if (!document.getElementById('estilos-inscripcion-dinamicos')) {
         const style = document.createElement('style');
@@ -1003,13 +1045,13 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             }
 
             .btnCerrarXEquipo:hover { background: #f3f4f6 !important; color: #dc3545 !important; }
-            .radio-option input[type="radio"]:checked + span { color: #00843D; font-weight: 600; }
-            .radio-option:has(input[type="radio"]:checked) { border-color: #00843D !important; background: #f1f8f4 !important; }
+            .radio-option input[type="radio"]:checked + span, .radio-option input[type="checkbox"]:checked + span { color: #00843D; font-weight: 600; }
+            .radio-option:has(input[type="radio"]:checked), .radio-option:has(input[type="checkbox"]:checked) { border-color: #00843D !important; background: #f1f8f4 !important; }
             .form-input:focus { outline: none; border-color: #00843D !important; box-shadow: 0 0 0 3px rgba(0, 132, 61, 0.1) !important; }
             .form-input:invalid:not(:placeholder-shown) { border-color: #dc3545 !important; }
             .form-input:valid:not(:placeholder-shown) { border-color: #28a745 !important; }
             .radio-option { display: flex; align-items: center; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; transition: all 0.2s; }
-            .radio-option input[type="radio"] { margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #00843D; }
+            .radio-option input[type="radio"], .radio-option input[type="checkbox"] { margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #00843D; flex-shrink: 0; }
         `;
         document.head.appendChild(style);
     }
@@ -1928,33 +1970,22 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                 <input type="hidden" name="evento_id" value="${eventoId}">
                 
                 <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #00843D;">
-                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">
-                        Tipo de Participante <span style="color: #dc3545;">*</span>
-                    </label>
+                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">Tipo de Participante <span style="color: #dc3545;">*</span></label>
                     <div style="display: grid; gap: 12px;">
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Estudiante" checked style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Estudiante</span>
+                            <input type="radio" name="tipo_participante" value="Estudiante" checked style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;"><span style="font-size: 15px; font-weight: 500;">Estudiante</span>
                         </label>
-
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Docente" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Docente</span>
+                            <input type="radio" name="tipo_participante" value="Docente" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;"><span style="font-size: 15px; font-weight: 500;">Docente</span>
                         </label>
-
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal Administrativo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Personal Administrativo</span>
+                            <input type="radio" name="tipo_participante" value="Personal Administrativo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;"><span style="font-size: 15px; font-weight: 500;">Personal Administrativo</span>
                         </label>
-
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal de Servicio" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Personal de Servicio</span>
+                            <input type="radio" name="tipo_participante" value="Personal de Servicio" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;"><span style="font-size: 15px; font-weight: 500;">Personal de Servicio</span>
                         </label>
-
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Externo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
-                            <span style="font-size: 15px; font-weight: 500;">Externo</span>
+                            <input type="radio" name="tipo_participante" value="Externo" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;"><span style="font-size: 15px; font-weight: 500;">Externo</span>
                         </label>
                     </div>
                 </div>
@@ -1962,85 +1993,118 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Apellido Paterno <span style="color: #dc3545;">*</span></label>
-                        <input type="text" name="apellido_paterno" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <input type="text" name="apellido_paterno" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Apellido Materno <span style="color: #dc3545;">*</span></label>
-                        <input type="text" name="apellido_materno" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                        <input type="text" name="apellido_materno" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
                     </div>
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Nombre(s) <span style="color: #dc3545;">*</span></label>
-                    <input type="text" name="nombres" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    <input type="text" name="nombres" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div id="matricula-container">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                            <span id="label-matricula">Matrícula</span> <span style="color: #dc3545;" id="required-matricula">*</span>
-                        </label>
-                        <input type="text" name="matricula" id="input-matricula" placeholder="12345678" required class="form-input" pattern="[0-9]{6,10}" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
-                        <small style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Solo números (6-10 dígitos)</small>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;"><span id="label-matricula">Matrícula</span> <span style="color: #dc3545;" id="required-matricula">*</span></label>
+                        <input type="text" name="matricula" id="input-matricula" placeholder="12345678" required class="form-input" pattern="[0-9]{6,10}" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Género <span style="color: #dc3545;">*</span></label>
-                        <select name="genero" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
-                            <option value="">Selecciona</option>
-                            <option value="Hombre">Hombre</option>
-                            <option value="Mujer">Mujer</option>
-                            <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+                        <select name="genero" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box;">
+                            <option value="">Selecciona</option><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option><option value="Prefiero no decirlo">Prefiero no decirlo</option>
                         </select>
                     </div>
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Correo Electrónico UABC <span style="color: #dc3545;">*</span></label>
-                    <input type="email" name="correo" id="input-correo" required placeholder="ejemplo (sin @uabc.edu.mx)" pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
-                    <small id="correo-hint" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Debe ser correo institucional (@uabc.edu.mx o @uabc.mx)</small>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Correo Electrónico <span style="color: #dc3545;">*</span></label>
+                        <input type="email" name="correo" id="input-correo" required placeholder="ejemplo (sin @uabc)" pattern="[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+                        <small id="correo-hint" style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Correo institucional UABC</small>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Teléfono <span style="color: #dc3545;">*</span></label>
+                        <input type="tel" name="telefono" required pattern="[0-9]{10}" placeholder="Ej. 6641234567" class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+                    </div>
                 </div>
 
                 <div style="margin-bottom: 20px;" id="campus-container">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        <span id="label-campus">Unidad Académica</span> <span style="color: #dc3545;" id="required-campus">*</span>
-                    </label>
-                    <select name="campus" id="select-campus" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;"><span id="label-campus">Unidad Académica</span> <span style="color: #dc3545;" id="required-campus">*</span></label>
+                    <select name="campus" id="select-campus" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box;">
                         <option value="">Cargando Unidades Académicas...</option>
                     </select>
                 </div>
 
                 <div style="margin-bottom: 20px;" id="facultad-container">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        <span id="label-facultad">Facultad</span> <span style="color: #dc3545;" id="required-facultad">*</span>
-                    </label>
-                    <select name="facultad" id="select-facultad" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;"><span id="label-facultad">Facultad</span> <span style="color: #dc3545;" id="required-facultad">*</span></label>
+                    <select name="facultad" id="select-facultad" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box;">
                         <option value="">Selecciona primero una Unidad Academica</option>
                     </select>
                 </div>
 
                 <div style="margin-bottom: 25px;" id="carrera-container">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
-                        <span id="label-carrera">Carrera</span> <span style="color: #dc3545;" id="required-carrera">*</span>
-                    </label>
-                    <select name="carrera" id="select-carrera" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s; outline: none;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;"><span id="label-carrera">Carrera</span> <span style="color: #dc3545;" id="required-carrera">*</span></label>
+                    <select name="carrera" id="select-carrera" required class="form-input" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; box-sizing: border-box;">
                         <option value="">Selecciona primero una facultad</option>
                     </select>
-                    <small style="display: block; margin-top: 6px; font-size: 12px; color: #666; font-style: italic;">Si eres de primer semestre, selecciona "Tronco Común" seguido de tu área</small>
+                </div>
+
+                <div id="seccion-disponibilidad-usuario-unirse" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 25px;">
+                    <h4 style="margin-top: 0; color: #003366; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">1. Selecciona los días que puedes asistir:</label>
+                        <div id="contenedor-checks-dias-unirse" style="display: flex; flex-wrap: wrap; gap: 12px;"></div>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Selecciona tu preferencia de horario:</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;"><input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> <span style="font-size: 14px;">Mañana</span></label>
+                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;"><input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> <span style="font-size: 14px;">Tarde</span></label>
+                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;"><input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> <span style="font-size: 14px;">Noche</span></label>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
-                    <button type="button" id="btnVolverListaEquipos" style="padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px;">
-                        ← Volver
-                    </button>
-                    <button type="submit" id="btnSubmitUnirse" style="padding: 15px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);">
-                        Unirme al Equipo
-                    </button>
+                    <button type="button" id="btnVolverListaEquipos" style="padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px;">← Volver</button>
+                    <button type="submit" id="btnSubmitUnirse" style="padding: 15px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px;">Unirme al Equipo</button>
                 </div>
             </form>
         </div>
     `;
     
     document.body.appendChild(modal);
+    
+    // =================================================================
+    // CORRECCIÓN 2: LÓGICA DINÁMICA DE DÍAS (INYECCIÓN CORRECTA)
+    // =================================================================
+    // LÓGICA DINÁMICA DE DÍAS (UNIRSE A EQUIPO)
+    const tarjetaAsociadaUnirse = document.querySelector(`.evento-card[data-evento-id="${eventoId}"]`);
+    const diasJuegoUnirse = tarjetaAsociadaUnirse ? tarjetaAsociadaUnirse.getAttribute('data-dias-juego') : '';
+    
+    const seccionDispUnirse = document.getElementById('seccion-disponibilidad-usuario-unirse');
+    const contenedorDiasUnirse = document.getElementById('contenedor-checks-dias-unirse'); 
+    
+    if (diasJuegoUnirse && diasJuegoUnirse.trim() !== "") {
+        const diasDelEventoUnirse = String(diasJuegoUnirse).split(','); 
+        contenedorDiasUnirse.innerHTML = ''; 
+        diasDelEventoUnirse.forEach(dia => {
+            const diaLimpio = dia.trim();
+            contenedorDiasUnirse.innerHTML += `
+                <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+                    <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
+                    <span style="font-size: 14px;">${diaLimpio}</span>
+                </label>`;
+        });
+        if(seccionDispUnirse) seccionDispUnirse.style.display = 'block'; 
+    } else {
+        if(seccionDispUnirse) seccionDispUnirse.style.display = 'none'; 
+    }
+    // =================================================================
+
 
     // =================================================================
     // === LÓGICA OCULTA: BUSCAR HORARIO DEL EQUIPO Y RELLENAR ===
@@ -2051,7 +2115,8 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    // Rellenamos los inputs ocultos
+                    // Si encontramos los datos, ya no necesitamos la lógica vieja de hora_inicio/hora_fin,
+                    // pero mantenemos esto por compatibilidad con tu BD
                     if(data.dias_disponibles) {
                         const inputDias = document.getElementById('public_hidden_dias');
                         if(inputDias) inputDias.value = data.dias_disponibles;
@@ -2083,54 +2148,45 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
         }
     }
 
-
     // Función para validar campo en tiempo real
     function validarCampo(input, forzarValidacion = false) {
         const tipo = document.querySelector('input[name="tipo_participante"]:checked').value;
         let esValido = true;
 
-        // Si el campo está vacío y es requerido
         if (input.value.trim() === '' && input.required) {
             input.style.borderColor = '#dc3545';
             input.style.backgroundColor = 'white';
             return;
         }
 
-        // Si el campo no está vacío, validar según el tipo
         if (input.value.trim() !== '') {
-            // Validaciones específicas
             if (input.name === 'matricula') {
                 const pattern = /^[0-9]{6,10}$/;
                 esValido = pattern.test(input.value);
             }
 
             if (input.name === 'correo') {
-                // Definimos los roles que requieren UABC estrictamente
-                // (Agregamos 'Personal Académico' para ser consistentes)
                 const rolesLibres = ['Externo', 'Personal de Servicio'];
 
                 if (rolesLibres.includes(tipo)) {
-                // CASO: Correo Libre
-                correoHint.style.display = 'none';
-                inputCorreo.removeAttribute('pattern');
-                inputCorreo.placeholder = 'ejemplo@correo.com';
-                if (inputCorreo.value === '@uabc.edu.mx') {
-                    inputCorreo.value = '';
-                }
-                if(labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
+                    const correoHint = document.getElementById('correo-hint');
+                    const labelCorreo = input.previousElementSibling;
+                    if(correoHint) correoHint.style.display = 'none';
+                    input.removeAttribute('pattern');
+                    input.placeholder = 'ejemplo@correo.com';
+                    if (input.value === '@uabc.edu.mx') input.value = '';
+                    if(labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
                 } else {
-                    // CASO: Correo UABC
-                    correoHint.style.display = 'block';
-                    inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
-                    inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
-                    if (inputCorreo.value === '') {
-                        inputCorreo.value = '@uabc.edu.mx';
-                    }
+                    const correoHint = document.getElementById('correo-hint');
+                    const labelCorreo = input.previousElementSibling;
+                    if(correoHint) correoHint.style.display = 'block';
+                    input.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
+                    input.placeholder = 'ejemplo@uabc.edu.mx';
+                    if (input.value === '') input.value = '@uabc.edu.mx';
                     if(labelCorreo) labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
                 }
             }
 
-            // Aplicar estilos según validación
             if (esValido) {
                 input.style.borderColor = '#28a745';
                 input.style.backgroundColor = 'white';
@@ -2139,37 +2195,26 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                 input.style.backgroundColor = 'white';
             }
         } else if (!input.required) {
-            // Si no es requerido y está vacío, estilo normal
             input.style.borderColor = '#e0e0e0';
             input.style.backgroundColor = 'white';
         }
     }
 
-    // Agregar validación en tiempo real a todos los inputs
     const inputs = modal.querySelectorAll('input[type="text"], input[type="email"], select');
     
-    // Marcar todos los campos requeridos como inválidos al inicio
     inputs.forEach(input => {
         if (input.required && input.value.trim() === '') {
             input.style.borderColor = '#dc3545';
             input.style.backgroundColor = 'white';
         }
-        
-        input.addEventListener('input', () => {
-            validarCampo(input);
-        });
-        
-        input.addEventListener('blur', () => {
-            validarCampo(input);
-        });
+        input.addEventListener('input', () => validarCampo(input));
+        input.addEventListener('blur', () => validarCampo(input));
     });
 
-    // Cargar facultades y carreras
     const selectCampus = document.getElementById('select-campus');
     const selectFacultad = document.getElementById('select-facultad');
     const selectCarrera = document.getElementById('select-carrera');
     
-    // Le pasamos el select y la ruta relativa al PHP desde 'public/'
     cargarCampus(selectCampus, '../php/public/');
     const campusSeleccionado = selectCampus?.value;
     if (campusSeleccionado) {
@@ -2191,9 +2236,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
         validarCampo(e.target);
     });
 
-    // Manejar cambio de tipo de participante
     document.querySelectorAll('input[name="tipo_participante"]').forEach(radio => {
-        // Marcar el seleccionado inicialmente
         const label = radio.closest('.radio-option');
         if (radio.checked) {
             label.style.borderColor = '#28a745';
@@ -2203,71 +2246,42 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
         radio.addEventListener('change', function() {
             const tipo = this.value;
             
-            // Actualizar estilos de todos los radio buttons
             document.querySelectorAll('.radio-option').forEach(opt => {
                 opt.style.borderColor = '#e0e0e0';
                 opt.style.backgroundColor = 'white';
             });
             
-            // Marcar el seleccionado en verde
             label.style.borderColor = '#28a745';
             label.style.backgroundColor = 'white';
             
             actualizarCamposSegunTipo(tipo, document);
             
-            // Actualizar hint del correo según tipo
-            // Actualizar hint del correo según tipo
-            const correoHint = document.getElementById('correo-hint');
             const inputCorreo = document.getElementById('input-correo');
-            const labelCorreo = inputCorreo.previousElementSibling;
-            const rolesLibres = ['Externo', 'Personal de Servicio'];
+            validarCampo(inputCorreo);
             
-            if (rolesLibres.includes(tipo)) {
-                // CASO: Correo Libre
-                correoHint.style.display = 'none';
-                inputCorreo.removeAttribute('pattern');
-                inputCorreo.placeholder = 'ejemplo@correo.com';
-                
-                // Cambiar Texto de Etiqueta
-                if(labelCorreo) {
-                    labelCorreo.innerHTML = 'Correo Electrónico <span style="color: #dc3545;">*</span>';
-                }
-            } else {
-                // CASO: Correo UABC
-                correoHint.style.display = 'block';
-                inputCorreo.setAttribute('pattern', '[a-zA-Z0-9._+\\-]+@uabc\\.(edu\\.)?mx');
-                inputCorreo.placeholder = 'ejemplo@uabc.edu.mx';
-                
-                // Cambiar Texto de Etiqueta
-                if(labelCorreo) {
-                    labelCorreo.innerHTML = 'Correo Electrónico UABC <span style="color: #dc3545;">*</span>';
-                }
-            }
-            
-            // Re-validar campos para quitar marcas rojas antiguas
-            inputs.forEach(input => {
-                validarCampo(input);
-            });
+            inputs.forEach(input => validarCampo(input));
         });
     });
 
-    // Botón volver
+    const tipoInicial = modal.querySelector('input[name="tipo_participante"]:checked')?.value;
+    if (tipoInicial) {
+        actualizarCamposSegunTipo(tipoInicial, document);
+        validarCampo(document.getElementById('input-correo'));
+    }
+
     document.getElementById('btnVolverListaEquipos').addEventListener('click', () => {
         modal.remove();
         mostrarFormularioUnirseEquipo(eventoId, nombreEvento);
     });
 
-    // Cerrar modal
     modal.querySelector('.btnCerrarXUnirseIntegrante').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
     });
 
-    // Enviar formulario
     document.getElementById('formUnirseIntegrante').addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Validar todos los campos antes de enviar
         let todosValidos = true;
         inputs.forEach(input => {
             validarCampo(input);
