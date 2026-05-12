@@ -421,20 +421,19 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                     </div>
                     
                     <div>
-                        <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Selecciona tu preferencia de horario:</label>
-                        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
-                                <span style="font-size: 14px;">Mañana</span>
-                            </label>
-                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
-                                <span style="font-size: 14px;">Tarde</span>
-                            </label>
-                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
-                                <input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
-                                <span style="font-size: 14px;">Noche</span>
-                            </label>
+                        <div>
+                            <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Rango de horario en el que puedes asistir:</label>
+                            <div style="display: flex; align-items: center; gap: 15px; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                                <div style="flex: 1;">
+                                    <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Desde:</span>
+                                    <input type="time" name="hora_inicio" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
+                                </div>
+                                <div style="font-weight: bold; color: #00843D; margin-top: 15px;">a</div>
+                                <div style="flex: 1;">
+                                    <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Hasta:</span>
+                                    <input type="time" name="hora_fin" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -477,14 +476,6 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                     <div style="margin-bottom: 15px;">
                         <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 13px;">1. Selecciona los días que puedes asistir:</label>
                         <div id="contenedor-checks-dias" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
-                    </div>
-                    <div>
-                        <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 13px;">2. Selecciona tu preferencia de horario:</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)"> <span>Mañana</span></label>
-                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)"> <span>Tarde</span></label>
-                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)"> <span>Noche</span></label>
-                        </div>
                     </div>
                 </div>
 
@@ -562,15 +553,17 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     document.body.appendChild(modal);
 
     // LÓGICA DINÁMICA DE DÍAS
-    const tarjetaAsociada = document.querySelector(`.evento-card[data-evento-id="${eventoId}"]`);
+    // LÓGICA DINÁMICA DE DÍAS (Inscripcion.js)
+    const tarjetaAsociada = document.querySelector(`[data-evento-id="${eventoId}"]`) || 
+                            document.querySelector(`[data-id="${eventoId}"]`);
+
     const diasJuego = tarjetaAsociada ? tarjetaAsociada.getAttribute('data-dias-juego') : '';
-    
     const seccionDisp = document.getElementById('seccion-disponibilidad-usuario');
     const contenedorDias = document.getElementById('contenedor-checks-dias');
-    
+
     if (diasJuego && diasJuego.trim() !== "") {
         const diasDelEvento = String(diasJuego).split(','); 
-        contenedorDias.innerHTML = ''; // Limpiar
+        contenedorDias.innerHTML = ''; 
         diasDelEvento.forEach(dia => {
             const diaLimpio = dia.trim();
             contenedorDias.innerHTML += `
@@ -720,6 +713,12 @@ function enviarInscripcion(form, modal) {
 
     // Día disponible de los participantes
     datosEnvio.append('dias_disponibles', formData.get('dias_disponibles'));
+
+    // Capturar días correctamente en registro individual
+    const diasSeleccionadosInd = Array.from(form.querySelectorAll('input[name="dias_usuario[]"]:checked'))
+                                .map(cb => cb.value)
+                                .join(', ');
+    datosEnvio.append('dias_disponibles', diasSeleccionadosInd);
 
     // Validar campos requeridos según tipo
     const tipo = formData.get('tipo_participante');
@@ -952,14 +951,20 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                     </label>
                     <div style="margin-bottom: 15px;">
                         <span style="font-size: 13px; color: #666; font-weight: 600; display: block; margin-bottom: 8px;">1. Días que el equipo puede jugar:</span>
-                        <div id="contenedor-checks-dias-equipo" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                        <div id="contenedor-checks-dias-equipo" style="display: flex; flex-wrap: wrap; gap: 12px;"></div>
                     </div>
                     <div>
-                        <span style="font-size: 13px; color: #666; font-weight: 600; display: block; margin-bottom: 8px;">2. Horarios preferidos:</span>
-                        <div class="radio-group-responsive">
-                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)"> <span>Mañana</span></label>
-                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)"> <span>Tarde</span></label>
-                            <label class="radio-option"><input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)"> <span>Noche</span></label>
+                        <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Rango de horario en el que puedes asistir:</label>
+                        <div style="display: flex; align-items: center; gap: 15px; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                            <div style="flex: 1;">
+                                <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Desde:</span>
+                                <input type="time" name="hora_inicio" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
+                            </div>
+                            <div style="font-weight: bold; color: #00843D; margin-top: 15px;">a</div>
+                            <div style="flex: 1;">
+                                <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Hasta:</span>
+                                <input type="time" name="hora_fin" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -994,13 +999,14 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
 
     // LÓGICA DINÁMICA DE DÍAS (EQUIPO)
     // ✅ CORRECCIÓN: Buscamos por el atributo de datos sin importar la clase CSS
-    const tarjetaAsociadaEq = document.querySelector(`[data-evento-id="${eventoId}"]`) || document.querySelector(`[data-id="${eventoId}"]`);
+    // Dentro de mostrarFormularioEquipo en Inscripcion.js
+    const tarjetaAsociadaEq = document.querySelector(`[data-evento-id="${eventoId}"]`) || 
+                            document.querySelector(`[data-id="${eventoId}"]`);
+
     const diasJuegoEq = tarjetaAsociadaEq ? tarjetaAsociadaEq.getAttribute('data-dias-juego') : '';
-    
     const seccionDispEq = document.getElementById('seccion-disponibilidad-equipo');
     const contenedorDiasEq = document.getElementById('contenedor-checks-dias-equipo');
-    
-    // Si la tarjeta tiene días, o si prefieres forzar a que siempre se muestre, dejamos el bloque visible
+
     if (diasJuegoEq && diasJuegoEq.trim() !== "") {
         const diasDelEventoEq = String(diasJuegoEq).split(','); 
         contenedorDiasEq.innerHTML = '';
@@ -1012,7 +1018,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                     <span>${diaLimpio}</span>
                 </label>`;
         });
-        seccionDispEq.style.display = 'block'; 
+        seccionDispEq.style.display = 'block'; // ¡Esto es lo que hace que aparezca!
     } else {
         // Si el evento NO tiene días definidos en la tarjeta, puedes decidir ocultarlo o mostrarlo vacío.
         // Si quieres que SIEMPRE aparezcan los horarios, cambia esto a 'block'.
@@ -1614,16 +1620,21 @@ function enviarInscripcionEquipo(form, modal) {
         }
     }
 
+   // Sustituye la lógica de horario y días por esta:
+    /* --- Dentro de enviarInscripcionEquipo --- */
+
+    /* --- Dentro de enviarInscripcionEquipo --- */
     const horaInicio = formData.get('hora_inicio');
     const horaFin = formData.get('hora_fin');
     if (horaInicio && horaFin) {
         formDataLimpia.append('horario_disponible', `${horaInicio} - ${horaFin}`);
     }
 
-    // Ahora `formDataLimpia` tiene 'nombre_equipo', 'evento_id', 'capitan_matricula',
-    // y todos los 'integrantes[0][...]', 'integrantes[1][...]', etc.
-    // Pero ya NO tiene los problemáticos '[nombres]', '[correo]', etc.
-    // --- FIN DE LA CORRECCIÓN ---
+    // Capturar días correctamente para el equipo
+    const diasSeleccionadosEquipo = Array.from(form.querySelectorAll('input[name="dias_usuario[]"]:checked'))
+                                        .map(cb => cb.value)
+                                        .join(', ');
+    formDataLimpia.append('dias_disponibles', diasSeleccionadosEquipo);
 
     btnEnviar.disabled = true;
     btnEnviar.textContent = 'Enviando Equipo...';
@@ -1990,6 +2001,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                     </div>
                 </div>
 
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">Apellido Paterno <span style="color: #dc3545;">*</span></label>
@@ -2059,11 +2071,19 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                         <div id="contenedor-checks-dias-unirse" style="display: flex; flex-wrap: wrap; gap: 12px;"></div>
                     </div>
                     <div>
-                        <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Selecciona tu preferencia de horario:</label>
-                        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;"><input type="checkbox" name="horarios_usuario[]" value="Mañana (8:00 - 12:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> <span style="font-size: 14px;">Mañana</span></label>
-                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;"><input type="checkbox" name="horarios_usuario[]" value="Tarde (13:00 - 17:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> <span style="font-size: 14px;">Tarde</span></label>
-                            <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;"><input type="checkbox" name="horarios_usuario[]" value="Noche (18:00 - 21:00)" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> <span style="font-size: 14px;">Noche</span></label>
+                        <div>
+                            <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Rango de horario en el que puedes asistir:</label>
+                            <div style="display: flex; align-items: center; gap: 15px; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                                <div style="flex: 1;">
+                                    <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Desde:</span>
+                                    <input type="time" name="hora_inicio" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
+                                </div>
+                                <div style="font-weight: bold; color: #00843D; margin-top: 15px;">a</div>
+                                <div style="flex: 1;">
+                                    <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Hasta:</span>
+                                    <input type="time" name="hora_fin" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2079,32 +2099,41 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
     document.body.appendChild(modal);
     
     // =================================================================
-    // CORRECCIÓN 2: LÓGICA DINÁMICA DE DÍAS (INYECCIÓN CORRECTA)
+    // LÓGICA DINÁMICA DE DÍAS CORREGIDA
     // =================================================================
-    // LÓGICA DINÁMICA DE DÍAS (UNIRSE A EQUIPO)
-    const tarjetaAsociadaUnirse = document.querySelector(`.evento-card[data-evento-id="${eventoId}"]`);
-    const diasJuegoUnirse = tarjetaAsociadaUnirse ? tarjetaAsociadaUnirse.getAttribute('data-dias-juego') : '';
-    
-    const seccionDispUnirse = document.getElementById('seccion-disponibilidad-usuario-unirse');
-    const contenedorDiasUnirse = document.getElementById('contenedor-checks-dias-unirse'); 
-    
-    if (diasJuegoUnirse && diasJuegoUnirse.trim() !== "") {
-        const diasDelEventoUnirse = String(diasJuegoUnirse).split(','); 
-        contenedorDiasUnirse.innerHTML = ''; 
-        diasDelEventoUnirse.forEach(dia => {
-            const diaLimpio = dia.trim();
-            contenedorDiasUnirse.innerHTML += `
-                <label class="radio-option" style="padding: 10px 16px; white-space: nowrap; flex: 1 1 auto; justify-content: center; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
-                    <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}" style="margin-right: 8px; width: 18px; height: 18px; accent-color: #00843D;"> 
-                    <span style="font-size: 14px;">${diaLimpio}</span>
-                </label>`;
-        });
-        if(seccionDispUnirse) seccionDispUnirse.style.display = 'block'; 
-    } else {
-        if(seccionDispUnirse) seccionDispUnirse.style.display = 'none'; 
-    }
-    // =================================================================
+    // BUSCA ESTE BLOQUE EN Inscripcion.js Y REEMPLÁZALO:
 
+    // 1. Buscamos la tarjeta por ID de forma robusta
+    const tarjetaEvento = document.querySelector(`[data-evento-id="${eventoId}"]`) || 
+                        document.querySelector(`[data-id="${eventoId}"]`);
+
+    // 2. Leemos los días (que ya vienen del PHP gracias a tu cambio en obtenerEventos.php)
+    const diasConfigurados = tarjetaEvento ? tarjetaEvento.getAttribute('data-dias-juego') : '';
+
+    // 3. Referenciamos los elementos del modal
+    const seccionDisp = document.getElementById('seccion-disponibilidad-usuario-unirse');
+    const contenedorChecks = document.getElementById('contenedor-checks-dias-unirse');
+
+    if (diasConfigurados && diasConfigurados.trim() !== "") {
+        const listaDias = diasConfigurados.split(',');
+        contenedorChecks.innerHTML = ''; // Limpiar "Cargando..."
+        
+        listaDias.forEach(dia => {
+            const diaLimpio = dia.trim();
+            if(diaLimpio !== "") {
+                contenedorChecks.innerHTML += `
+                    <label class="radio-option" style="padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}" style="width: 18px; height: 18px; accent-color: #00843D;"> 
+                        <span style="font-size: 14px;">${diaLimpio}</span>
+                    </label>`;
+            }
+        });
+        
+        if(seccionDisp) seccionDisp.style.display = 'block';
+    } else {
+        // Si no hay días, ocultamos la sección por completo
+        if(seccionDisp) seccionDisp.style.display = 'none';
+    }
 
     // =================================================================
     // === LÓGICA OCULTA: BUSCAR HORARIO DEL EQUIPO Y RELLENAR ===
@@ -2310,13 +2339,23 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
 function enviarUnirseEquipo(form, modal) {
     const formData = new FormData(form);
     const btnEnviar = document.getElementById('btnSubmitUnirse');
-    
+
     // === LÓGICA DE UNIÓN DE HORARIO ===
     const hInicio = formData.get('hora_inicio');
     const hFin = formData.get('hora_fin');
+
     if(hInicio && hFin) {
         formData.append('horario_disponible', `${hInicio} - ${hFin}`);
     }
+    
+    // Capturamos los días seleccionados para enviarlos como string si el PHP no maneja arrays
+    /* --- Dentro de enviarUnirseEquipo --- */
+    const diasSeleccionados = Array.from(form.querySelectorAll('input[name="dias_usuario[]"]:checked'))
+                                .map(cb => cb.value)
+                                .join(', ');
+    formData.append('dias_disponibles', diasSeleccionados); // Cambiado de datosEnvio a formData
+
+
     // ==================================
 
     // Validar campos requeridos según tipo

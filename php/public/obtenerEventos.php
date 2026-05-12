@@ -98,7 +98,7 @@ try {
     
     // --- CONSULTA SQL ---
     $sql = "SELECT 
-                e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino, e.periodo, e.lugar,
+                e.id, e.nombre, e.descripcion, e.dias_juego, e.fecha_inicio, e.fecha_termino, e.periodo, e.lugar,
                 e.tipo_registro, e.categoria_deporte, e.tipo_actividad, e.ubicacion_tipo,
                 e.cupo_maximo, e.integrantes_min, e.integrantes_max,
                 
