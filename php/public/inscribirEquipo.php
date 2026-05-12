@@ -47,7 +47,9 @@ try {
 
     // === Capturar el horario (De Array a Texto) ===
     $horario_disponible = NULL;
-    if (isset($_POST['horarios_usuario']) && is_array($_POST['horarios_usuario'])) {
+    if (isset($_POST['horario_disponible']) && !empty(trim($_POST['horario_disponible']))) {
+        $horario_disponible = mysqli_real_escape_string($conexion, trim($_POST['horario_disponible']));
+    } elseif (isset($_POST['horarios_usuario']) && is_array($_POST['horarios_usuario'])) {
         $horario_disponible = mysqli_real_escape_string($conexion, implode(', ', $_POST['horarios_usuario']));
     } elseif (isset($_POST['horarios_disponibles']) && is_array($_POST['horarios_disponibles'])) {
         $horario_disponible = mysqli_real_escape_string($conexion, implode(', ', $_POST['horarios_disponibles']));
@@ -55,7 +57,9 @@ try {
 
     // === Capturar días disponibles (De Array a Texto) ===
     $dias_disponibles = NULL;
-    if (isset($_POST['dias_usuario']) && is_array($_POST['dias_usuario'])) {
+    if (isset($_POST['dias_disponibles']) && !is_array($_POST['dias_disponibles']) && !empty(trim($_POST['dias_disponibles']))) {
+        $dias_disponibles = mysqli_real_escape_string($conexion, trim($_POST['dias_disponibles']));
+    } elseif (isset($_POST['dias_usuario']) && is_array($_POST['dias_usuario'])) {
         $dias_disponibles = mysqli_real_escape_string($conexion, implode(', ', $_POST['dias_usuario']));
     } elseif (isset($_POST['dias_disponibles']) && is_array($_POST['dias_disponibles'])) {
         $dias_disponibles = mysqli_real_escape_string($conexion, implode(', ', $_POST['dias_disponibles']));

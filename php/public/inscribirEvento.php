@@ -89,24 +89,33 @@ try {
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
     $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : 'Estudiante';
     
-    // === Capturar el horario (De Array a Texto) ===
+    // === Capturar el horario (De campos Desde/Hasta a Texto) ===
     $horario_disponible = NULL;
-    // Soporta tanto si lo llamaste horarios_usuario[] como horarios_disponibles[] en el HTML
-    if (isset($_POST['horarios_usuario']) && is_array($_POST['horarios_usuario'])) {
+
+    if (isset($_POST['horario_disponible']) && !empty(trim($_POST['horario_disponible']))) {
+        $horario_disponible = mysqli_real_escape_string($conexion, trim($_POST['horario_disponible']));
+    } elseif (isset($_POST['hora_inicio']) && isset($_POST['hora_fin'])) {
+        $inicio = trim($_POST['hora_inicio']);
+        $fin = trim($_POST['hora_fin']);
+        
+        if (!empty($inicio) && !empty($fin)) {
+            $horario_disponible = mysqli_real_escape_string($conexion, "$inicio a $fin");
+        }
+    } 
+    // Mantener soporte por si acaso usas los otros nombres en otros formularios
+    elseif (isset($_POST['horarios_usuario']) && is_array($_POST['horarios_usuario'])) {
         $horario_disponible = mysqli_real_escape_string($conexion, implode(', ', $_POST['horarios_usuario']));
-    } elseif (isset($_POST['horarios_disponibles']) && is_array($_POST['horarios_disponibles'])) {
-        $horario_disponible = mysqli_real_escape_string($conexion, implode(', ', $_POST['horarios_disponibles']));
     }
 
     // === Capturar días disponibles (De Array a Texto) ===
     $dias_disponibles = NULL;
-    // Soporta tanto si lo llamaste dias_usuario[] como dias_disponibles[] en el HTML
-    if (isset($_POST['dias_usuario']) && is_array($_POST['dias_usuario'])) {
+    if (isset($_POST['dias_disponibles']) && !is_array($_POST['dias_disponibles']) && !empty(trim($_POST['dias_disponibles']))) {
+        $dias_disponibles = mysqli_real_escape_string($conexion, trim($_POST['dias_disponibles']));
+    } elseif (isset($_POST['dias_usuario']) && is_array($_POST['dias_usuario'])) {
         $dias_disponibles = mysqli_real_escape_string($conexion, implode(', ', $_POST['dias_usuario']));
     } elseif (isset($_POST['dias_disponibles']) && is_array($_POST['dias_disponibles'])) {
         $dias_disponibles = mysqli_real_escape_string($conexion, implode(', ', $_POST['dias_disponibles']));
-    }
-    // Si es rol libre (Externo/Personal) y la matrícula está vacía, usamos el correo como ID
+    }    // Si es rol libre (Externo/Personal) y la matrícula está vacía, usamos el correo como ID
     if ($es_rol_libre && empty($matricula)) {
         $matricula = $correo; 
     }

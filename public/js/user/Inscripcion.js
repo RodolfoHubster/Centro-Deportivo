@@ -503,9 +503,6 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     `;
 
     
-
-
-    
     // Agregar estilos CSS
     const style = document.createElement('style');
     style.textContent = `
