@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evidencias | Centro Deportivo UABC</title>
+  <meta name="description" content="Gestiona las evidencias de los eventos deportivos del Centro Deportivo UABC. Organiza tus archivos en carpetas como Fotos, Documentación y más.">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* =============================================
+       EXPLORADOR DE EVIDENCIAS — ESTILOS
+    ============================================= */
+    :root {
+      --ev-bg: #f0f4f8;
+      --ev-surface: #ffffff;
+      --ev-border: #e2e8f0;
+      --ev-primary: #1a56db;
+      --ev-primary-hover: #1341b4;
+      --ev-accent: #10b981;
+      --ev-text: #1e293b;
+      --ev-muted: #64748b;
+      --ev-danger: #ef4444;
+      --ev-folder-yellow: #f59e0b;
+      --ev-folder-yellow-light: #fef3c7;
+      --ev-radius: 12px;
+      --ev-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+      --ev-shadow-hover: 0 4px 12px rgba(0,0,0,0.14), 0 8px 32px rgba(0,0,0,0.08);
+      --ev-transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .evidencias-page {
+      min-height: calc(100vh - 200px);
+      background: var(--ev-bg);
+      padding: 28px 0 60px;
+    }
+
+    /* ---- TOOLBAR ---- */
+    .ev-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .ev-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: var(--ev-muted);
+      flex-wrap: wrap;
+    }
+
+    .ev-breadcrumb a,
+    .ev-breadcrumb span {
+      text-decoration: none;
+      color: var(--ev-muted);
+      transition: var(--ev-transition);
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 5px;
+    }
+
+    .ev-breadcrumb a:hover {
+      color: var(--ev-primary);
+      background: rgba(26, 86, 219, 0.07);
+    }
+
+    .ev-breadcrumb .ev-crumb-active {
+      color: var(--ev-text);
+      font-weight: 600;
+      cursor: default;
+    }
+
+    .ev-breadcrumb .ev-crumb-sep {
+      color: #cbd5e1;
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .ev-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ---- BUTTONS ---- */
+    .ev-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--ev-transition);
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .ev-btn-primary {
+      background: var(--ev-primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(26, 86, 219, 0.25);
+    }
+    .ev-btn-primary:hover {
+      background: var(--ev-primary-hover);
+      box-shadow: 0 4px 16px rgba(26, 86, 219, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .ev-btn-secondary {
+      background: var(--ev-surface);
+      color: var(--ev-text);
+      border: 1px solid var(--ev-border);
+    }
+    .ev-btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+
+    .ev-btn-success {
+      background: var(--ev-accent);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    }
+    .ev-btn-success:hover {
+      background: #059669;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .ev-btn-danger {
+      background: #fff1f1;
+      color: var(--ev-danger);
+      border: 1px solid #fecaca;
+    }
+    .ev-btn-danger:hover {
+      background: var(--ev-danger);
+      color: #fff;
+      border-color: var(--ev-danger);
+    }
+
+    .ev-btn-sm {
+      padding: 5px 12px;
+      font-size: 0.78rem;
+    }
+
+    /* ---- SEARCH ---- */
+    .ev-search-wrap {
+      position: relative;
+    }
+    .ev-search-wrap i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ev-muted);
+      font-size: 0.85rem;
+    }
+    .ev-search {
+      padding: 9px 14px 9px 34px;
+      border: 1px solid var(--ev-border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      background: var(--ev-surface);
+      color: var(--ev-text);
+      width: 220px;
+      transition: var(--ev-transition);
+    }
+    .ev-search:focus {
+      outline: none;
+      border-color: var(--ev-primary);
+      box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12);
+    }
+
+    /* ---- VIEW TOGGLE ---- */
+    .ev-view-toggle {
+      display: flex;
+      background: var(--ev-border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .ev-view-btn {
+      border: none;
+      background: transparent;
+      color: var(--ev-muted);
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--ev-transition);
+      font-size: 0.9rem;
+    }
+    .ev-view-btn.active {
+      background: var(--ev-surface);
+      color: var(--ev-text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    /* ---- MAIN PANEL ---- */
+    .ev-panel {
+      background: var(--ev-surface);
+      border: 1px solid var(--ev-border);
+      border-radius: var(--ev-radius);
+      box-shadow: var(--ev-shadow);
+      overflow: hidden;
+    }
+
+    .ev-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--ev-border);
+      background: #fafbfc;
+    }
+
+    .ev-panel-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--ev-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .ev-sort-select {
+      font-size: 0.78rem;
+      color: var(--ev-muted);
+      border: 1px solid var(--ev-border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      background: var(--ev-surface);
+      cursor: pointer;
+    }
+
+    /* ---- GRID ITEMS ---- */
+    .ev-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .ev-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- FOLDER CARD ---- */
+    .ev-folder-card {
+      position: relative;
+      background: var(--ev-folder-yellow-light);
+      border: 1.5px solid #fde68a;
+      border-radius: var(--ev-radius);
+      padding: 20px 16px 16px;
+      cursor: pointer;
+      transition: var(--ev-transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      animation: fadeInCard 0.3s ease-out both;
+      user-select: none;
+    }
+
+    .ev-folder-card:hover {
+      border-color: var(--ev-folder-yellow);
+      box-shadow: var(--ev-shadow-hover);
+      transform: translateY(-3px);
+      background: #fffbeb;
+    }
+
+    .ev-folder-icon {
+      font-size: 3rem;
+      color: var(--ev-folder-yellow);
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.3));
+      transition: var(--ev-transition);
+    }
+    .ev-folder-card:hover .ev-folder-icon {
+      transform: scale(1.08);
+    }
+
+    .ev-folder-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ev-text);
+      text-align: center;
+      word-break: break-word;
+      line-height: 1.3;
+    }
+
+    .ev-folder-meta {
+      font-size: 0.7rem;
+      color: var(--ev-muted);
+    }
+
+    .ev-folder-menu-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      color: var(--ev-muted);
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 5px;
+      opacity: 0;
+      transition: var(--ev-transition);
+      font-size: 0.85rem;
+    }
+    .ev-folder-card:hover .ev-folder-menu-btn {
+      opacity: 1;
+    }
+    .ev-folder-menu-btn:hover {
+      background: rgba(0,0,0,0.08);
+    }
+
+    /* ---- FILE CARD ---- */
+    .ev-file-card {
+      position: relative;
+      background: var(--ev-surface);
+      border: 1.5px solid var(--ev-border);
+      border-radius: var(--ev-radius);
+      padding: 20px 16px 16px;
+      cursor: pointer;
+      transition: var(--ev-transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      animation: fadeInCard 0.3s ease-out both;
+    }
+
+    .ev-file-card:hover {
+      border-color: var(--ev-primary);
+      box-shadow: var(--ev-shadow-hover);
+      transform: translateY(-3px);
+    }
+
+    .ev-file-icon {
+      font-size: 2.6rem;
+      line-height: 1;
+      transition: var(--ev-transition);
+    }
+    .ev-file-card:hover .ev-file-icon {
+      transform: scale(1.08);
+    }
+
+    .ev-file-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ev-text);
+      text-align: center;
+      word-break: break-word;
+      line-height: 1.3;
+    }
+
+    .ev-file-meta {
+      font-size: 0.7rem;
+      color: var(--ev-muted);
+    }
+
+    /* ---- LIST ROW ---- */
+    .ev-list-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: var(--ev-transition);
+      animation: fadeInCard 0.25s ease-out both;
+    }
+    .ev-list-row:last-child { border-bottom: none; }
+    .ev-list-row:hover {
+      background: #f8fafc;
+    }
+    .ev-list-row .ev-list-icon {
+      font-size: 1.4rem;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .ev-list-row .ev-list-name {
+      flex: 1;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--ev-text);
+    }
+    .ev-list-row .ev-list-date {
+      font-size: 0.78rem;
+      color: var(--ev-muted);
+      min-width: 120px;
+      text-align: right;
+    }
+    .ev-list-row .ev-list-actions {
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: var(--ev-transition);
+    }
+    .ev-list-row:hover .ev-list-actions { opacity: 1; }
+
+    /* ---- EMPTY STATE ---- */
+    .ev-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+      text-align: center;
+    }
+
+    .ev-empty-illustration {
+      width: 160px;
+      height: 160px;
+      margin-bottom: 28px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ev-empty-illustration::before {
+      content: '';
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%);
+      border-radius: 50%;
+    }
+
+    .ev-empty-illustration i {
+      position: relative;
+      font-size: 5rem;
+      color: #93c5fd;
+      filter: drop-shadow(0 4px 8px rgba(147, 197, 253, 0.5));
+    }
+
+    .ev-empty h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--ev-text);
+      margin: 0 0 8px;
+    }
+
+    .ev-empty p {
+      font-size: 0.9rem;
+      color: var(--ev-muted);
+      margin: 0 0 28px;
+      max-width: 320px;
+    }
+
+    .ev-empty-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ---- MODAL ---- */
+    .ev-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .ev-modal-overlay.open {
+      display: flex;
+    }
+
+    .ev-modal {
+      background: var(--ev-surface);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      animation: scaleUp 0.3s cubic-bezier(0.16,1,0.3,1);
+      position: relative;
+    }
+
+    .ev-modal h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--ev-text);
+      margin: 0 0 6px;
+    }
+
+    .ev-modal p.ev-modal-sub {
+      font-size: 0.85rem;
+      color: var(--ev-muted);
+      margin: 0 0 24px;
+    }
+
+    .ev-modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--ev-muted);
+      transition: var(--ev-transition);
+      font-size: 0.9rem;
+    }
+    .ev-modal-close:hover {
+      background: #e2e8f0;
+      color: var(--ev-text);
+    }
+
+    .ev-modal-field {
+      margin-bottom: 18px;
+    }
+    .ev-modal-field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--ev-text);
+      margin-bottom: 7px;
+    }
+    .ev-modal-field input,
+    .ev-modal-field select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--ev-border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--ev-text);
+      background: var(--ev-surface);
+      transition: var(--ev-transition);
+      box-sizing: border-box;
+    }
+    .ev-modal-field input:focus,
+    .ev-modal-field select:focus {
+      outline: none;
+      border-color: var(--ev-primary);
+      box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12);
+    }
+
+    .ev-modal-field .ev-folder-color-grid {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+    .ev-color-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: var(--ev-transition);
+    }
+    .ev-color-dot:hover,
+    .ev-color-dot.selected {
+      transform: scale(1.2);
+      border-color: var(--ev-text);
+    }
+
+    /* Upload zone */
+    .ev-upload-zone {
+      border: 2px dashed var(--ev-border);
+      border-radius: 10px;
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--ev-transition);
+      background: #fafbfc;
+      margin-bottom: 18px;
+    }
+    .ev-upload-zone:hover,
+    .ev-upload-zone.drag-over {
+      border-color: var(--ev-primary);
+      background: #eff6ff;
+    }
+    .ev-upload-zone i {
+      font-size: 2.2rem;
+      color: var(--ev-primary);
+      margin-bottom: 10px;
+      display: block;
+    }
+    .ev-upload-zone p {
+      font-size: 0.82rem;
+      color: var(--ev-muted);
+      margin: 0;
+    }
+    .ev-upload-zone strong {
+      color: var(--ev-primary);
+    }
+    .ev-upload-zone input[type="file"] {
+      display: none;
+    }
+
+    /* Progress bar */
+    .ev-progress-wrap {
+      display: none;
+      margin-top: 14px;
+    }
+    .ev-progress-label {
+      font-size: 0.78rem;
+      color: var(--ev-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .ev-progress-bar {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .ev-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--ev-primary), var(--ev-accent));
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .ev-modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    /* ---- CONTEXT MENU ---- */
+    .ev-context-menu {
+      display: none;
+      position: fixed;
+      background: var(--ev-surface);
+      border: 1px solid var(--ev-border);
+      border-radius: 10px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      min-width: 180px;
+      z-index: 999;
+      overflow: hidden;
+      animation: fadeInCard 0.15s ease-out;
+    }
+    .ev-context-menu.open { display: block; }
+    .ev-context-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 0.82rem;
+      color: var(--ev-text);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .ev-context-item:hover { background: #f1f5f9; }
+    .ev-context-item.danger { color: var(--ev-danger); }
+    .ev-context-item.danger:hover { background: #fff1f1; }
+    .ev-context-divider {
+      height: 1px;
+      background: var(--ev-border);
+      margin: 4px 0;
+    }
+
+    /* ---- STATUS BAR ---- */
+    .ev-statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      border-top: 1px solid var(--ev-border);
+      font-size: 0.75rem;
+      color: var(--ev-muted);
+      background: #fafbfc;
+    }
+
+    /* ---- TOAST ---- */
+    .ev-toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .ev-toast {
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideInRight 0.3s ease-out;
+      pointer-events: all;
+      max-width: 320px;
+    }
+
+    .ev-toast.success { border-left: 4px solid var(--ev-accent); }
+    .ev-toast.error { border-left: 4px solid var(--ev-danger); }
+    .ev-toast.info { border-left: 4px solid var(--ev-primary); }
+
+    /* ---- ANIMATIONS ---- */
+    @keyframes fadeInCard {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 600px) {
+      .ev-toolbar { flex-direction: column; align-items: stretch; }
+      .ev-actions { flex-wrap: wrap; }
+      .ev-search { width: 100%; }
+      .ev-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding: 16px; }
+      .ev-modal { margin: 16px; padding: 24px 20px; }
+    }
+
+    /* ---- MINIATURA EN TARJETA ---- */
+    .ev-card-thumb {
+      width: 100%;
+      height: 90px;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      background-color: #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    /* ---- ICONO ESTILO DRIVE ---- */
+    .ev-drive-icon {
+      transition: transform 0.2s ease;
+    }
+    .ev-file-card:hover .ev-drive-icon {
+      transform: scale(1.08);
+    }
+
+
+  <style>
+    /* ---- VISOR DE MEDIA ---- */
+    .ev-visor-modal {
+      background: var(--ev-surface);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 960px;
+      max-height: 94vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+      animation: scaleUp 0.3s cubic-bezier(0.16,1,0.3,1);
+      overflow: hidden;
+    }
+
+    .ev-visor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--ev-border);
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #fff;
+    }
+
+    .ev-visor-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ev-text);
+      max-width: 440px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ev-visor-body {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      background: #1e293b;
+      flex: 1;
+      min-height: 300px;
+      padding: 0;
+    }
+
+    #visorFrame {
+      width: 100%;
+      height: 72vh;
+      border: none;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div id="header-placeholder"></div>
+
+  <!-- PÁGINA PRINCIPAL -->
+  <div class="evidencias-page">
+    <div class="container" style="max-width: 1100px; margin: 0 auto; padding: 0 20px;">
+
+      <!-- TOOLBAR -->
+      <div class="ev-toolbar">
+        <!-- Izquierda: Regresar + Breadcrumb -->
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <button class="ev-btn ev-btn-secondary" id="btnRegresar">
+            <i class="fas fa-arrow-left"></i> Regresar
+          </button>
+
+          <nav class="ev-breadcrumb" id="evBreadcrumb" aria-label="Ruta de carpetas">
+            <span class="ev-crumb-active" data-path="">Mis Evidencias</span>
+          </nav>
+        </div>
+
+        <!-- Acciones -->
+        <div class="ev-actions">
+          <div class="ev-search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" class="ev-search" id="evSearch" placeholder="Buscar...">
+          </div>
+
+          <div class="ev-view-toggle">
+            <button class="ev-view-btn active" id="btnGridView" title="Vista cuadrícula">
+              <i class="fas fa-th-large"></i>
+            </button>
+            <button class="ev-view-btn" id="btnListView" title="Vista lista">
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+
+          <button class="ev-btn ev-btn-secondary" id="btnNuevaCarpeta">
+            <i class="fas fa-folder-plus"></i> Nueva Carpeta
+          </button>
+
+          <button class="ev-btn ev-btn-success" id="btnSubirArchivo">
+            <i class="fas fa-cloud-upload-alt"></i> Subir Archivo
+          </button>
+        </div>
+      </div>
+
+      <!-- PANEL PRINCIPAL -->
+      <div class="ev-panel">
+        <div class="ev-panel-header">
+          <span class="ev-panel-title" id="evPanelTitle">Todas las carpetas y archivos</span>
+          <select class="ev-sort-select" id="evSort">
+            <option value="nombre">Nombre A–Z</option>
+            <option value="nombre-desc">Nombre Z–A</option>
+            <option value="fecha">Más recientes</option>
+          </select>
+        </div>
+
+        <!-- Contenido (grid o lista) -->
+        <div id="evContent" class="ev-grid">
+          <!-- Se renderiza con JS -->
+        </div>
+
+        <!-- Barra de estado -->
+        <div class="ev-statusbar">
+          <span id="evStatusCount">0 elementos</span>
+          <span>Evento: <strong id="evStatusEvento">—</strong></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+
+  <!-- ============================================================
+       MODAL: NUEVA CARPETA
+  ============================================================ -->
+  <div class="ev-modal-overlay" id="modalNuevaCarpeta" role="dialog" aria-modal="true" aria-labelledby="modalFolderTitle">
+    <div class="ev-modal">
+      <button class="ev-modal-close" id="btnCerrarModalCarpeta" aria-label="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 id="modalFolderTitle"><i class="fas fa-folder-plus" style="color:var(--ev-folder-yellow);margin-right:8px;"></i>Nueva Carpeta</h2>
+      <p class="ev-modal-sub">Organiza tus evidencias creando una carpeta temática.</p>
+
+      <div class="ev-modal-field">
+        <label for="inputNombreCarpeta">Nombre de la carpeta <span style="color:var(--ev-danger)">*</span></label>
+        <input type="text" id="inputNombreCarpeta" placeholder="Ej: Fotos del torneo, Documentación..." maxlength="60" autocomplete="off">
+      </div>
+
+      <div class="ev-modal-field">
+        <label>Color de la carpeta</label>
+        <div class="ev-folder-color-grid" id="colorGrid">
+          <div class="ev-color-dot selected" style="background:#f59e0b;" data-color="#f59e0b" title="Amarillo"></div>
+          <div class="ev-color-dot" style="background:#3b82f6;" data-color="#3b82f6" title="Azul"></div>
+          <div class="ev-color-dot" style="background:#10b981;" data-color="#10b981" title="Verde"></div>
+          <div class="ev-color-dot" style="background:#ef4444;" data-color="#ef4444" title="Rojo"></div>
+          <div class="ev-color-dot" style="background:#8b5cf6;" data-color="#8b5cf6" title="Morado"></div>
+          <div class="ev-color-dot" style="background:#ec4899;" data-color="#ec4899" title="Rosa"></div>
+          <div class="ev-color-dot" style="background:#64748b;" data-color="#64748b" title="Gris"></div>
+        </div>
+      </div>
+
+      <div class="ev-modal-footer">
+        <button class="ev-btn ev-btn-secondary" id="btnCancelarCarpeta">Cancelar</button>
+        <button class="ev-btn ev-btn-primary" id="btnCrearCarpeta">
+          <i class="fas fa-check"></i> Crear Carpeta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: SUBIR ARCHIVO
+  ============================================================ -->
+  <div class="ev-modal-overlay" id="modalSubirArchivo" role="dialog" aria-modal="true" aria-labelledby="modalUploadTitle">
+    <div class="ev-modal">
+      <button class="ev-modal-close" id="btnCerrarModalArchivo" aria-label="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 id="modalUploadTitle"><i class="fas fa-cloud-upload-alt" style="color:var(--ev-primary);margin-right:8px;"></i>Subir Archivo</h2>
+      <p class="ev-modal-sub">Sube imágenes, videos o documentos a Google Drive.</p>
+
+      <div class="ev-upload-zone" id="evUploadZone">
+        <i class="fas fa-file-arrow-up"></i>
+        <p><strong>Haz clic para seleccionar</strong> o arrastra aquí</p>
+        <p style="margin-top:6px; font-size:0.75rem;">Imágenes, Videos, PDF — Máx. 50 MB</p>
+        <input type="file" id="archivoEvidencia" name="archivo" accept="image/*,video/*,application/pdf">
+      </div>
+
+
+      <div id="evFilePreview" style="display:none; margin-bottom:14px; padding:12px 14px; background:#f8fafc; border:1px solid var(--ev-border); border-radius:8px; display:none; align-items:center; gap:10px;">
+        <i class="fas fa-file" style="color:var(--ev-primary); font-size:1.4rem;"></i>
+        <div style="flex:1; min-width:0;">
+          <div id="evFilePreviewName" style="font-size:0.82rem; font-weight:600; color:var(--ev-text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+          <div id="evFilePreviewSize" style="font-size:0.72rem; color:var(--ev-muted);"></div>
+        </div>
+        <button onclick="limpiarArchivoSeleccionado()" style="background:none;border:none;cursor:pointer;color:var(--ev-muted);font-size:1rem;" title="Quitar"><i class="fas fa-times-circle"></i></button>
+      </div>
+
+      <div class="ev-progress-wrap" id="evProgressWrap">
+        <div class="ev-progress-label">
+          <span id="evProgressText">Subiendo...</span>
+          <span id="evProgressPct">0%</span>
+        </div>
+        <div class="ev-progress-bar">
+          <div class="ev-progress-fill" id="evProgressFill"></div>
+        </div>
+      </div>
+
+      <div id="evUploadMsg" style="margin-top:12px; font-size:0.82rem;"></div>
+
+      <input type="hidden" id="evento_id_oculto">
+
+      <div class="ev-modal-footer">
+        <button class="ev-btn ev-btn-secondary" id="btnCancelarArchivo">Cancelar</button>
+        <button class="ev-btn ev-btn-success" id="btnConfirmarSubida" disabled>
+          <i class="fas fa-cloud-upload-alt"></i> Subir a Drive
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MENÚ CONTEXTUAL (click derecho o botón ⋯)
+  ============================================================ -->
+  <div class="ev-context-menu" id="evContextMenu">
+    <div class="ev-context-item" id="ctxAbrir"><i class="fas fa-folder-open"></i> Abrir</div>
+    <div class="ev-context-item" id="ctxVer" style="display:none;"><i class="fas fa-eye"></i> Ver</div>
+    <div class="ev-context-item" id="ctxRenombrar"><i class="fas fa-pen"></i> Renombrar</div>
+    <div class="ev-context-divider"></div>
+    <div class="ev-context-item danger" id="ctxEliminar"><i class="fas fa-trash-alt"></i> Eliminar</div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="ev-toast-container" id="evToastContainer"></div>
+
+  <!-- ============================================================
+       MODAL: VISOR DE IMAGEN / VIDEO
+  ============================================================ -->
+  <div class="ev-modal-overlay" id="modalVisorMedia" role="dialog" aria-modal="true" style="z-index:1100;">
+    <div class="ev-visor-modal">
+      <div class="ev-visor-header">
+        <span class="ev-visor-title" id="visorTitle"></span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <a id="visorBtnDrive" href="#" target="_blank" class="ev-btn ev-btn-secondary ev-btn-sm">
+            <i class="fas fa-external-link-alt"></i> Abrir en Drive
+          </a>
+          <button id="visorBtnEliminar" class="ev-btn ev-btn-danger ev-btn-sm">
+            <i class="fas fa-trash-alt"></i> Eliminar
+          </button>
+          <button id="btnCerrarVisor" class="ev-modal-close" style="position:static;" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="ev-visor-body">
+        <iframe id="visorFrame" src="" allow="autoplay" allowfullscreen
+          style="width:100%; height:70vh; border:none; border-radius:10px; background:#000;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCRIPTS
+  ============================================================ -->
+  <script src="../js/headFooter.js"></script>
+  <script>
+  // ============================================================
+  //  EXPLORADOR DE EVIDENCIAS — LÓGICA CLIENTE
+  // ============================================================
+
+  // ---- Estado global ----
+  const state = {
+    eventoId: null,
+    currentPath: [],           // stack de carpetas navegadas (nombres)
+    currentFolderDriveId: null, // driveId de la carpeta abierta actualmente
+    items: [],
+    view: 'grid',
+    selectedColor: '#f59e0b',
+    contextTarget: null,
+  };
+
+  // ---- Datos en LocalStorage por evento ----
+  function storageKey() {
+    return `ev_items_${state.eventoId || 'root'}`;
+  }
+  function loadItems() {
+    try { return JSON.parse(localStorage.getItem(storageKey())) || []; }
+    catch { return []; }
+  }
+  function saveItems(items) {
+    localStorage.setItem(storageKey(), JSON.stringify(items));
+  }
+
+  // ---- Obtener items de la ruta actual ----
+  function getItemsAtPath(allItems, path) {
+    return allItems.filter(item => {
+      const p = item.path || [];
+      if (p.length !== path.length) return false;
+      return p.every((seg, i) => seg === path[i]);
+    });
+  }
+
+  // ---- Render ----
+  function render() {
+    const allItems = loadItems();
+    const items = getItemsAtPath(allItems, state.currentPath);
+    const q = document.getElementById('evSearch').value.toLowerCase();
+    const sort = document.getElementById('evSort').value;
+
+    let filtered = q
+      ? items.filter(i => i.nombre.toLowerCase().includes(q))
+      : [...items];
+
+    // Ordenar: carpetas primero, luego archivos
+    filtered.sort((a, b) => {
+      if (a.tipo !== b.tipo) return a.tipo === 'carpeta' ? -1 : 1;
+      if (sort === 'nombre') return a.nombre.localeCompare(b.nombre);
+      if (sort === 'nombre-desc') return b.nombre.localeCompare(a.nombre);
+      if (sort === 'fecha') return new Date(b.fecha) - new Date(a.fecha);
+      return 0;
+    });
+
+    const content = document.getElementById('evContent');
+    content.innerHTML = '';
+    content.className = state.view === 'grid' ? 'ev-grid' : 'ev-list';
+
+    if (filtered.length === 0) {
+      renderEmptyState(content);
+    } else {
+      filtered.forEach((item, idx) => {
+        const el = item.tipo === 'carpeta' ? renderFolderCard(item) : renderFileCard(item);
+        el.style.animationDelay = `${idx * 40}ms`;
+        content.appendChild(el);
+      });
+    }
+
+    updateStatusBar(filtered);
+    renderBreadcrumb();
+  }
+
+  function renderEmptyState(container) {
+    const div = document.createElement('div');
+    div.className = 'ev-empty';
+    const isRoot = state.currentPath.length === 0;
+    div.innerHTML = `
+      <div class="ev-empty-illustration">
+        <i class="fas fa-folder-open"></i>
+      </div>
+      <h3>${isRoot ? 'Sin evidencias aún' : 'Carpeta vacía'}</h3>
+      <p>${isRoot
+        ? 'Crea carpetas para organizar tus evidencias (fotos, documentos, videos...) y sube tus primeros archivos.'
+        : 'Esta carpeta no tiene contenido todavía. Sube archivos o crea subcarpetas.'
+      }</p>
+      <div class="ev-empty-actions">
+        <button class="ev-btn ev-btn-secondary" onclick="abrirModalCarpeta()">
+          <i class="fas fa-folder-plus"></i> Nueva Carpeta
+        </button>
+        <button class="ev-btn ev-btn-success" onclick="abrirModalArchivo()">
+          <i class="fas fa-cloud-upload-alt"></i> Subir Archivo
+        </button>
+      </div>
+    `;
+    // Quitar grid para centrar
+    container.style.display = 'block';
+    container.appendChild(div);
+  }
+
+  function renderFolderCard(item) {
+    if (state.view === 'list') return renderFolderRow(item);
+
+    const card = document.createElement('div');
+    card.className = 'ev-folder-card';
+    card.dataset.id = item.id;
+
+    const iconColor = item.color || '#f59e0b';
+    const lightBg = hexToRgba(iconColor, 0.12);
+    card.style.background = hexToRgba(iconColor, 0.08);
+    card.style.borderColor = hexToRgba(iconColor, 0.4);
+
+    card.innerHTML = `
+      <button class="ev-folder-menu-btn" data-id="${item.id}" title="Opciones">
+        <i class="fas fa-ellipsis-h"></i>
+      </button>
+      <i class="fas fa-folder ev-folder-icon" style="color:${iconColor};"></i>
+      <div class="ev-folder-name">${escapeHtml(item.nombre)}</div>
+      <div class="ev-folder-meta">${formatDate(item.fecha)}</div>
+    `;
+
+    card.addEventListener('dblclick', () => navegarCarpeta(item));
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.ev-folder-menu-btn')) return;
+      navegarCarpeta(item);
+    });
+    card.querySelector('.ev-folder-menu-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      abrirContextMenu(e, item);
+    });
+    return card;
+  }
+
+  function renderFolderRow(item) {
+    const row = document.createElement('div');
+    row.className = 'ev-list-row';
+    const iconColor = item.color || '#f59e0b';
+    row.innerHTML = `
+      <i class="fas fa-folder ev-list-icon" style="color:${iconColor};"></i>
+      <span class="ev-list-name">${escapeHtml(item.nombre)}</span>
+      <span class="ev-list-date">${formatDate(item.fecha)}</span>
+      <div class="ev-list-actions">
+        <button class="ev-btn ev-btn-sm ev-btn-secondary" title="Opciones" data-id="${item.id}">
+          <i class="fas fa-ellipsis-h"></i>
+        </button>
+      </div>
+    `;
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      navegarCarpeta(item);
+    });
+    row.querySelector('button').addEventListener('click', (e) => {
+      e.stopPropagation();
+      abrirContextMenu(e, item);
+    });
+    return row;
+  }
+
+  function renderFileCard(item) {
+    if (state.view === 'list') return renderFileRow(item);
+
+    const card = document.createElement('div');
+    card.className = 'ev-file-card';
+    card.dataset.id = item.id;
+
+    const previewable = esMediaPreviewable(item.nombre);
+    // URL de miniatura de Drive (funciona con archivos públicos)
+    const thumbUrl = item.driveId
+      ? `https://drive.google.com/thumbnail?id=${item.driveId}&sz=w280`
+      : null;
+    const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(item.nombre);
+
+    card.innerHTML = `
+      <button class="ev-folder-menu-btn" data-id="${item.id}" title="Opciones">
+        <i class="fas fa-ellipsis-h"></i>
+      </button>
+      ${isImage && thumbUrl
+        ? `<div class="ev-card-thumb" style="background-image:url('${thumbUrl}');"></div>`
+        : fileIconHtml(item)
+      }
+      <div class="ev-file-name">${escapeHtml(item.nombre)}</div>
+      <div class="ev-file-meta">${item.tamano || ''} · ${formatDate(item.fecha)}</div>
+    `;
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.ev-folder-menu-btn')) return;
+      if (previewable) {
+        abrirVisor(item);
+      } else if (item.url) {
+        window.open(item.url, '_blank');
+      }
+    });
+    card.querySelector('.ev-folder-menu-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      abrirContextMenu(e, item);
+    });
+    return card;
+  }
+
+  function renderFileRow(item) {
+    const row = document.createElement('div');
+    row.className = 'ev-list-row';
+    row.innerHTML = `
+      ${fileIconHtml(item, 'small')}
+      <span class="ev-list-name">${escapeHtml(item.nombre)}</span>
+      <span class="ev-list-date">${formatDate(item.fecha)}</span>
+      <div class="ev-list-actions">
+        ${item.url ? `<a href="${item.url}" target="_blank" class="ev-btn ev-btn-sm ev-btn-primary" title="Ver en Drive"><i class="fas fa-external-link-alt"></i></a>` : ''}
+        <button class="ev-btn ev-btn-sm ev-btn-secondary" title="Opciones" data-id="${item.id}">
+          <i class="fas fa-ellipsis-h"></i>
+        </button>
+      </div>
+    `;
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button') || e.target.closest('a')) return;
+      const previewable = esMediaPreviewable(item.nombre);
+      if (previewable) abrirVisor(item);
+      else if (item.url) window.open(item.url, '_blank');
+    });
+    row.querySelector('button').addEventListener('click', (e) => {
+      e.stopPropagation();
+      abrirContextMenu(e, item);
+    });
+    return row;
+  }
+
+  function updateStatusBar(items) {
+    const carpetas = items.filter(i => i.tipo === 'carpeta').length;
+    const archivos = items.filter(i => i.tipo === 'archivo').length;
+    let txt = [];
+    if (carpetas) txt.push(`${carpetas} carpeta${carpetas !== 1 ? 's' : ''}`);
+    if (archivos) txt.push(`${archivos} archivo${archivos !== 1 ? 's' : ''}`);
+    document.getElementById('evStatusCount').textContent = txt.length ? txt.join(', ') : 'Vacío';
+  }
+
+  function renderBreadcrumb() {
+    const bc = document.getElementById('evBreadcrumb');
+    bc.innerHTML = ``;
+    
+    // Raíz
+    const root = document.createElement('span');
+    if (state.currentPath.length === 0) {
+      root.className = 'ev-crumb-active';
+      root.textContent = 'Mis Evidencias';
+    } else {
+      root.textContent = 'Mis Evidencias';
+      root.style.cursor = 'pointer';
+      root.style.color = 'var(--ev-primary)';
+      root.addEventListener('click', () => irARuta([]));
+    }
+    bc.appendChild(root);
+
+    state.currentPath.forEach((seg, idx) => {
+      const sep = document.createElement('span');
+      sep.className = 'ev-crumb-sep';
+      sep.textContent = '/';
+      bc.appendChild(sep);
+
+      const crumb = document.createElement('span');
+      if (idx === state.currentPath.length - 1) {
+        crumb.className = 'ev-crumb-active';
+        crumb.textContent = seg;
+      } else {
+        crumb.textContent = seg;
+        crumb.style.cursor = 'pointer';
+        crumb.style.color = 'var(--ev-primary)';
+        const targetPath = state.currentPath.slice(0, idx + 1);
+        crumb.addEventListener('click', () => irARuta(targetPath));
+      }
+      bc.appendChild(crumb);
+    });
+  }
+
+  // ---- Navegación ----
+  function navegarCarpeta(folder) {
+    state.currentPath = [...state.currentPath, folder.nombre];
+    state.currentFolderDriveId = folder.driveId || folder.id;
+    render();
+    mostrarToast(`Abriendo "${folder.nombre}"`, 'info');
+  }
+
+  function irARuta(targetPath) {
+    if (targetPath.length === 0) {
+      state.currentPath = [];
+      state.currentFolderDriveId = null;
+    } else {
+      // Buscar el driveId de la carpeta destino en el listado
+      const allItems = loadItems();
+      const parentPath = targetPath.slice(0, -1);
+      const nombre = targetPath[targetPath.length - 1];
+      const folder = allItems.find(i =>
+        i.tipo === 'carpeta' && i.nombre === nombre &&
+        JSON.stringify(i.path) === JSON.stringify(parentPath)
+      );
+      state.currentPath = targetPath;
+      state.currentFolderDriveId = folder ? (folder.driveId || folder.id) : null;
+    }
+    render();
+  }
+
+  // ---- Crear carpeta ----
+  function abrirModalCarpeta() {
+    document.getElementById('inputNombreCarpeta').value = '';
+    document.getElementById('modalNuevaCarpeta').classList.add('open');
+    setTimeout(() => document.getElementById('inputNombreCarpeta').focus(), 100);
+  }
+
+  function cerrarModalCarpeta() {
+    document.getElementById('modalNuevaCarpeta').classList.remove('open');
+  }
+
+  document.getElementById('btnRegresar').addEventListener('click', () => history.back());
+  document.getElementById('btnNuevaCarpeta').addEventListener('click', abrirModalCarpeta);
+  document.getElementById('btnCerrarModalCarpeta').addEventListener('click', cerrarModalCarpeta);
+  document.getElementById('btnCancelarCarpeta').addEventListener('click', cerrarModalCarpeta);
+
+  document.getElementById('btnCrearCarpeta').addEventListener('click', () => {
+    const nombre = document.getElementById('inputNombreCarpeta').value.trim();
+    const eventoId = document.getElementById('evento_id_oculto').value;
+
+    // 1. VALIDACIONES PRIMERO
+    if (!nombre) {
+      mostrarToast('Escribe un nombre para la carpeta', 'error');
+      document.getElementById('inputNombreCarpeta').focus();
+      return;
+    }
+
+    const allItems = loadItems();
+    const existing = getItemsAtPath(allItems, state.currentPath);
+    if (existing.find(i => i.tipo === 'carpeta' && i.nombre.toLowerCase() === nombre.toLowerCase())) {
+      mostrarToast('Ya existe una carpeta con ese nombre', 'error');
+      return;
+    }
+
+    // 2. Añadir optimísticamente a la UI mientras se crea en Drive
+    const tempId = `folder_${Date.now()}`;
+    const newFolder = {
+      id: tempId,
+      tipo: 'carpeta',
+      nombre,
+      color: state.selectedColor,
+      path: [...state.currentPath],
+      fecha: new Date().toISOString(),
+    };
+    allItems.push(newFolder);
+    saveItems(allItems);
+    cerrarModalCarpeta();
+    render();
+    mostrarToast(`Carpeta "${nombre}" creada`, 'success');
+
+    // 3. LLAMADA AL SERVIDOR en Drive (en paralelo)
+    fetch('../../php/admin/crearCarpeta.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `nombre=${encodeURIComponent(nombre)}&evento_id=${eventoId}`
+    })
+    .then(r => r.text())
+    .then(data => {
+        console.log("Respuesta crearCarpeta:", data);
+        try {
+            const json = JSON.parse(data);
+            if (json.success) {
+                // Recargar desde Drive para tener el ID real de la carpeta
+                cargarDesideDrive();
+            } else {
+                mostrarToast('Error al guardar en Drive: ' + (json.mensaje || ''), 'error');
+            }
+        } catch (e) {
+            mostrarToast('Error de formato del servidor', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error de red al crear carpeta:', err);
+        mostrarToast('Error de red al crear carpeta', 'error');
+    });
+  });
+
+  // Enter en input = crear
+  document.getElementById('inputNombreCarpeta').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('btnCrearCarpeta').click();
+  });
+
+  // Selector de color
+  document.getElementById('colorGrid').addEventListener('click', (e) => {
+    const dot = e.target.closest('.ev-color-dot');
+    if (!dot) return;
+    document.querySelectorAll('.ev-color-dot').forEach(d => d.classList.remove('selected'));
+    dot.classList.add('selected');
+    state.selectedColor = dot.dataset.color;
+  });
+
+  // ---- Subir archivo ----
+  function abrirModalArchivo() {
+    document.getElementById('evUploadMsg').innerHTML = '';
+    document.getElementById('evProgressWrap').style.display = 'none';
+    limpiarArchivoSeleccionado();
+    document.getElementById('modalSubirArchivo').classList.add('open');
+  }
+
+  function cerrarModalArchivo() {
+    document.getElementById('modalSubirArchivo').classList.remove('open');
+  }
+
+  function limpiarArchivoSeleccionado() {
+    document.getElementById('archivoEvidencia').value = '';
+    document.getElementById('evFilePreview').style.display = 'none';
+    document.getElementById('btnConfirmarSubida').disabled = true;
+    document.getElementById('evUploadZone').style.display = 'block';
+  }
+
+  document.getElementById('btnSubirArchivo').addEventListener('click', abrirModalArchivo);
+  document.getElementById('btnCerrarModalArchivo').addEventListener('click', cerrarModalArchivo);
+  document.getElementById('btnCancelarArchivo').addEventListener('click', cerrarModalArchivo);
+
+  // Click en zona de carga
+  document.getElementById('evUploadZone').addEventListener('click', () => {
+    document.getElementById('archivoEvidencia').click();
+  });
+
+  // Drag & drop
+  const uploadZone = document.getElementById('evUploadZone');
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) procesarArchivoSeleccionado(file);
+  });
+
+  document.getElementById('archivoEvidencia').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) procesarArchivoSeleccionado(file);
+  });
+
+  function procesarArchivoSeleccionado(file) {
+    const preview = document.getElementById('evFilePreview');
+    document.getElementById('evFilePreviewName').textContent = file.name;
+    document.getElementById('evFilePreviewSize').textContent = formatSize(file.size);
+    preview.style.display = 'flex';
+    document.getElementById('evUploadZone').style.display = 'none';
+    document.getElementById('btnConfirmarSubida').disabled = false;
+  }
+
+  document.getElementById('btnConfirmarSubida').addEventListener('click', () => {
+    let progressInterval;
+    const fileInput = document.getElementById('archivoEvidencia');
+    const file = fileInput.files[0];
+    const eventoId = document.getElementById('evento_id_oculto').value;
+
+    if (!file) { mostrarToast('Selecciona un archivo primero', 'error'); return; }
+    if (!eventoId) { mostrarToast('No hay evento seleccionado', 'error'); return; }
+
+    const formData = new FormData();
+    formData.append('archivo', file);
+    formData.append('evento_id', eventoId);
+    // Solo enviar carpeta_drive_id si es un ID real de Drive (no un ID temporal)
+    const esIdRealDrive = state.currentFolderDriveId &&
+                          !String(state.currentFolderDriveId).startsWith('folder_');
+    if (esIdRealDrive) {
+      formData.append('carpeta_drive_id', state.currentFolderDriveId);
+    }
+
+    document.getElementById('btnConfirmarSubida').disabled = true;
+    document.getElementById('evProgressWrap').style.display = 'block';
+
+    let fakeProgress = 0;
+    progressInterval = setInterval(() => {
+        fakeProgress = Math.min(fakeProgress + Math.random() * 8, 85);
+        document.getElementById('evProgressFill').style.width = fakeProgress + '%';
+        document.getElementById('evProgressPct').textContent = Math.round(fakeProgress) + '%';
+    }, 400);
+
+    fetch('../../php/admin/subirEvidencia.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.text())
+    .then(data => {
+        clearInterval(progressInterval);
+        console.log('Respuesta subida:', data);
+        try {
+            const json = JSON.parse(data);
+            if (json.success) {
+                document.getElementById('evProgressFill').style.width = '100%';
+                mostrarToast('Archivo subido: ' + file.name, 'success');
+                setTimeout(() => {
+                    cerrarModalArchivo();
+                    cargarDesideDrive(); // Recargar desde Drive para ver el archivo real
+                }, 900);
+            } else {
+                throw new Error(json.mensaje || 'Error desconocido');
+            }
+        } catch (e) {
+            mostrarToast('Error: ' + e.message, 'error');
+            document.getElementById('btnConfirmarSubida').disabled = false;
+        }
+    })
+    .catch(err => {
+        clearInterval(progressInterval);
+        mostrarToast('Error de conexión', 'error');
+        document.getElementById('btnConfirmarSubida').disabled = false;
+    });
+  });
+
+  // Todos los archivos de Drive son previsualizábles (Drive maneja PDF, video, imagen, etc.)
+  function esMediaPreviewable(nombre) {
+    return true; // Drive embed soporta todos los tipos de archivo
+  }
+
+
+
+  function abrirVisor(item) {
+    const modal    = document.getElementById('modalVisorMedia');
+    const title    = document.getElementById('visorTitle');
+    const btnDrive = document.getElementById('visorBtnDrive');
+    const btnDel   = document.getElementById('visorBtnEliminar');
+    const frame    = document.getElementById('visorFrame');
+
+    title.textContent = item.nombre;
+    btnDrive.href = item.url || '#';
+    btnDel.onclick = () => { cerrarVisor(); eliminarItem(item); };
+
+    // Usar la URL de embed de Drive: funciona para imágenes, video, PDF, etc.
+    const driveId = item.driveId || item.id;
+    frame.src = driveId
+      ? `https://drive.google.com/file/d/${driveId}/preview`
+      : (item.url || '');
+
+    modal.classList.add('open');
+  }
+
+  function cerrarVisor() {
+    document.getElementById('modalVisorMedia').classList.remove('open');
+    document.getElementById('visorFrame').src = ''; // Detener carga/reproducción
+  }
+
+  document.getElementById('modalVisorMedia').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) cerrarVisor();
+  });
+  document.getElementById('btnCerrarVisor').addEventListener('click', cerrarVisor);
+
+  // ---- Menú contextual ----
+  function abrirContextMenu(e, item) {
+    state.contextTarget = item;
+    const menu = document.getElementById('evContextMenu');
+    menu.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
+    menu.style.top = Math.min(e.clientY, window.innerHeight - 150) + 'px';
+    menu.classList.add('open');
+
+    // Mostrar "Abrir" solo en carpetas
+    document.getElementById('ctxAbrir').style.display = item.tipo === 'carpeta' ? 'flex' : 'none';
+    // Mostrar "Ver" solo en archivos multimedia
+    document.getElementById('ctxVer').style.display =
+      (item.tipo === 'archivo' && esMediaPreviewable(item.nombre)) ? 'flex' : 'none';
+  }
+
+  function cerrarContextMenu() {
+    document.getElementById('evContextMenu').classList.remove('open');
+    state.contextTarget = null;
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#evContextMenu')) cerrarContextMenu();
+  });
+
+  document.getElementById('ctxAbrir').addEventListener('click', () => {
+    if (state.contextTarget) navegarCarpeta(state.contextTarget);
+    cerrarContextMenu();
+  });
+
+  document.getElementById('ctxVer').addEventListener('click', () => {
+    if (state.contextTarget) abrirVisor(state.contextTarget);
+    cerrarContextMenu();
+  });
+
+  document.getElementById('ctxRenombrar').addEventListener('click', () => {
+    if (!state.contextTarget) return;
+    const item = state.contextTarget;
+    const nuevoNombre = prompt(`Renombrar "${item.nombre}":`, item.nombre);
+    if (!nuevoNombre || nuevoNombre.trim() === item.nombre) { cerrarContextMenu(); return; }
+
+    const allItems = loadItems();
+    const idx = allItems.findIndex(i => i.id === item.id);
+    if (idx !== -1) {
+      allItems[idx].nombre = nuevoNombre.trim();
+      saveItems(allItems);
+      mostrarToast(`Renombrado a "${nuevoNombre.trim()}"`, 'success');
+      render();
+    }
+    cerrarContextMenu();
+  });
+
+  // ---- Función reutilizable de eliminación ----
+  function eliminarItem(item) {
+    if (!confirm(`¿Eliminar "${item.nombre}"? ${item.tipo === 'carpeta' ? 'Se eliminarán todos los archivos dentro.' : ''}`)) return;
+
+    let allItems = loadItems();
+    allItems = allItems.filter(i => {
+      if (i.id === item.id) return false;
+      const childPath = [...item.path, item.nombre];
+      if (i.path.length >= childPath.length) {
+        return !childPath.every((seg, idx) => seg === i.path[idx]);
+      }
+      return true;
+    });
+    saveItems(allItems);
+    render();
+    mostrarToast(`Eliminando "${item.nombre}" de Drive...`, 'info');
+
+    const driveId = item.driveId || item.id;
+    fetch('../../php/admin/eliminarEvidencia.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `drive_id=${encodeURIComponent(driveId)}`
+    })
+    .then(r => r.text())
+    .then(raw => {
+      try {
+        const res = JSON.parse(raw);
+        if (res.success) {
+          mostrarToast(`"${item.nombre}" eliminado de Drive`, 'success');
+        } else {
+          mostrarToast('Error al eliminar de Drive: ' + (res.mensaje || ''), 'error');
+        }
+      } catch (e) {
+        mostrarToast('Error inesperado al eliminar', 'error');
+      }
+      cargarDesideDrive();
+    })
+    .catch(() => {
+      mostrarToast('Error de conexión al eliminar', 'error');
+      cargarDesideDrive();
+    });
+  }
+
+  document.getElementById('ctxEliminar').addEventListener('click', () => {
+    if (!state.contextTarget) return;
+    const item = state.contextTarget;
+    cerrarContextMenu();
+    if (item) eliminarItem(item);
+  });
+
+  // ---- View toggle ----
+  document.getElementById('btnGridView').addEventListener('click', () => {
+    state.view = 'grid';
+    document.getElementById('btnGridView').classList.add('active');
+    document.getElementById('btnListView').classList.remove('active');
+    render();
+  });
+  document.getElementById('btnListView').addEventListener('click', () => {
+    state.view = 'list';
+    document.getElementById('btnListView').classList.add('active');
+    document.getElementById('btnGridView').classList.remove('active');
+    render();
+  });
+
+  // ---- Búsqueda y Orden ----
+  document.getElementById('evSearch').addEventListener('input', render);
+  document.getElementById('evSort').addEventListener('change', render);
+
+  // ---- Cerrar modales al click en overlay ----
+  document.getElementById('modalNuevaCarpeta').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) cerrarModalCarpeta();
+  });
+  document.getElementById('modalSubirArchivo').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) cerrarModalArchivo();
+  });
+
+  // ---- TOAST ----
+  function mostrarToast(mensaje, tipo = 'info') {
+    const container = document.getElementById('evToastContainer');
+    const toast = document.createElement('div');
+    toast.className = `ev-toast ${tipo}`;
+    toast.textContent = mensaje;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(20px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  // ---- Helpers ----
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function getFileIconInfo(nombre) {
+    const ext = (nombre.split('.').pop() || '').toLowerCase();
+    // Retorna: bg (color fondo), color (texto), label (texto del badge)
+    const map = {
+      // Documentos
+      pdf:  { bg: '#ff4444', color: '#fff', label: 'PDF',  icon: 'fas fa-file-pdf' },
+      doc:  { bg: '#4285f4', color: '#fff', label: 'DOC',  icon: 'fas fa-file-word' },
+      docx: { bg: '#4285f4', color: '#fff', label: 'DOCX', icon: 'fas fa-file-word' },
+      // Hojas de cálculo
+      xls:  { bg: '#0f9d58', color: '#fff', label: 'XLS',  icon: 'fas fa-file-excel' },
+      xlsx: { bg: '#0f9d58', color: '#fff', label: 'XLSX', icon: 'fas fa-file-excel' },
+      csv:  { bg: '#0f9d58', color: '#fff', label: 'CSV',  icon: 'fas fa-file-csv' },
+      // Presentaciones
+      ppt:  { bg: '#ff6d00', color: '#fff', label: 'PPT',  icon: 'fas fa-file-powerpoint' },
+      pptx: { bg: '#ff6d00', color: '#fff', label: 'PPTX', icon: 'fas fa-file-powerpoint' },
+      // Imágenes
+      jpg:  { bg: '#7c3aed', color: '#fff', label: 'JPG',  icon: 'fas fa-file-image' },
+      jpeg: { bg: '#7c3aed', color: '#fff', label: 'JPG',  icon: 'fas fa-file-image' },
+      png:  { bg: '#7c3aed', color: '#fff', label: 'PNG',  icon: 'fas fa-file-image' },
+      gif:  { bg: '#7c3aed', color: '#fff', label: 'GIF',  icon: 'fas fa-file-image' },
+      webp: { bg: '#7c3aed', color: '#fff', label: 'WEBP', icon: 'fas fa-file-image' },
+      svg:  { bg: '#7c3aed', color: '#fff', label: 'SVG',  icon: 'fas fa-file-image' },
+      // Video
+      mp4:  { bg: '#db4437', color: '#fff', label: 'MP4',  icon: 'fas fa-file-video' },
+      mov:  { bg: '#db4437', color: '#fff', label: 'MOV',  icon: 'fas fa-file-video' },
+      avi:  { bg: '#db4437', color: '#fff', label: 'AVI',  icon: 'fas fa-file-video' },
+      webm: { bg: '#db4437', color: '#fff', label: 'WEBM', icon: 'fas fa-file-video' },
+      mkv:  { bg: '#db4437', color: '#fff', label: 'MKV',  icon: 'fas fa-file-video' },
+      // Audio
+      mp3:  { bg: '#f9ab00', color: '#fff', label: 'MP3',  icon: 'fas fa-file-audio' },
+      wav:  { bg: '#f9ab00', color: '#fff', label: 'WAV',  icon: 'fas fa-file-audio' },
+      // Archivos
+      zip:  { bg: '#5f6368', color: '#fff', label: 'ZIP',  icon: 'fas fa-file-archive' },
+      rar:  { bg: '#5f6368', color: '#fff', label: 'RAR',  icon: 'fas fa-file-archive' },
+      '7z': { bg: '#5f6368', color: '#fff', label: '7Z',   icon: 'fas fa-file-archive' },
+      // Texto
+      txt:  { bg: '#5f6368', color: '#fff', label: 'TXT',  icon: 'fas fa-file-alt' },
+    };
+    return map[ext] || { bg: '#5f6368', color: '#fff', label: (ext.toUpperCase() || 'FILE'), icon: 'fas fa-file' };
+  }
+
+  // Genera el HTML del icono estilo Drive (badge con color)
+  function fileIconHtml(item, size = 'normal') {
+    const { bg, color, label, icon } = getFileIconInfo(item.nombre);
+    const s = size === 'small' ? 32 : 52;
+    const fs = size === 'small' ? '8px' : '10px';
+    const ifs = size === 'small' ? '1rem' : '1.6rem';
+    return `
+      <div class="ev-drive-icon" style="width:${s}px;height:${s}px;background:${bg};border-radius:${size==='small'?'6px':'10px'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;">
+        <i class="${icon}" style="color:${color};font-size:${ifs};line-height:1;"></i>
+        <span style="color:${color};font-size:${fs};font-weight:800;letter-spacing:0.04em;line-height:1;">${label}</span>
+      </div>`;
+  }
+
+  // ---- INIT ----
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    state.eventoId = params.get('id') || null;
+
+    if (state.eventoId) {
+        document.getElementById('evento_id_oculto').value = state.eventoId;
+        cargarDesideDrive();
+    } else {
+        render();
+    }
+  });
+
+  // ---- Carga datos desde Drive y refresca la UI ----
+  function cargarDesideDrive() {
+    if (!state.eventoId) return;
+    fetch(`../../php/admin/listarEvidencias.php?evento_id=${state.eventoId}`)
+    .then(r => r.text())
+    .then(raw => {
+        try {
+            const res = JSON.parse(raw);
+            if (res.success) {
+                const items = res.data.map(f => ({
+                    id:      f.id,
+                    tipo:    f.tipo,
+                    nombre:  f.nombre,
+                    url:     f.url || '#',
+                    fecha:   f.fecha,
+                    path:    Array.isArray(f.path) ? f.path : [],
+                    driveId: f.driveId || f.id,
+                    color:   f.color || '#f59e0b',
+                }));
+                saveItems(items);
+
+                // Si el usuario está dentro de una carpeta, actualizar el driveId real
+                // (por si antes tenía un ID temporal como 'folder_1234...')
+                if (state.currentPath.length > 0) {
+                    const parentPath = state.currentPath.slice(0, -1);
+                    const nombre = state.currentPath[state.currentPath.length - 1];
+                    const folder = items.find(i =>
+                        i.tipo === 'carpeta' && i.nombre === nombre &&
+                        JSON.stringify(i.path) === JSON.stringify(parentPath)
+                    );
+                    if (folder) {
+                        state.currentFolderDriveId = folder.driveId || folder.id;
+                    }
+                }
+
+                render();
+            } else {
+                console.warn('listarEvidencias error:', res.mensaje);
+                render();
+            }
+        } catch (e) {
+            console.error('Error al parsear respuesta de Drive:', raw);
+            render();
+        }
+    })
+    .catch(err => {
+        console.error('Error de red al cargar evidencias:', err);
+        render();
+    });
+  }
+  </script>
+</body>
+</html>
