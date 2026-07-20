@@ -1,3 +1,5 @@
+
+console.log("¡El archivo JS se está cargando!");
 // 1. Definimos las variables al principio para que sean accesibles en todo el archivo
 const isAdminPage = window.location.pathname.includes('/admin/');
 // Lógica para el Favicon (Icono)

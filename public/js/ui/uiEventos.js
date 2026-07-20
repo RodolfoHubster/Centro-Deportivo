@@ -172,6 +172,9 @@ export function mostrarEventos(eventos) {
                                             </svg>
                                             Participantes
                                         </a>`;
+        const botonEvidenciasHTML = `<a href="subir-evidencia.html?id=${evento.id}" class="btn-participantes" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 15px; background-color: #17a2b8; color: white; text-decoration: none; border-radius: 5px; font-size: 13.3333px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; font-family: Arial;">
+                                <i class="fas fa-camera"></i> Evidencias
+                             </a>`;
 
         let botonPrincipal = ''; 
         let botonEditar = '';
@@ -225,7 +228,7 @@ export function mostrarEventos(eventos) {
                 <div class="evento-acciones">
                     ${botonPrincipal} 
                     ${botonEditar} 
-                    ${botonEliminarHTML} 
+                    ${botonEvidenciasHTML} ${botonEliminarHTML}
                     ${botonVerQR} 
                     ${botonParticipantesHTML} 
                 </div>
