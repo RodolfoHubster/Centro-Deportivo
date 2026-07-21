@@ -74,7 +74,11 @@ function agregarBotonesInscripcion() {
     const tarjetasEvento = document.querySelectorAll('.evento-card, .event-card, .card-evento');
 
     tarjetasEvento.forEach((tarjeta) => {
-        
+        // 0. Si la tarjeta es de Pausa Activa, saltar, porque tiene sus propios botones
+        if (tarjeta.getAttribute('data-tipo-creacion') === 'pausa_activa') {
+            return;
+        }
+
         // 1. Si la tarjeta dice "LLENO" (cupo general del evento), saltar.
         if (tarjeta.getAttribute('data-lleno') === 'true') {
             return; 
