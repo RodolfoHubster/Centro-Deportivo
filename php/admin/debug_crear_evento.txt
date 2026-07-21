@@ -1,0 +1,8 @@
+[2026-07-20 22:18:18] Data truncated for column 'tipo_registro' at row 1
+[2026-07-20 22:19:05] Data truncated for column 'tipo_registro' at row 1
+[2026-07-20 22:19:49] Data truncated for column 'tipo_registro' at row 1
+[2026-07-20 22:28:29] tipo_registro is: [Individual]
+[2026-07-20 22:28:29] Data truncated for column 'tipo_actividad' at row 1
+[2026-07-20 22:32:36] tipo_registro is: [Individual]
+[2026-07-20 23:25:04] tipo_registro is: [Individual]
+[2026-07-21 00:01:18] tipo_registro is: [Individual]

@@ -183,6 +183,7 @@ function mostrarEventos(eventos) {
 
         tarjeta.setAttribute('data-evento-id', evento.id);
         tarjeta.setAttribute('data-tipo-registro', evento.tipo_registro || 'Individual');
+        tarjeta.setAttribute('data-tipo-creacion', evento.tipo_creacion || 'evento');
         tarjeta.setAttribute('data-integrantes-min', evento.integrantes_min || 1);
         tarjeta.setAttribute('data-integrantes-max', evento.integrantes_max || 0);
         tarjeta.setAttribute('data-dias-juego', evento.dias_juego || '');
@@ -277,9 +278,268 @@ function mostrarEventos(eventos) {
         contenedor.appendChild(tarjeta);
     });
 
+    // Botones para eventos normales
     if (typeof agregarBotonesInscripcion === 'function') {
         agregarBotonesInscripcion();
     }
+    // Botones para Pausas Activas
+    agregarBotonesPausaActiva();
+}
+
+/**
+ * Agrega botones Hombre / Mujer a las tarjetas de tipo Pausa Activa
+ */
+function agregarBotonesPausaActiva() {
+    document.querySelectorAll('.evento-card[data-tipo-creacion="pausa_activa"]').forEach(tarjeta => {
+        // Ocultar/eliminar el contenedor de botones por defecto (Registrarse al evento)
+        const contenedorInscripcion = tarjeta.querySelector('.contenedor-botones-inscripcion');
+        if (contenedorInscripcion) {
+            contenedorInscripcion.remove();
+        }
+
+        const contenedorAcciones = tarjeta.querySelector('.card-actions');
+        if (!contenedorAcciones) return;
+
+        // Eliminar cualquier botón de inscripción que se haya agregado previamente (o por Inscripcion.js)
+        const btnInscripcionViejo = contenedorAcciones.querySelector('.btn-inscribir');
+        if (btnInscripcionViejo) btnInscripcionViejo.remove();
+
+        const eventoId = tarjeta.dataset.eventoId;
+
+        // Solo inyectar si aún no se ha inyectado
+        if (!contenedorAcciones.querySelector('.btn-pausa-hombre')) {
+            contenedorAcciones.innerHTML = `
+                <p style="margin-bottom:10px; font-weight:600; color:#333;">Selecciona tu género para registrarte:</p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn-pausa-sexo btn-pausa-hombre"
+                        data-evento-id="${eventoId}" data-sexo="Hombre"
+                        style="flex:1; min-width:120px; padding:12px 10px; background:linear-gradient(135deg,#1a73e8,#0d47a1);
+                               color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:0.95rem;
+                               cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <span style="font-size:1.3rem;">&#9794;</span> Hombre
+                    </button>
+                    <button class="btn-pausa-sexo btn-pausa-mujer"
+                        data-evento-id="${eventoId}" data-sexo="Mujer"
+                        style="flex:1; min-width:120px; padding:12px 10px; background:linear-gradient(135deg,#e91e8c,#880e4f);
+                               color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:0.95rem;
+                               cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <span style="font-size:1.3rem;">&#9792;</span> Mujer
+                    </button>
+                </div>
+            `;
+
+            // Attach event listeners to the new buttons
+            const btnHombre = contenedorAcciones.querySelector('.btn-pausa-hombre');
+            const btnMujer = contenedorAcciones.querySelector('.btn-pausa-mujer');
+
+            btnHombre.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mostrarModalFacultadesPausa(btnHombre.dataset.eventoId, 'Hombre');
+            });
+
+            btnMujer.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mostrarModalFacultadesPausa(btnMujer.dataset.eventoId, 'Mujer');
+            });
+        }
+    });
+}
+
+/**
+ * Muestra el modal para seleccionar la facultad al registrarse en Pausa Activa
+ */
+function mostrarModalFacultadesPausa(eventoId, sexo) {
+    const modalExistente = document.getElementById('modal-pausa-activa');
+    if(modalExistente) modalExistente.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'modal-pausa-activa';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center;
+        z-index: 10000; padding: 20px; animation: fadeIn 0.3s ease; overflow-y: auto;
+    `;
+
+    // Modal base HTML (wider to fit a grid)
+    modal.innerHTML = `
+        <div style="background: #f4f7f6; border-radius: 12px; padding: 30px; width: 100%; max-width: 800px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; max-height: 90vh; overflow-y: auto;">
+            <button onclick="this.parentElement.parentElement.remove()" 
+                style="position: absolute; top: 15px; right: 15px; border: none; background: transparent;
+                       font-size: 1.5rem; cursor: pointer; color: #666; z-index: 10;">&times;</button>
+            <h2 style="color: #003366; margin-top: 0; margin-bottom: 5px; text-align: center; font-size: 1.8rem;">Pausa Activa</h2>
+            <p style="color: #666; margin-bottom: 25px; text-align: center; font-size: 1.1rem;">Selecciona tu facultad para registrarte como <strong>${sexo}</strong></p>
+            
+            <div id="facultadesGridPausa" style="display: flex; flex-direction: column; gap: 15px;">
+                <div style="text-align: center; padding: 40px;">Cargando facultades...</div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Fetch facultades
+    fetch(`../php/public/obtenerFacultadesPausa.php?evento_id=${eventoId}`)
+        .then(res => res.json())
+        .then(data => {
+            const grid = document.getElementById('facultadesGridPausa');
+            grid.innerHTML = '';
+            
+            if (data.success && data.facultades && data.facultades.length > 0) {
+                let hayDisponibles = false;
+                data.facultades.forEach(f => {
+                    const cupoStr = sexo === 'Hombre' ? f.cupo_hombres : f.cupo_mujeres;
+                    const ocupados = sexo === 'Hombre' ? f.ocupados_hombres : f.ocupadas_mujeres;
+                    
+                    const cupo = parseInt(cupoStr) || 0;
+                    const disponibles = cupo - parseInt(ocupados);
+                    
+                    if (cupo === 0) {
+                        return; // Ignorar facultades sin cupo configurado
+                    }
+
+                    hayDisponibles = true;
+                    const porcentajeLlenado = (ocupados / cupo) * 100;
+                    const colorBarra = porcentajeLlenado >= 90 ? '#dc3545' : porcentajeLlenado >= 70 ? '#ffc107' : '#28a745';
+                    
+                    const tieneCupo = disponibles > 0;
+                    const estadoCupo = tieneCupo 
+                        ? `<span style="color: #28a745; font-weight: 600; font-size: 0.9rem;">o" Disponible (${disponibles})</span>` 
+                        : `<span style="color: #dc3545; font-weight: 600; font-size: 0.9rem;">o  Lleno</span>`;
+
+                    // Create card
+                    const card = document.createElement('div');
+                    card.className = 'facultad-card-pausa';
+                    card.style.cssText = `
+                        border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; 
+                        background: white; transition: all 0.3s; cursor: ${tieneCupo ? 'pointer' : 'not-allowed'}; 
+                        opacity: ${tieneCupo ? '1' : '0.6'}; display: flex; flex-direction: column; justify-content: space-between;
+                    `;
+                    
+                    card.innerHTML = `
+                        <div style="margin-bottom: 15px;">
+                            <h3 style="margin: 0 0 10px 0; color: #003366; font-size: 1.2rem; font-weight: 700;">
+                                ${f.facultad_nombre}
+                            </h3>
+                            <div style="text-align: right; margin-bottom: 10px;">
+                                ${estadoCupo}
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: #666;">Registrados</span>
+                                <span style="font-size: 0.85rem; font-weight: 700; color: #003366;">
+                                    ${ocupados} / ${cupo}
+                                </span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 10px; overflow: hidden;">
+                                <div style="width: ${Math.min(porcentajeLlenado, 100)}%; height: 100%; background: ${colorBarra}; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                        ${tieneCupo ? `
+                        <button class="btn-seleccionar-facultad" style="
+                            width: 100%; padding: 10px; background: linear-gradient(135deg, #006633, #009933);
+                            color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+                            transition: transform 0.2s, box-shadow 0.2s;
+                        ">Registrar Aquí</button>
+                        ` : `
+                        <button disabled style="
+                            width: 100%; padding: 10px; background: #ccc;
+                            color: #666; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed;
+                        ">Agotado</button>
+                        `}
+                    `;
+
+                    if (tieneCupo) {
+                        // Hover effects
+                        card.addEventListener('mouseover', () => {
+                            card.style.transform = 'translateY(-3px)';
+                            card.style.boxShadow = '0 8px 15px rgba(0,0,0,0.1)';
+                            card.style.borderColor = '#006633';
+                        });
+                        card.addEventListener('mouseout', () => {
+                            card.style.transform = 'translateY(0)';
+                            card.style.boxShadow = 'none';
+                            card.style.borderColor = '#e0e0e0';
+                        });
+
+                        // Click to submit
+                        const submitAction = () => {
+                            const formData = new FormData();
+                            formData.append('evento_id', eventoId);
+                            formData.append('sexo', sexo);
+                            formData.append('facultad_id', f.facultad_id);
+
+                            // Loading state
+                            const btn = card.querySelector('.btn-seleccionar-facultad');
+                            const originalText = btn.textContent;
+                            btn.textContent = 'Registrando...';
+                            btn.disabled = true;
+
+                            fetch('../php/public/inscribirPausaActiva.php', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(res => res.json())
+                            .then(result => {
+                                if (result.success) {
+                                    if (typeof mostrarToast === 'function') {
+                                        mostrarToast('Registro exitoso!', 'success');
+                                    } else {
+                                        alert('Registro exitoso!');
+                                    }
+                                    modal.remove();
+                                    if (typeof cargarEventosBaseDatos === 'function') {
+                                        cargarEventosBaseDatos();
+                                    }
+                                } else {
+                                    btn.textContent = originalText;
+                                    btn.disabled = false;
+                                    if (typeof mostrarToast === 'function') {
+                                        mostrarToast(result.message || 'Error al registrar', 'error');
+                                    } else {
+                                        alert(result.message || 'Error al registrar');
+                                    }
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                btn.textContent = originalText;
+                                btn.disabled = false;
+                                if (typeof mostrarToast === 'function') {
+                                    mostrarToast('Error de conexión', 'error');
+                                } else {
+                                    alert('Error de conexión');
+                                }
+                            });
+                        };
+
+                        card.addEventListener('click', (e) => {
+                            // Prevenir doble disparo si clickean el boton
+                            if(e.target.tagName !== 'BUTTON') {
+                                submitAction();
+                            }
+                        });
+                        
+                        card.querySelector('.btn-seleccionar-facultad').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            submitAction();
+                        });
+                    }
+
+                    grid.appendChild(card);
+                });
+
+                if (!hayDisponibles) {
+                    grid.innerHTML = '<div style="text-align: center; grid-column: 1 / -1; padding: 40px; color: #666;">No hay facultades con cupo disponible.</div>';
+                }
+            } else {
+                grid.innerHTML = '<div style="text-align: center; grid-column: 1 / -1; padding: 40px; color: #666;">No hay facultades configuradas.</div>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('facultadesGridPausa').innerHTML = '<div style="text-align: center; grid-column: 1 / -1; padding: 40px; color: red;">Error al cargar.</div>';
+        });
 }
 
 function formatearFecha(fecha) {

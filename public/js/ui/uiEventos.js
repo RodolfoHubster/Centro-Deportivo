@@ -124,19 +124,54 @@ export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas
         background: #f9f9f9;
     `;
 
+    const tipoCreacionInput = document.getElementById('tipo_creacion');
+    const esPausaActiva = tipoCreacionInput && tipoCreacionInput.value === 'pausa_activa';
+
     facultadesMostrar.forEach(facultad => {
         // Verificar si debe estar marcado (útil al editar o al filtrar sin perder selección)
         // Se verifica tanto como número como string para asegurar compatibilidad
         const isChecked = facultadesSeleccionadas.includes(String(facultad.id)) || facultadesSeleccionadas.includes(facultad.id) ? 'checked' : '';
         
-        container.innerHTML += `
-            <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
-                <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right: 10px;">
-                <span style="font-weight: 500;">${facultad.nombre}</span> 
-                <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
-            </label>
-        `;
+        if (esPausaActiva) {
+            container.innerHTML += `
+                <div class="facultad-config-row" style="display: flex; flex-direction: column; gap: 5px; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 5px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} class="check-facultad-pausa" data-facultad-id="${facultad.id}" style="margin-right: 10px;">
+                        <span style="font-weight: 500;">${facultad.nombre}</span> 
+                        <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
+                    </label>
+                    <div class="inputs-cupos" id="cupos-fac-${facultad.id}" style="display: flex; gap: 10px; margin-top: 5px; margin-left: 25px;">
+                        <input type="number" name="cupos[${facultad.id}][mujeres]" placeholder="Mujeres" min="0" class="form-control" style="width: 100px; padding: 5px;" ${isChecked ? '' : 'disabled required'}>
+                        <input type="number" name="cupos[${facultad.id}][hombres]" placeholder="Hombres" min="0" class="form-control" style="width: 100px; padding: 5px;" ${isChecked ? '' : 'disabled required'}>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML += `
+                <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
+                    <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right: 10px;">
+                    <span style="font-weight: 500;">${facultad.nombre}</span> 
+                    <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
+                </label>
+            `;
+        }
     });
+
+    if (esPausaActiva) {
+        document.querySelectorAll('.check-facultad-pausa').forEach(chk => {
+            chk.addEventListener('change', (e) => {
+                const facId = e.target.getAttribute('data-facultad-id');
+                const cuposDiv = document.getElementById(`cupos-fac-${facId}`);
+                if (cuposDiv) {
+                    const inputs = cuposDiv.querySelectorAll('input[type="number"]');
+                    inputs.forEach(inp => {
+                        inp.disabled = !e.target.checked;
+                        if (!e.target.checked) inp.value = '';
+                    });
+                }
+            });
+        });
+    }
 }
 
 /**
