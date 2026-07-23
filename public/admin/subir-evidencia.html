@@ -1388,10 +1388,18 @@
     mostrarToast(`Carpeta "${nombre}" creada`, 'success');
 
     // 3. LLAMADA AL SERVIDOR en Drive (en paralelo)
+    let bodyParams = `nombre_carpeta=${encodeURIComponent(nombre)}&evento_id=${eventoId}`;
+    
+    // Si estamos dentro de una subcarpeta, pasar su ID como padre
+    const esIdRealDrive = state.currentFolderDriveId && !String(state.currentFolderDriveId).startsWith('folder_');
+    if (esIdRealDrive) {
+      bodyParams += `&padre_id=${state.currentFolderDriveId}`;
+    }
+
     fetch('../../php/admin/crearCarpeta.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `nombre=${encodeURIComponent(nombre)}&evento_id=${eventoId}`
+      body: bodyParams
     })
     .then(r => r.text())
     .then(data => {
@@ -1399,10 +1407,21 @@
         try {
             const json = JSON.parse(data);
             if (json.success) {
-                // Recargar desde Drive para tener el ID real de la carpeta
-                cargarDesideDrive();
+                // Actualizar el ID real devuelto por Drive en vez de recargar
+                let currentItems = loadItems();
+                const fakeIdx = currentItems.findIndex(i => i.id === tempId);
+                if (fakeIdx !== -1) {
+                    currentItems[fakeIdx].driveId = json.folder_id;
+                    currentItems[fakeIdx].id = json.folder_id;
+                    saveItems(currentItems);
+                    render();
+                }
             } else {
                 mostrarToast('Error al guardar en Drive: ' + (json.mensaje || ''), 'error');
+                // Revertir optimismo
+                let currentItems = loadItems();
+                saveItems(currentItems.filter(i => i.id !== tempId));
+                render();
             }
         } catch (e) {
             mostrarToast('Error de formato del servidor', 'error');
@@ -1616,17 +1635,67 @@
   document.getElementById('ctxRenombrar').addEventListener('click', () => {
     if (!state.contextTarget) return;
     const item = state.contextTarget;
-    const nuevoNombre = prompt(`Renombrar "${item.nombre}":`, item.nombre);
-    if (!nuevoNombre || nuevoNombre.trim() === item.nombre) { cerrarContextMenu(); return; }
+    const oldNombre = item.nombre;
+    const nuevoNombre = prompt(`Renombrar "${oldNombre}":`, oldNombre);
+    if (!nuevoNombre || nuevoNombre.trim() === oldNombre) { cerrarContextMenu(); return; }
 
-    const allItems = loadItems();
+    const nombreReal = nuevoNombre.trim();
+    const driveId = item.driveId || item.id;
+    
+    // 1. Actualizar UI localmente al instante
+    let allItems = loadItems();
     const idx = allItems.findIndex(i => i.id === item.id);
     if (idx !== -1) {
-      allItems[idx].nombre = nuevoNombre.trim();
+      allItems[idx].nombre = nombreReal;
+      // Si es carpeta, actualizar el 'path' de los hijos que dependan de este nombre
+      if (item.tipo === 'carpeta') {
+         const oldPathLength = item.path.length;
+         allItems.forEach(child => {
+            if (child.path && child.path.length > oldPathLength && child.path[oldPathLength] === oldNombre) {
+               // Verificar que el path anterior coincide
+               let match = true;
+               for(let i=0; i<oldPathLength; i++) {
+                  if (child.path[i] !== item.path[i]) match = false;
+               }
+               if (match) {
+                  child.path[oldPathLength] = nombreReal;
+               }
+            }
+         });
+      }
       saveItems(allItems);
-      mostrarToast(`Renombrado a "${nuevoNombre.trim()}"`, 'success');
       render();
     }
+    
+    mostrarToast(`Renombrando a "${nombreReal}" en Drive...`, 'info');
+
+    // 2. Llamada al backend para renombrar en Google Drive
+    fetch('../../php/admin/renombrarCarpeta.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `drive_id=${encodeURIComponent(driveId)}&nuevo_nombre=${encodeURIComponent(nombreReal)}`
+    })
+    .then(r => r.text())
+    .then(raw => {
+      try {
+        const res = JSON.parse(raw);
+        if (res.success) {
+          mostrarToast(`Renombrado a "${nombreReal}" con éxito en Drive`, 'success');
+          // Esperamos un momento para que Drive indexe antes de recargar
+          setTimeout(cargarDesideDrive, 2000);
+        } else {
+          mostrarToast('Error en Drive: ' + (res.mensaje || ''), 'error');
+          // Revertir en caso de error
+          cargarDesideDrive();
+        }
+      } catch (e) {
+        mostrarToast('Error inesperado al renombrar', 'error');
+      }
+    })
+    .catch(() => {
+      mostrarToast('Error de conexión al renombrar', 'error');
+    });
+
     cerrarContextMenu();
   });
 
@@ -1818,7 +1887,8 @@
   // ---- Carga datos desde Drive y refresca la UI ----
   function cargarDesideDrive() {
     if (!state.eventoId) return;
-    fetch(`../../php/admin/listarEvidencias.php?evento_id=${state.eventoId}`)
+    const cacheBuster = Date.now();
+    fetch(`../../php/admin/listarEvidencias.php?evento_id=${state.eventoId}&t=${cacheBuster}`)
     .then(r => r.text())
     .then(raw => {
         try {

@@ -1,51 +1,52 @@
 <?php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../includes/conexion.php'; 
 
 header('Content-Type: application/json');
 
-// --- CONFIGURACIÓN CLIENTE GOOGLE ---
-$client = new \Google_Client();
-$client->setAuthConfig(__DIR__ . '/../includes/credenciales-drive.json');
-$client->addScope(\Google_Service_Drive::DRIVE);
-
-$tokenPath = __DIR__ . '/../includes/token.json';
-$accessToken = json_decode(file_get_contents($tokenPath), true);
-$client->setAccessToken($accessToken);
-
-if ($client->isAccessTokenExpired()) {
-    $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-    file_put_contents($tokenPath, json_encode($client->getAccessToken()));
-}
-
-$driveService = new \Google_Service_Drive($client);
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'mensaje' => 'Método no permitido']);
-    exit;
-}
-
-$driveId = $_POST['drive_id'] ?? '';
-
-if (empty($driveId)) {
-    echo json_encode(['success' => false, 'mensaje' => 'drive_id requerido']);
-    exit;
-}
-
 try {
-    // En Drive, eliminar una carpeta elimina todo su contenido automáticamente.
-    // Usamos delete() que manda al trash, o podemos usar emptying permanently.
-    // Para mandarlo a la papelera de Drive (más seguro):
-    $driveService->files->delete($driveId);
-
-    echo json_encode(['success' => true]);
-} catch (\Google_Service_Exception $e) {
-    $msg = $e->getMessage();
-    // Si el archivo ya no existe en Drive, lo consideramos éxito
-    if ($e->getCode() === 404) {
-        echo json_encode(['success' => true, 'mensaje' => 'El archivo ya no existía en Drive']);
-    } else {
-        echo json_encode(['success' => false, 'mensaje' => 'Error de Drive: ' . $msg]);
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception("Método no permitido");
     }
+
+    $driveId = trim($_POST['drive_id'] ?? '');
+
+    if (empty($driveId)) {
+        throw new Exception("drive_id requerido para eliminar.");
+    }
+
+    $client = new \Google_Client();
+    $client->setAuthConfig(__DIR__ . '/../includes/credenciales-drive.json');
+    $client->addScope(\Google_Service_Drive::DRIVE);
+
+    $driveService = new \Google_Service_Drive($client);
+
+    // 2. ENVIAR A LA PAPELERA (Más seguro que la destrucción total)
+    try {
+        $archivoActualizado = new \Google_Service_Drive_DriveFile();
+        $archivoActualizado->setTrashed(true); // Le decimos a Google que lo mande a la papelera
+        
+        $driveService->files->update($driveId, $archivoActualizado, [
+            'supportsAllDrives' => true
+        ]);
+    } catch (\Google_Service_Exception $e) {
+        // Quitamos la evasión de errores para que si falla, nos diga la verdad en tu pestaña de Response
+        throw new Exception("Error de Google Drive: " . $e->getMessage());
+    }
+
+    // 3. ELIMINAR DE LA BASE DE DATOS
+    $stmt = $conexion->prepare("DELETE FROM evidencia WHERE drive_file_id = ?");
+    $stmt->bind_param("s", $driveId);
+    $stmt->execute();
+
+    echo json_encode([
+        'success' => true, 
+        'mensaje' => '¡Archivo enviado a la papelera y registro eliminado de BD!'
+    ]);
+
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'mensaje' => $e->getMessage()]);
 }

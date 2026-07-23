@@ -43,10 +43,11 @@ async function inicializarPaginaGestionEventos() {
     try {
         mostrarMensaje('Cargando datos iniciales...', 'success'); 
         
-        const [campus, actividades, facultades, eventos, periodoObj] = await Promise.all([
+        const [campus, actividades, facultades, carreras, eventos, periodoObj] = await Promise.all([
             api.cargarCampus(),
             api.cargarActividades(),
             api.cargarFacultades(),
+            api.cargarCarreras(),
             api.cargarEventos(true), 
             api.obtenerPeriodoActivo()
         ]);
@@ -61,7 +62,7 @@ async function inicializarPaginaGestionEventos() {
         
         // Configurar Modal
         ui.poblarCheckboxesCampus(campus);         
-        ui.poblarCheckboxesFacultades(facultades); 
+        ui.poblarCheckboxesFacultades(facultades, carreras); 
         
         // Configurar filtros de tabla
         ui.poblarFiltroPeriodos(todosLosEventos);
