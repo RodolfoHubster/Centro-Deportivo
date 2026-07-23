@@ -34,6 +34,12 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
                     const tipoRegistro = evento.tipo_registro || 'Individual';
                     const tieneCupo = evento.tiene_cupo == 1; 
 
+                    // SI ES PAUSA ACTIVA, REDIRIGIR AL FLUJO ESPECÍFICO DE GÉNERO
+                    if (evento.tipo_creacion === 'pausa_activa') {
+                        mostrarModalGeneroQR(eventoId, nombreEvento);
+                        return;
+                    }
+
                     if (tipoRegistro === 'Por equipos') {
                         // === CAMBIO: SIEMPRE ABRIR LISTA DE EQUIPOS PRIMERO ===
                         // Pasamos 'tieneCupo' para saber si mostramos el botón de "Crear Equipo" dentro del modal
@@ -68,6 +74,69 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
             console.error('Error:', error);
             mostrarToast('Error de conexión.', 'error');
         });
+}
+
+function mostrarModalGeneroQR(eventoId, nombreEvento) {
+    const modalExistente = document.getElementById('modal-genero-qr');
+    if (modalExistente) modalExistente.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'modal-genero-qr';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        animation: fadeIn 0.3s ease;
+    `;
+
+    modal.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); position: relative; font-family: sans-serif;">
+            <button type="button" id="btnCerrarModalGeneroQR" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #666; font-size: 20px; font-weight: bold;">&times;</button>
+            <h2 style="color: #003366; margin-top: 10px; margin-bottom: 5px;">Pausa Activa</h2>
+            <p style="color: #00843D; font-weight: 600; margin-bottom: 20px;">${nombreEvento}</p>
+            <p style="color: #666; font-size: 15px; margin-bottom: 25px;">Selecciona tu género para ver las carreras y registrarte:</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button id="btnGeneroHombreQR" style="padding: 14px; background: linear-gradient(135deg, #1565c0, #1e88e5); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                    ♂ Hombre
+                </button>
+                <button id="btnGeneroMujerQR" style="padding: 14px; background: linear-gradient(135deg, #880e4f, #d81b60); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                    ♀ Mujer
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const cerrar = () => modal.remove();
+
+    document.getElementById('btnCerrarModalGeneroQR').addEventListener('click', cerrar);
+    modal.addEventListener('click', (e) => { if (e.target === modal) cerrar(); });
+
+    document.getElementById('btnGeneroHombreQR').addEventListener('click', () => {
+        cerrar();
+        if (typeof window.abrirFlujoPausa === 'function') {
+            window.abrirFlujoPausa(eventoId, 'Hombre');
+        } else {
+            console.error('abrirFlujoPausa no está definida en window.');
+        }
+    });
+
+    document.getElementById('btnGeneroMujerQR').addEventListener('click', () => {
+        cerrar();
+        if (typeof window.abrirFlujoPausa === 'function') {
+            window.abrirFlujoPausa(eventoId, 'Mujer');
+        } else {
+            console.error('abrirFlujoPausa no está definida en window.');
+        }
+    });
 }
 
 function agregarBotonesInscripcion() {

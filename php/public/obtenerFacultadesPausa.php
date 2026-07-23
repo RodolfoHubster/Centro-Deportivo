@@ -12,18 +12,15 @@ if (!$evento_id) {
 }
 
 try {
-    $sql = "SELECT 
+    // Solo devolvemos facultades que tienen al menos una carrera configurada
+    // en evento_carrera_cupos para este evento (carreras habilitadas).
+    $sql = "SELECT DISTINCT
                 f.id        AS facultad_id,
-                f.nombre    AS facultad_nombre,
-                efc.cupo_hombres,
-                efc.cupo_mujeres,
-                (SELECT COUNT(*) FROM inscripcion_pausa_activa ipa 
-                 WHERE ipa.evento_id = efc.evento_id AND ipa.facultad_id = f.id AND ipa.sexo = 'Hombre') AS ocupados_hombres,
-                (SELECT COUNT(*) FROM inscripcion_pausa_activa ipa 
-                 WHERE ipa.evento_id = efc.evento_id AND ipa.facultad_id = f.id AND ipa.sexo = 'Mujer')  AS ocupadas_mujeres
-            FROM evento_facultad_cupos efc
-            JOIN facultad f ON efc.facultad_id = f.id
-            WHERE efc.evento_id = ?
+                f.nombre    AS facultad_nombre
+            FROM evento_carrera_cupos ecc
+            JOIN carrera c ON ecc.carrera_id = c.id
+            JOIN facultad f ON c.facultad_id = f.id
+            WHERE ecc.evento_id = ?
             ORDER BY f.nombre ASC";
 
     $stmt = mysqli_prepare($conexion, $sql);
@@ -35,8 +32,6 @@ try {
 
     $facultades = [];
     while ($row = mysqli_fetch_assoc($result)) {
-        $row['disponibles_hombres'] = max(0, (int)$row['cupo_hombres'] - (int)$row['ocupados_hombres']);
-        $row['disponibles_mujeres'] = max(0, (int)$row['cupo_mujeres'] - (int)$row['ocupadas_mujeres']);
         $facultades[] = $row;
     }
     mysqli_stmt_close($stmt);

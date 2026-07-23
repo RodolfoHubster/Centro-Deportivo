@@ -203,17 +203,16 @@ try {
 
     // === GUARDAR CUPOS SI ES PAUSA ACTIVA ===
     if ($tipo_creacion === 'pausa_activa' && isset($_POST['cupos']) && is_array($_POST['cupos'])) {
-        $sqlCupos = "INSERT INTO evento_facultad_cupos (evento_id, facultad_id, cupo_hombres, cupo_mujeres) VALUES (?, ?, ?, ?)";
+        $sqlCupos = "INSERT INTO evento_carrera_cupos (evento_id, carrera_id, cupo_hombres, cupo_mujeres) VALUES (?, ?, ?, ?)";
         $stmtCupos = mysqli_prepare($conexion, $sqlCupos);
         
         if ($stmtCupos) {
-            foreach ($_POST['cupos'] as $facultad_id => $espacios) {
-                // Validar que esta facultad haya sido seleccionada o tenga datos enviados
-                $facultad_id = intval($facultad_id);
+            foreach ($_POST['cupos'] as $carrera_id => $espacios) {
+                $carrera_id = intval($carrera_id);
                 $hombres = isset($espacios['hombres']) ? intval($espacios['hombres']) : 0;
                 $mujeres = isset($espacios['mujeres']) ? intval($espacios['mujeres']) : 0;
 
-                mysqli_stmt_bind_param($stmtCupos, 'iiii', $evento_id, $facultad_id, $hombres, $mujeres);
+                mysqli_stmt_bind_param($stmtCupos, 'iiii', $evento_id, $carrera_id, $hombres, $mujeres);
                 mysqli_stmt_execute($stmtCupos);
             }
             mysqli_stmt_close($stmtCupos);

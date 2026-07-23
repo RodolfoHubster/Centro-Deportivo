@@ -7,6 +7,7 @@ import { formatearFecha } from '../utils/utilidades.js';
 
 // Variable global dentro del módulo para almacenar las facultades descargadas
 let todasLasFacultades = [];
+let todasLasCarreras = [];
 
 /**
  * Rellena los select de actividades en el formulario
@@ -69,8 +70,9 @@ export function poblarCheckboxesCampus(campus) {
  * Guarda la lista original de facultades y muestra el mensaje inicial.
  * @param {Array} facultades - Lista completa de facultades.
  */
-export function poblarCheckboxesFacultades(facultades) {
+export function poblarCheckboxesFacultades(facultades, carreras = []) {
     todasLasFacultades = facultades; // Guardamos en memoria
+    todasLasCarreras = carreras;
     
     const container = document.getElementById('facultades-checkbox');
     if (container) {
@@ -82,94 +84,264 @@ export function poblarCheckboxesFacultades(facultades) {
 /**
  * Función de FILTRADO DINÁMICO: Renderiza las facultades en el modal,
  * aplicando el filtro por campus seleccionado y manteniendo la selección anterior.
- * @param {Array} campusIds - Array de IDs de campus seleccionados (ej: ["1", "3"]).
+ * Para Pausas Activas implementa el flujo: Facultad (checkbox) → Carreras (checkboxes) → Cupos.
+ * @param {Array} campusIds - Array de IDs de campus seleccionados.
  * @param {Array} [facultadesSeleccionadas=[]] - IDs de facultades que deben permanecer marcadas (al editar).
+ * @param {Object} [cuposGuardados={}] - Mapa { carrera_id: { hombres, mujeres } } con valores al editar.
+ * @param {Array} [carrerasSeleccionadas=[]] - IDs de carreras que deben permanecer marcadas (al editar).
  */
-export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas = []) { 
+export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas = [], cuposGuardados = {}, carrerasSeleccionadas = []) {
     const container = document.getElementById('facultades-checkbox');
     if (!container) return;
-    
+
     if (todasLasFacultades.length === 0) {
-        container.innerHTML = '<p style="color: red; font-weight: bold;">Error: No se pudo cargar la lista de Facultades.</p>';
-        return;
-    }
-    
-    // Si NO hay campus seleccionados, mostrar mensaje
-    if (!campusIds || campusIds.length === 0) {
-        container.innerHTML = '<p style="color: #666; font-style: italic; padding: 15px; text-align: center;">Selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
+        container.innerHTML = '<p style="color:red;font-weight:bold;">Error: No se pudo cargar la lista de Facultades.</p>';
         return;
     }
 
-    // Filtrar facultades por los campus seleccionados
-    let facultadesMostrar = todasLasFacultades.filter(f => 
-        campusIds.includes(String(f.campus_id))
-    );
+    if (!campusIds || campusIds.length === 0) {
+        container.innerHTML = '<p style="color:#666;font-style:italic;padding:15px;text-align:center;">Selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
+        return;
+    }
+
+    const facultadesMostrar = todasLasFacultades.filter(f => campusIds.includes(String(f.campus_id)));
 
     if (facultadesMostrar.length === 0) {
-        container.innerHTML = '<p style="color: #003366; font-style: italic; padding: 10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
+        container.innerHTML = '<p style="color:#003366;font-style:italic;padding:10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
         return;
     }
-
-    container.innerHTML = '';
-    
-    container.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 10px;
-        max-height: 180px;
-        overflow-y: auto;
-        padding: 10px;
-        border: 1px solid #eee;
-        border-radius: 6px;
-        background: #f9f9f9;
-    `;
 
     const tipoCreacionInput = document.getElementById('tipo_creacion');
     const esPausaActiva = tipoCreacionInput && tipoCreacionInput.value === 'pausa_activa';
 
-    facultadesMostrar.forEach(facultad => {
-        // Verificar si debe estar marcado (útil al editar o al filtrar sin perder selección)
-        // Se verifica tanto como número como string para asegurar compatibilidad
-        const isChecked = facultadesSeleccionadas.includes(String(facultad.id)) || facultadesSeleccionadas.includes(facultad.id) ? 'checked' : '';
-        
-        if (esPausaActiva) {
-            container.innerHTML += `
-                <div class="facultad-config-row" style="display: flex; flex-direction: column; gap: 5px; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 5px;">
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} class="check-facultad-pausa" data-facultad-id="${facultad.id}" style="margin-right: 10px;">
-                        <span style="font-weight: 500;">${facultad.nombre}</span> 
-                        <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
-                    </label>
-                    <div class="inputs-cupos" id="cupos-fac-${facultad.id}" style="display: flex; gap: 10px; margin-top: 5px; margin-left: 25px;">
-                        <input type="number" name="cupos[${facultad.id}][mujeres]" placeholder="Mujeres" min="0" class="form-control" style="width: 100px; padding: 5px;" ${isChecked ? '' : 'disabled required'}>
-                        <input type="number" name="cupos[${facultad.id}][hombres]" placeholder="Hombres" min="0" class="form-control" style="width: 100px; padding: 5px;" ${isChecked ? '' : 'disabled required'}>
-                    </div>
-                </div>
-            `;
-        } else {
-            container.innerHTML += `
-                <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
-                    <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right: 10px;">
-                    <span style="font-weight: 500;">${facultad.nombre}</span> 
-                    <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
-                </label>
-            `;
-        }
-    });
+    container.innerHTML = '';
 
     if (esPausaActiva) {
-        document.querySelectorAll('.check-facultad-pausa').forEach(chk => {
-            chk.addEventListener('change', (e) => {
-                const facId = e.target.getAttribute('data-facultad-id');
-                const cuposDiv = document.getElementById(`cupos-fac-${facId}`);
-                if (cuposDiv) {
-                    const inputs = cuposDiv.querySelectorAll('input[type="number"]');
-                    inputs.forEach(inp => {
-                        inp.disabled = !e.target.checked;
-                        if (!e.target.checked) inp.value = '';
+        // ─── MODO PAUSA ACTIVA: Acordeón cascada ──────────────────────────────
+        container.style.cssText = `
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+            max-height: 480px !important;
+            overflow-y: auto !important;
+            padding: 8px !important;
+            border: 1px solid #dde3ed !important;
+            border-radius: 8px !important;
+            background: #f4f7fb !important;
+        `;
+
+        facultadesMostrar.forEach(facultad => {
+            const facId = facultad.id;
+            const facChecked = facultadesSeleccionadas.includes(String(facId)) || facultadesSeleccionadas.includes(facId);
+            const carrerasFacultad = todasLasCarreras.filter(c => c.facultad_id == facId);
+
+            // ── 1. Crear la tarjeta de facultad ──────────────────────────────
+            const facCard = document.createElement('div');
+            facCard.style.cssText = `
+                background:#fff;
+                border:1px solid ${facChecked ? '#a8c8f8' : '#dde3ed'};
+                border-radius:8px;
+                overflow:hidden;
+                flex: none;
+                transition:border-color 0.2s, height 0.2s;
+            `;
+
+            // ── 2. Header de la facultad ──────────────────────────────────────
+            // IMPORTANTE: el checkbox NO está dentro del <label> para evitar
+            // el bug de doble-toggle que tiene el navegador.
+            const headerEl = document.createElement('div');
+            headerEl.style.cssText = `
+                display:flex;
+                align-items:center;
+                gap:10px;
+                padding:10px 14px;
+                cursor:pointer;
+                background:${facChecked ? '#e8f1fd' : '#fff'};
+                border-bottom:${facChecked ? '1px solid #c8dcfa' : '1px solid transparent'};
+                user-select:none;
+                transition:background 0.2s;
+            `;
+            headerEl.innerHTML = `
+                <input type="checkbox"
+                       name="facultades[]"
+                       value="${facId}"
+                       class="chk-fac"
+                       data-fac-id="${facId}"
+                       ${facChecked ? 'checked' : ''}
+                       style="width:17px;height:17px;cursor:pointer;flex-shrink:0;"
+                       onclick="event.stopPropagation()">
+                <span style="font-weight:600;font-size:0.95em;color:#1a3a5c;flex:1;">${facultad.nombre}</span>
+                <span style="color:#7a9cc8;font-size:0.8em;margin-right:4px;">(${facultad.siglas})</span>
+                <span class="fac-chevron" style="font-size:0.85em;color:#7a9cc8;transition:transform 0.2s;transform:${facChecked ? 'rotate(180deg)' : 'rotate(0deg)'};">▼</span>
+            `;
+            facCard.appendChild(headerEl);
+
+            // ── 3. Cuerpo de carreras (colapsable) ────────────────────────────
+            const bodyEl = document.createElement('div');
+            bodyEl.id = `carreras-fac-${facId}`;
+            bodyEl.style.cssText = `
+                display:${facChecked ? 'flex' : 'none'};
+                flex-direction:column;
+                gap:6px;
+                padding:${facChecked ? '10px 14px' : '0 14px'};
+                background:#fbfcff;
+            `;
+
+            if (carrerasFacultad.length > 0) {
+                carrerasFacultad.forEach(carrera => {
+                    const carId = carrera.id;
+                    const nombreCarrera = carrera.nombre_completo || carrera.nombre;
+                    const carChecked = carrerasSeleccionadas.includes(String(carId)) || carrerasSeleccionadas.includes(carId);
+                    const cupoH = cuposGuardados[carId] ? cuposGuardados[carId].hombres : '';
+                    const cupoM = cuposGuardados[carId] ? cuposGuardados[carId].mujeres : '';
+
+                    const carRow = document.createElement('div');
+                    carRow.className = 'car-row-pausa';
+                    carRow.style.cssText = `
+                        border:1px solid ${carChecked ? '#b3d1fa' : '#e5eaf2'};
+                        border-radius:6px;
+                        background:${carChecked ? '#f0f7ff' : '#fff'};
+                        overflow:hidden;
+                        transition:border-color 0.2s,background 0.2s;
+                    `;
+                    carRow.innerHTML = `
+                        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;"
+                             onclick="event.stopPropagation()">
+                            <input type="checkbox"
+                                   class="chk-car"
+                                   name="carreras_habilitadas[]"
+                                   value="${carId}"
+                                   data-car-id="${carId}"
+                                   ${carChecked ? 'checked' : ''}
+                                   style="width:15px;height:15px;cursor:pointer;flex-shrink:0;"
+                                   onclick="event.stopPropagation()">
+                            <span style="font-size:0.88em;color:#2d4a6e;flex:1;">${nombreCarrera}</span>
+                        </div>
+                        <div id="cupos-car-${carId}"
+                             style="display:${carChecked ? 'flex' : 'none'};gap:12px;padding:6px 10px 10px 33px;flex-wrap:wrap;background:#e8f1fd;border-top:1px solid #c8dcfa;">
+                            <label style="display:flex;flex-direction:column;gap:3px;font-size:0.78em;font-weight:600;color:#3a5a8c;">
+                                <span>♀ Mujeres</span>
+                                <input type="number"
+                                       name="cupos[${carId}][mujeres]"
+                                       value="${cupoM}"
+                                       placeholder="0" min="0"
+                                       ${carChecked ? '' : 'disabled'}
+                                       style="width:72px;padding:5px 7px;border:1px solid #a8c8f8;border-radius:5px;font-size:1em;text-align:center;">
+                            </label>
+                            <label style="display:flex;flex-direction:column;gap:3px;font-size:0.78em;font-weight:600;color:#3a5a8c;">
+                                <span>♂ Hombres</span>
+                                <input type="number"
+                                       name="cupos[${carId}][hombres]"
+                                       value="${cupoH}"
+                                       placeholder="0" min="0"
+                                       ${carChecked ? '' : 'disabled'}
+                                       style="width:72px;padding:5px 7px;border:1px solid #a8c8f8;border-radius:5px;font-size:1em;text-align:center;">
+                            </label>
+                        </div>
+                    `;
+                    bodyEl.appendChild(carRow);
+                });
+            } else {
+                bodyEl.innerHTML = '<p style="font-size:0.82em;color:#aaa;padding:4px 0;">No hay carreras registradas en esta facultad.</p>';
+            }
+
+            facCard.appendChild(bodyEl);
+            container.appendChild(facCard);
+
+            // ── 4. Evento: TOGGLE del header (click en el div del header) ─────
+            // Clic en el área del header (no en el checkbox) → solo colapsa/expande
+            headerEl.addEventListener('click', () => {
+                const isOpen = bodyEl.style.display !== 'none';
+                if (isOpen) {
+                    bodyEl.style.display = 'none';
+                    bodyEl.style.padding = '0 14px';
+                    headerEl.querySelector('.fac-chevron').style.transform = 'rotate(0deg)';
+                } else {
+                    bodyEl.style.display = 'flex';
+                    bodyEl.style.padding = '10px 14px';
+                    headerEl.querySelector('.fac-chevron').style.transform = 'rotate(180deg)';
+                }
+            });
+
+            // ── 5. Evento: CHECKBOX de facultad ───────────────────────────────
+            const chkFac = headerEl.querySelector('.chk-fac');
+            chkFac.addEventListener('change', () => {
+                if (chkFac.checked) {
+                    // Marcar → expandir y resaltar
+                    bodyEl.style.display = 'flex';
+                    bodyEl.style.padding = '10px 14px';
+                    headerEl.style.background = '#e8f1fd';
+                    headerEl.style.borderBottom = '1px solid #c8dcfa';
+                    facCard.style.borderColor = '#a8c8f8';
+                    headerEl.querySelector('.fac-chevron').style.transform = 'rotate(180deg)';
+                } else {
+                    // Desmarcar → colapsar y limpiar todas las carreras
+                    bodyEl.style.display = 'none';
+                    bodyEl.style.padding = '0 14px';
+                    headerEl.style.background = '#fff';
+                    headerEl.style.borderBottom = '1px solid transparent';
+                    facCard.style.borderColor = '#dde3ed';
+                    headerEl.querySelector('.fac-chevron').style.transform = 'rotate(0deg)';
+
+                    bodyEl.querySelectorAll('.chk-car').forEach(cChk => {
+                        cChk.checked = false;
+                        const cuposDiv = bodyEl.querySelector(`#cupos-car-${cChk.dataset.carId}`);
+                        if (cuposDiv) {
+                            cuposDiv.style.display = 'none';
+                            cuposDiv.querySelectorAll('input[type="number"]').forEach(i => { i.disabled = true; i.value = ''; });
+                        }
+                        const carRowEl = cChk.closest('.car-row-pausa');
+                        if (carRowEl) { carRowEl.style.borderColor = '#e5eaf2'; carRowEl.style.background = '#fff'; }
                     });
                 }
             });
+
+            // ── 6. Evento: CHECKBOX de cada carrera ───────────────────────────
+            bodyEl.querySelectorAll('.chk-car').forEach(chkCar => {
+                chkCar.addEventListener('change', () => {
+                    const carId = chkCar.dataset.carId;
+                    const cuposDiv = document.getElementById(`cupos-car-${carId}`);
+                    const carRowEl = chkCar.closest('.car-row-pausa');
+
+                    if (chkCar.checked) {
+                        if (cuposDiv) {
+                            cuposDiv.style.display = 'flex';
+                            cuposDiv.querySelectorAll('input[type="number"]').forEach(i => i.disabled = false);
+                        }
+                        if (carRowEl) { carRowEl.style.borderColor = '#b3d1fa'; carRowEl.style.background = '#f0f7ff'; }
+                    } else {
+                        if (cuposDiv) {
+                            cuposDiv.style.display = 'none';
+                            cuposDiv.querySelectorAll('input[type="number"]').forEach(i => { i.disabled = true; i.value = ''; });
+                        }
+                        if (carRowEl) { carRowEl.style.borderColor = '#e5eaf2'; carRowEl.style.background = '#fff'; }
+                    }
+                });
+            });
+        });
+
+    } else {
+        // ─── MODO EVENTO NORMAL: grid compacto ────────────────────────────────
+        container.style.cssText = `
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+            gap: 10px !important;
+            max-height: 180px !important;
+            overflow-y: auto !important;
+            padding: 10px !important;
+            border: 1px solid #eee !important;
+            border-radius: 6px !important;
+            background: #f9f9f9 !important;
+        `;
+        facultadesMostrar.forEach(facultad => {
+            const isChecked = facultadesSeleccionadas.includes(String(facultad.id)) || facultadesSeleccionadas.includes(facultad.id) ? 'checked' : '';
+            container.innerHTML += `
+                <label style="display:flex;align-items:center;padding:8px;cursor:pointer;border-radius:3px;">
+                    <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right:10px;">
+                    <span style="font-weight:500;">${facultad.nombre}</span>
+                    <span style="color:#666;margin-left:5px;">(${facultad.siglas})</span>
+                </label>
+            `;
         });
     }
 }
@@ -316,10 +488,14 @@ export function poblarFormularioParaEditar(evento, periodoActivoNombre) {
 
     mostrarCamposEquipo(evento.tipo_registro);
 
+    // Establecer tipo_creacion ANTES de llamar renderizarFacultadesFiltradas
+    // para que la función sepa si debe renderizar el modo Pausa Activa.
+    const inputTipoCreacionEdit = document.getElementById('tipo_creacion');
+    if (inputTipoCreacionEdit) inputTipoCreacionEdit.value = evento.tipo_creacion || 'evento';
+
     // === LÓGICA DE CAMPUS Y FACULTADES ===
-    
+
     // 1. Marcar los Campus (Unidades)
-    // Asumiendo que el evento tiene un campo 'campus_id' (único)
     const campusId = String(evento.campus_id);
     const campusCheckboxes = document.querySelectorAll('input[name="campus[]"]');
     let campusSeleccionados = [];
@@ -333,15 +509,28 @@ export function poblarFormularioParaEditar(evento, periodoActivoNombre) {
         }
     });
 
-    // 2. Obtener los IDs de facultades guardadas
-    // El backend devuelve 'facultades_ids' como string "1,5,8"
-    let facultadesGuardadas = [];
-    if (evento.facultades_ids) {
-        facultadesGuardadas = String(evento.facultades_ids).split(',');
+    // 2. Para eventos normales: usar facultades_ids del evento
+    // Para pausas activas: cargar cupos guardados desde el backend
+    if (evento.tipo_creacion === 'pausa_activa') {
+        // Cargar cupos de carreras habilitadas para pre-poblar el modal
+        fetch(`../../php/admin/obtenerCuposPausaActiva.php?evento_id=${evento.id}`)
+            .then(r => r.json())
+            .then(data => {
+                const cuposGuardados    = data.success ? data.cupos        : {};
+                const carrerasIds       = data.success ? data.carrerasIds  : [];
+                const facultadesIds     = data.success ? data.facultadesIds.map(String) : [];
+                renderizarFacultadesFiltradas(campusSeleccionados, facultadesIds, cuposGuardados, carrerasIds.map(String));
+            })
+            .catch(() => {
+                renderizarFacultadesFiltradas(campusSeleccionados, [], {}, []);
+            });
+    } else {
+        let facultadesGuardadas = [];
+        if (evento.facultades_ids) {
+            facultadesGuardadas = String(evento.facultades_ids).split(',');
+        }
+        renderizarFacultadesFiltradas(campusSeleccionados, facultadesGuardadas);
     }
-
-    // 3. Ejecutar el filtro visual y marcar las facultades guardadas
-    renderizarFacultadesFiltradas(campusSeleccionados, facultadesGuardadas);
 }
 
 /**

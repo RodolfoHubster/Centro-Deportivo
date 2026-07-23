@@ -1,6 +1,6 @@
 /**
  * Generación de reportes Excel y PDF
- * Funciona tanto para inscripciones generales como para participantes de eventos
+ * Funciona tanto para inscripciones generales, eventos normales como para pausas activas
  */
 
 // Función para obtener los filtros actuales (para inscripciones)
@@ -22,17 +22,6 @@ function obtenerFiltros() {
         }
     }
     
-    console.log('Filtros capturados:', { 
-        buscar, 
-        eventoNombre, 
-        eventoId, 
-        genero, 
-        tipoParticipante,
-        carrera,
-        facultad,
-        campus
-    });
-    
     return {
         buscar: buscar,
         evento_id: eventoId,
@@ -46,8 +35,13 @@ function obtenerFiltros() {
 
 // Función para detectar si estamos en la página de participantes
 function estiloEnPaginaParticipantes() {
-    // Detectar si existe el elemento específico de participantes
     return document.getElementById('tabla-participantes') !== null;
+}
+
+// Función para detectar si la vista actual corresponde a una Pausa Activa
+function esVistaPausaActiva() {
+    const seccionPausa = document.getElementById('seccion-pausa-activa');
+    return seccionPausa && seccionPausa.style.display !== 'none';
 }
 
 // Función para obtener el evento_id de la URL
@@ -62,16 +56,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnExcel = document.getElementById('btnGenerarExcel');
         const btnPDF = document.getElementById('btnGenerarPDF');
         
-        // Detectar en qué página estamos
         const esPaginaParticipantes = estiloEnPaginaParticipantes();
         
         if (btnExcel) {
             btnExcel.addEventListener('click', function() {
-                if (esPaginaParticipantes) {
-                    // ============ LÓGICA PARA PARTICIPANTES DEL EVENTO ============
+                const pausaActivaActiva = esVistaPausaActiva();
+                const eventoId = obtenerEventoIdDeURL();
+
+                if (pausaActivaActiva) {
+                    // ============ LÓGICA EXCEL PARA PAUSAS ACTIVAS ============
+                    console.log('Generando Excel de Pausa Activa...');
+                    if (!eventoId) {
+                        alert('No se pudo identificar el evento de pausa activa');
+                        return;
+                    }
+                    const url = `../../php/admin/generarExcelPausas.php?evento_id=${eventoId}`;
+                    window.open(url, '_blank');
+
+                } else if (esPaginaParticipantes) {
+                    // ============ LÓGICA PARA PARTICIPANTES DEL EVENTO NORMAL ============
                     console.log('Generando Excel de Participantes del Evento...');
-                    
-                    const eventoId = obtenerEventoIdDeURL();
                     
                     if (!eventoId) {
                         alert('No se pudo identificar el evento');
@@ -88,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     const params = new URLSearchParams(filtros);
                     const url = '../../php/admin/generarExcel.php?' + params.toString();
-                    console.log('URL Excel Evento:', url);
                     window.open(url, '_blank');
                     
                 } else {
@@ -97,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const filtros = obtenerFiltros();
                     const params = new URLSearchParams(filtros);
                     const url = '../../php/admin/generarExcel.php?' + params.toString();
-                    console.log('URL Excel:', url);
                     window.open(url, '_blank');
                 }
             });
@@ -107,11 +109,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (btnPDF) {
             btnPDF.addEventListener('click', function() {
-                if (esPaginaParticipantes) {
-                    // ============ LÓGICA PARA PARTICIPANTES DEL EVENTO ============
+                const pausaActivaActiva = esVistaPausaActiva();
+                const eventoId = obtenerEventoIdDeURL();
+
+                if (pausaActivaActiva) {
+                    // ============ LÓGICA PDF PARA PAUSAS ACTIVAS ============
+                    console.log('Generando PDF de Pausa Activa...');
+                    if (!eventoId) {
+                        alert('No se pudo identificar el evento de pausa activa');
+                        return;
+                    }
+                    const url = `../../php/admin/generarPDFPausas.php?evento_id=${eventoId}&modo=descargar`;
+                    window.open(url, '_blank');
+
+                } else if (esPaginaParticipantes) {
+                    // ============ LÓGICA PARA PARTICIPANTES DEL EVENTO NORMAL ============
                     console.log('Generando PDF de Participantes del Evento...');
-                    
-                    const eventoId = obtenerEventoIdDeURL();
                     
                     if (!eventoId) {
                         alert('No se pudo identificar el evento');
@@ -129,7 +142,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const params = new URLSearchParams(filtros);
                     params.append('modo', 'descargar');
                     const url = '../../php/admin/generarPDF.php?' + params.toString();
-                    console.log('URL PDF Evento:', url);
                     window.open(url, '_blank');
                     
                 } else {
@@ -139,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const params = new URLSearchParams(filtros);
                     params.append('modo', 'descargar');
                     const url = '../../php/admin/generarPDF.php?' + params.toString();
-                    console.log('URL PDF:', url);
                     window.open(url, '_blank');
                 }
             });

@@ -216,6 +216,32 @@ try {
         mysqli_stmt_close($stmtFacultad);
     }
     
+    // === 5.3 RE-ASOCIAR CUPOS DE PAUSA ACTIVA ===
+    if ($tipo_creacion === 'pausa_activa') {
+        $sqlDeleteCupos = "DELETE FROM evento_carrera_cupos WHERE evento_id = ?";
+        $stmtDelCupos = mysqli_prepare($conexion, $sqlDeleteCupos);
+        if ($stmtDelCupos) {
+            mysqli_stmt_bind_param($stmtDelCupos, 'i', $evento_id);
+            mysqli_stmt_execute($stmtDelCupos);
+            mysqli_stmt_close($stmtDelCupos);
+        }
+
+        if (isset($_POST['cupos']) && is_array($_POST['cupos'])) {
+            $sqlCupos = "INSERT INTO evento_carrera_cupos (evento_id, carrera_id, cupo_hombres, cupo_mujeres) VALUES (?, ?, ?, ?)";
+            $stmtCupos = mysqli_prepare($conexion, $sqlCupos);
+            if ($stmtCupos) {
+                foreach ($_POST['cupos'] as $carrera_id => $espacios) {
+                    $carrera_id = intval($carrera_id);
+                    $hombres = isset($espacios['hombres']) ? intval($espacios['hombres']) : 0;
+                    $mujeres = isset($espacios['mujeres']) ? intval($espacios['mujeres']) : 0;
+                    mysqli_stmt_bind_param($stmtCupos, 'iiii', $evento_id, $carrera_id, $hombres, $mujeres);
+                    mysqli_stmt_execute($stmtCupos);
+                }
+                mysqli_stmt_close($stmtCupos);
+            }
+        }
+    }
+    
     // ===================================
     // 6. CONFIRMAR TRANSACCIÓN
     // ===================================

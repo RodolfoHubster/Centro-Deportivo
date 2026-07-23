@@ -1,4 +1,5 @@
 <?php
+ob_start();
 /**
  * Generar Reporte PDF - Versión Jerárquica con Filtros Completos
  */
@@ -321,6 +322,7 @@ try {
         $pdf->Ln(); $fill = !$fill;
     }
 
+    ob_end_clean();
     $pdf->Output('Reporte.pdf', 'I');
     if (isset($stmt)) mysqli_stmt_close($stmt);
     mysqli_close($conexion);

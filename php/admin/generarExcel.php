@@ -1,4 +1,5 @@
 <?php
+ob_start();
 /**
  * Generar Reporte Excel - Versión Jerárquica con Filtros Completos
  */
@@ -327,6 +328,10 @@ try {
     }
 
     $filename = 'Reporte_' . date('Ymd_His') . '.xlsx';
+    
+    // Clear buffer before output
+    ob_end_clean();
+    
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment;filename="' . $filename . '"');
     header('Cache-Control: max-age=0');

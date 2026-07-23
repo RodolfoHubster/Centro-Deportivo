@@ -63,6 +63,21 @@ export async function cargarFacultades() {
 }
 
 /**
+ * Carga lista de carreras
+ * @returns {Array}
+ */
+export async function cargarCarreras() {
+    try {
+        const response = await fetch('../../php/public/obtenerCarreras.php');
+        const data = await response.json();
+        return (data.success && data.carreras) ? data.carreras : [];
+    } catch (error) {
+        console.error('Error cargando carreras: ', error);
+        return [];
+    }
+}
+
+/**
  * Carga lista de eventos
  * @param {boolean} [incluirInactivos=false] - Si es true, incluye eventos con activo=0 y fechas pasadas.
  * @returns {Array}
