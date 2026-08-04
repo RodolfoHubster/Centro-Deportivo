@@ -53,6 +53,13 @@ try {
         $valores_params[] = '%' . $_GET['campus'] . '%';
     }
 
+    // Filtro por periodo
+    if (isset($_GET['periodo']) && !empty($_GET['periodo']) && $_GET['periodo'] !== 'Todos') {
+        $filtros[] = "e.periodo = ?";
+        $tipos_params .= 's';
+        $valores_params[] = $_GET['periodo'];
+    }
+
     // Otros filtros
     if (isset($_GET['categoria_deporte']) && !empty($_GET['categoria_deporte'])) {
         $filtros[] = "e.categoria_deporte = ?";

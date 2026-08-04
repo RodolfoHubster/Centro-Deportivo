@@ -34,12 +34,21 @@ async function verificarSesion() {
 
 async function cargarDatosIniciales() {
     try {
-        // Carga paralela de TODOS los catálogos
-        const [campus, eventos, facultades, carreras] = await Promise.all([
+        // Petición protegida para que si falla no rompa el resto del código
+        const fetchPeriodos = fetch('../../php/admin/obtenerPeriodos.php')
+            .then(res => res.json())
+            .catch(err => {
+                console.error("Error cargando periodos:", err);
+                return { success: false, periodos: [] };
+            });
+
+        // Carga paralela de TODOS los catálogos + PERIODOS DINÁMICOS
+        const [campus, eventos, facultades, carreras, reqPeriodos] = await Promise.all([
             api.cargarCampus(),
             api.cargarEventos(true), 
             api.cargarFacultades(),
-            fetch('../../php/public/obtenerCarreras.php').then(res => res.json())
+            fetch('../../php/public/obtenerCarreras.php').then(res => res.json()),
+            fetchPeriodos
         ]);
 
         todosLosCampus = campus || [];
@@ -47,13 +56,26 @@ async function cargarDatosIniciales() {
         todasLasFacultades = facultades || [];
         todasLasCarreras = carreras.carreras || carreras || [];
 
-        // 1. Llenar filtro MAESTRO: CAMPUS
+        // 1. Llenar el filtro de Periodos Dinámicamente desde la Base de Datos
+        if(reqPeriodos && reqPeriodos.success && reqPeriodos.periodos && reqPeriodos.periodos.length > 0) {
+            const selectPeriodo = document.getElementById('filtroPeriodo');
+            if (selectPeriodo) {
+                selectPeriodo.innerHTML = '<option value="Todos">Todos (Histórico completo)</option>';
+                reqPeriodos.periodos.forEach((p, index) => {
+                    // Seleccionar automáticamente el primero de la base de datos (el más reciente)
+                    const isSelected = index === 0 ? 'selected' : '';
+                    selectPeriodo.innerHTML += `<option value="${p}" ${isSelected}>${p} ${index === 0 ? '(Activo)' : ''}</option>`;
+                });
+            }
+        }
+
+        // 2. Llenar filtro MAESTRO: CAMPUS
         poblarSelect('filtroCampus', todosLosCampus, 'Todos los Campus');
         
-        // 2. Llenar filtros dependientes
+        // 3. Llenar filtros dependientes
         actualizarDropdownsPorCampus(''); 
 
-        // 3. Cargar la tabla
+        // 4. Cargar la tabla
         cargarTablaInscripciones();
 
     } catch (error) {
@@ -69,30 +91,25 @@ function configurarListeners() {
     if (selectCampus) {
         selectCampus.addEventListener('change', (e) => {
             const campusId = e.target.value;
-            
-            // 1. Filtrar los 3 dropdowns dependientes
             actualizarDropdownsPorCampus(campusId);
             
-            // 2. Resetear selecciones
             document.getElementById('filtroEvento').value = '';
             document.getElementById('filtroFacultad').value = ''; 
             document.getElementById('filtroCarrera').value = ''; 
 
-            // 3. Recargar la tabla
             paginaActual = 1;
             cargarTablaInscripciones();
         });
-
     }
+
     if (selectFacultad) {
         selectFacultad.addEventListener('change', (e) => {
-            // Al cambiar la facultad, filtramos las carreras disponibles
             actualizarCarrerasPorFacultad(e.target.value);
         });
     }
 
-    // Listeners para todos los filtros
-    const filtros = ['buscarInscripcion', 'filtroEvento', 'filtroGenero', 'filtroTipo', 'filtroFacultad', 'filtroCarrera'];
+    // AQUI ESTABA EL ERROR: Agregamos 'filtroPeriodo' al arreglo para que escuche el cambio
+    const filtros = ['buscarInscripcion', 'filtroPeriodo', 'filtroEvento', 'filtroGenero', 'filtroTipo', 'filtroFacultad', 'filtroCarrera'];
     filtros.forEach(id => {
         const elem = document.getElementById(id);
         if (elem) {
@@ -110,6 +127,13 @@ function configurarListeners() {
 
     document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
         document.getElementById('buscarInscripcion').value = '';
+        
+        // Regresar el periodo al más reciente en lugar de dejarlo vacío
+        const filtroP = document.getElementById('filtroPeriodo');
+        if(filtroP && filtroP.options.length > 1) {
+            filtroP.selectedIndex = 1; // Selecciona el índice 1 que es el periodo activo
+        }
+        
         document.getElementById('filtroCampus').value = '';
         document.getElementById('filtroEvento').value = '';
         document.getElementById('filtroGenero').value = '';
@@ -139,51 +163,38 @@ function configurarListeners() {
     });
 }
 
-/**
- * Filtra Eventos, Facultades y Carreras según el Campus
- */
 function actualizarDropdownsPorCampus(campusId) {
     let eventosFiltrados = todosLosEventos;
     let facultadesFiltradas = todasLasFacultades;
     let carrerasFiltradas = todasLasCarreras;
 
     if (campusId) {
-        // Filtrar todo por el ID de Campus
         eventosFiltrados = todosLosEventos.filter(e => String(e.campus_id) === String(campusId));
         facultadesFiltradas = todasLasFacultades.filter(f => String(f.campus_id) === String(campusId));
         carrerasFiltradas = todasLasCarreras.filter(c => String(c.campus_id) === String(campusId));
     }
 
-    // Repoblar selects
     poblarSelect('filtroEvento', eventosFiltrados, campusId ? 'Eventos de este campus' : 'Todos los eventos');
     poblarSelect('filtroFacultad', facultadesFiltradas, campusId ? 'Facultades de este campus' : 'Todas las facultades');
     poblarSelect('filtroCarrera', carrerasFiltradas, campusId ? 'Carreras de este campus' : 'Todas las carreras');
 }
-/**
- * Filtra las carreras basándose en la Facultad seleccionada (y respeta el Campus si hay uno)
- */
+
 function actualizarCarrerasPorFacultad(facultadId) {
     const campusId = document.getElementById('filtroCampus').value;
     let carrerasFiltradas = todasLasCarreras;
 
-    // 1. Si hay campus seleccionado, filtramos primero por campus
     if (campusId) {
         carrerasFiltradas = carrerasFiltradas.filter(c => String(c.campus_id) === String(campusId));
     }
-
-    // 2. Si hay facultad seleccionada, filtramos las carreras de ESA facultad
     if (facultadId) {
         carrerasFiltradas = carrerasFiltradas.filter(c => String(c.facultad_id) === String(facultadId));
     }
 
-    // 3. Actualizamos el dropdown de carreras
-    // Nota: Esto usará tu función poblarSelect modificada (la que muestra los nombres largos)
     const textoDefault = facultadId ? 'Carreras de esta facultad' : (campusId ? 'Carreras de este campus' : 'Todas las carreras');
     poblarSelect('filtroCarrera', carrerasFiltradas, textoDefault);
-    
-    // 4. Limpiamos la selección actual de carrera para evitar inconsistencias
     document.getElementById('filtroCarrera').value = ''; 
 }
+
 function poblarSelect(id, datos, textoDefault) {
     const select = document.getElementById(id);
     if (!select) return;
@@ -194,20 +205,16 @@ function poblarSelect(id, datos, textoDefault) {
     datos.forEach(item => {
         let texto = item.nombre_completo || item.nombre;
         
-        // CORRECCIÓN ESPECÍFICA PARA EL CASO DE SIGLAS NULL
         if (id === 'filtroCarrera') {
-            // Intentamos usar siglas; si es null o vacío, usamos el nombre completo de la facultad
             const distintivo = item.facultad_siglas ? item.facultad_siglas : item.facultad_nombre;
-            
             if (distintivo) {
-                // Agregamos el distintivo entre paréntesis
                 texto += ` - ${distintivo}`; 
             }
         }
-        
         select.innerHTML += `<option value="${item.id}">${texto}</option>`;
     });
 }
+
 function configurarOrdenamiento() {
     const headers = document.querySelectorAll('th.sortable');
     headers.forEach(th => {
@@ -244,6 +251,8 @@ function cargarTablaInscripciones() {
     params.append('direccion', direccionOrden);
 
     const buscar = document.getElementById('buscarInscripcion').value;
+    const periodoEl = document.getElementById('filtroPeriodo');
+    const periodo = periodoEl ? periodoEl.value : '';
     const campus = document.getElementById('filtroCampus').value;
     const evento = document.getElementById('filtroEvento').value;
     const genero = document.getElementById('filtroGenero').value;
@@ -252,12 +261,13 @@ function cargarTablaInscripciones() {
     const carrera = document.getElementById('filtroCarrera').value;
 
     if (buscar) params.append('buscar', buscar);
+    if (periodo && periodo !== 'Todos') params.append('periodo', periodo);
     if (campus) params.append('campus_id', campus);
     if (evento) params.append('evento_id', evento);
     if (genero) params.append('genero', genero);
     if (tipo) params.append('tipo_participante', tipo);
-    if (facultad) params.append('facultad_id', facultad); // Enviamos facultad
-    if (carrera) params.append('carrera_id', carrera); // Enviamos carrera
+    if (facultad) params.append('facultad_id', facultad); 
+    if (carrera) params.append('carrera_id', carrera); 
 
     document.getElementById('tbody-inscripciones').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Cargando...</td></tr>';
 
@@ -303,12 +313,10 @@ function mostrarInscripciones(lista) {
             fecha = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
 
-        // --- LÓGICA DE EQUIPO VS INDIVIDUAL ---
         let infoEquipoHTML = '';
         
         if (insc.tipo_registro === 'Por equipos') {
-            // Es registro por equipo
-            const esCapitan = insc.es_capitan == 1; // Asegurar booleano
+            const esCapitan = insc.es_capitan == 1;
             const iconoCapitan = esCapitan 
                 ? '<span title="Capitán del equipo" style="color:#eab308; margin-left:5px;">★</span>' 
                 : '';
@@ -321,7 +329,6 @@ function mostrarInscripciones(lista) {
                 <small style="color:#666; font-size: 0.8em;">(Equipo)</small>
             `;
         } else {
-            // Es individual
             infoEquipoHTML = `
                 <span style="color:#666; font-style:italic;">Individual</span>
             `;
