@@ -1,7 +1,7 @@
 <?php
 /**
- * Ver Inscripciones - ACTUALIZADO CON VISTA OPTIMIZADA
- * Usa la vista v_inscripciones_completas para mejor rendimiento
+ * Ver Inscripciones - CORREGIDO
+ * Usa la vista v_inscripciones_completas unida a la tabla evento para filtrar por periodo
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -10,117 +10,127 @@ header('Access-Control-Allow-Origin: *');
 include '../includes/conexion.php';
 
 try {
-    // Query base usando la vista optimizada
+    // Añadimos alias 'v' a la vista y la unimos con la tabla evento 'e' para obtener el periodo
     $sql = "SELECT 
-                id,
-                evento_id,
-                evento_nombre,
-                fecha_inicio,
-                fecha_termino,
-                tipo_actividad,
-                categoria_deporte,
-                campus_nombre,
-                participante_matricula,
-                nombre_completo,
-                nombres,
-                apellido_paterno,
-                apellido_materno,
-                correo_institucional,
-                genero,
-                tipo_participante,
-                carrera_nombre,
-                carrera_codigo,
-                es_tronco_comun,
-                area_tronco_comun,
-                facultad_nombre,
-                facultad_siglas,
-                fecha_inscripcion,
-                equipo_id,
-                es_capitan,
-                tipo_registro,  
-                nombre_equipo
-            FROM v_inscripciones_completas";
+                v.id,
+                v.evento_id,
+                v.evento_nombre,
+                v.fecha_inicio,
+                v.fecha_termino,
+                v.tipo_actividad,
+                v.categoria_deporte,
+                v.campus_nombre,
+                v.participante_matricula,
+                v.nombre_completo,
+                v.nombres,
+                v.apellido_paterno,
+                v.apellido_materno,
+                v.correo_institucional,
+                v.genero,
+                v.tipo_participante,
+                v.carrera_nombre,
+                v.carrera_codigo,
+                v.es_tronco_comun,
+                v.area_tronco_comun,
+                v.facultad_nombre,
+                v.facultad_siglas,
+                v.fecha_inscripcion,
+                v.equipo_id,
+                v.es_capitan,
+                v.tipo_registro,  
+                v.nombre_equipo,
+                e.periodo
+            FROM v_inscripciones_completas v
+            INNER JOIN evento e ON v.evento_id = e.id";
     
     $whereConditions = [];
     $params = [];
     $types = '';
     
     // ===================================
-    // FILTROS DISPONIBLES
+    // FILTROS DISPONIBLES (Con prefijos v. y e. para evitar ambigüedad)
     // ===================================
     
     // Filtro por evento
     if (isset($_GET['evento_id']) && !empty($_GET['evento_id'])) {
-        $whereConditions[] = "evento_id = ?";
+        $whereConditions[] = "v.evento_id = ?";
         $params[] = intval($_GET['evento_id']);
         $types .= 'i';
+    }
+
+    // Filtro por periodo (Este era el que causaba el error)
+    if (isset($_GET['periodo']) && !empty($_GET['periodo']) && $_GET['periodo'] !== 'Todos') {
+        $whereConditions[] = "e.periodo = ?"; 
+        $params[] = mysqli_real_escape_string($conexion, $_GET['periodo']);
+        $types .= 's';
     }
     
     // Filtro por campus
     if (isset($_GET['campus_id']) && !empty($_GET['campus_id'])) {
-        $whereConditions[] = "campus_id = ?";
+        // Asumiendo que la vista tiene la columna campus_id oculta, si no, filtramos por e.campus_id
+        $whereConditions[] = "e.campus_id = ?";
         $params[] = intval($_GET['campus_id']);
         $types .= 'i';
     }
     
     // Filtro por facultad
     if (isset($_GET['facultad_id']) && !empty($_GET['facultad_id'])) {
-        $whereConditions[] = "facultad_id = ?";
+        $whereConditions[] = "v.facultad_id = ?";
         $params[] = intval($_GET['facultad_id']);
         $types .= 'i';
     }
     
     // Filtro por carrera
     if (isset($_GET['carrera_id']) && !empty($_GET['carrera_id'])) {
-        $whereConditions[] = "carrera_id = ?";
+        $whereConditions[] = "v.carrera_id = ?";
         $params[] = intval($_GET['carrera_id']);
         $types .= 'i';
     }
     
     // Filtro por género
     if (isset($_GET['genero']) && !empty($_GET['genero'])) {
-        $whereConditions[] = "genero = ?";
+        $whereConditions[] = "v.genero = ?";
         $params[] = mysqli_real_escape_string($conexion, $_GET['genero']);
         $types .= 's';
     }
     
     // Filtro por tipo de participante
     if (isset($_GET['tipo_participante']) && !empty($_GET['tipo_participante'])) {
-        $whereConditions[] = "tipo_participante = ?";
+        $whereConditions[] = "v.tipo_participante = ?";
         $params[] = mysqli_real_escape_string($conexion, $_GET['tipo_participante']);
         $types .= 's';
     }
     
     // Filtro por tipo de actividad
     if (isset($_GET['tipo_actividad']) && !empty($_GET['tipo_actividad'])) {
-        $whereConditions[] = "tipo_actividad = ?";
+        $whereConditions[] = "v.tipo_actividad = ?";
         $params[] = mysqli_real_escape_string($conexion, $_GET['tipo_actividad']);
         $types .= 's';
     }
     
     // Filtro por categoría deportiva
     if (isset($_GET['categoria_deporte']) && !empty($_GET['categoria_deporte'])) {
-        $whereConditions[] = "categoria_deporte = ?";
+        $whereConditions[] = "v.categoria_deporte = ?";
         $params[] = mysqli_real_escape_string($conexion, $_GET['categoria_deporte']);
         $types .= 's';
     }
     
     // Filtro por equipo
     if (isset($_GET['equipo_id']) && !empty($_GET['equipo_id'])) {
-        $whereConditions[] = "equipo_id = ?";
+        $whereConditions[] = "v.equipo_id = ?";
         $params[] = intval($_GET['equipo_id']);
         $types .= 'i';
     }
     
     // Filtro: solo capitanes
     if (isset($_GET['solo_capitanes']) && $_GET['solo_capitanes'] === '1') {
-        $whereConditions[] = "es_capitan = 1";
+        $whereConditions[] = "v.es_capitan = 1";
     }
     
     // Búsqueda por nombre o matrícula
     if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
         $buscar = mysqli_real_escape_string($conexion, $_GET['buscar']);
-        $whereConditions[] = "(nombre_completo LIKE ? OR participante_matricula LIKE ? OR correo_institucional LIKE ?)";
+        $whereConditions[] = "(v.nombre_completo LIKE ? OR v.participante_matricula LIKE ? OR v.correo_institucional LIKE ?)";
         $params[] = "%{$buscar}%";
         $params[] = "%{$buscar}%";
         $params[] = "%{$buscar}%";
@@ -152,7 +162,8 @@ try {
         $ordenamiento = 'fecha_inscripcion';
     }
     
-    $sql .= " ORDER BY {$ordenamiento} {$direccion}";
+    // Añadimos el alias 'v.' para evitar ambigüedades en el ORDER BY
+    $sql .= " ORDER BY v.{$ordenamiento} {$direccion}";
     
     // Paginación
     $limite = isset($_GET['limite']) ? intval($_GET['limite']) : 50;
@@ -167,7 +178,7 @@ try {
     }
     
     // ===================================
-    // EJECUTAR CONSULTA
+    // EJECUTAR CONSULTA PRINCIPAL
     // ===================================
     
     if (!empty($params)) {
@@ -189,16 +200,13 @@ try {
     
     $inscripciones = [];
     while ($row = mysqli_fetch_assoc($resultado)) {
-        // Formatear fechas
         $row['fecha_inscripcion_formato'] = date('d/m/Y H:i', strtotime($row['fecha_inscripcion']));
         $row['fecha_inicio_formato'] = date('d/m/Y', strtotime($row['fecha_inicio']));
         $row['fecha_termino_formato'] = date('d/m/Y', strtotime($row['fecha_termino']));
         
-        // Conversiones booleanas
         $row['es_tronco_comun'] = (bool)$row['es_tronco_comun'];
         $row['es_capitan'] = (bool)$row['es_capitan'];
         
-        // Formatear carrera (manejar tronco común)
         if ($row['es_tronco_comun']) {
             $row['carrera_display'] = "TC - " . $row['area_tronco_comun'];
         } else {
@@ -209,18 +217,17 @@ try {
     }
     
     // ===================================
-    // CONTAR TOTAL DE REGISTROS
+    // CONTAR TOTAL DE REGISTROS (También con JOIN)
     // ===================================
     
-    $sqlCount = "SELECT COUNT(*) as total FROM v_inscripciones_completas";
+    $sqlCount = "SELECT COUNT(*) as total FROM v_inscripciones_completas v INNER JOIN evento e ON v.evento_id = e.id";
     
     if (!empty($whereConditions)) {
         $sqlCount .= " WHERE " . implode(" AND ", $whereConditions);
     }
     
-    // Ejecutar conteo (sin límite ni offset)
-    $paramsCount = array_slice($params, 0, count($params) - 2); // Quitar limite y offset
-    $typesCount = substr($types, 0, -2); // Quitar tipos de limite y offset
+    $paramsCount = array_slice($params, 0, count($params) - 2);
+    $typesCount = substr($types, 0, -2);
     
     if (!empty($paramsCount)) {
         $stmtCount = mysqli_prepare($conexion, $sqlCount);
@@ -235,7 +242,7 @@ try {
     }
     
     // ===================================
-    // ESTAD├ìSTICAS ADICIONALES
+    // ESTADÍSTICAS ADICIONALES (También con JOIN)
     // ===================================
     
     $estadisticas = [
@@ -246,13 +253,11 @@ try {
         'mostrando' => count($inscripciones)
     ];
     
-    // Estadísticas por género
-    $sqlGenero = "SELECT genero, COUNT(*) as total 
-                  FROM v_inscripciones_completas";
+    $sqlGenero = "SELECT v.genero, COUNT(*) as total FROM v_inscripciones_completas v INNER JOIN evento e ON v.evento_id = e.id";
     if (!empty($whereConditions)) {
         $sqlGenero .= " WHERE " . implode(" AND ", $whereConditions);
     }
-    $sqlGenero .= " GROUP BY genero";
+    $sqlGenero .= " GROUP BY v.genero";
     
     if (!empty($paramsCount)) {
         $stmtGenero = mysqli_prepare($conexion, $sqlGenero);
@@ -278,12 +283,8 @@ try {
         'estadisticas' => $estadisticas
     ], JSON_UNESCAPED_UNICODE);
     
-    if (isset($stmt)) {
-        mysqli_stmt_close($stmt);
-    }
-    if (isset($stmtGenero)) {
-        mysqli_stmt_close($stmtGenero);
-    }
+    if (isset($stmt)) mysqli_stmt_close($stmt);
+    if (isset($stmtGenero)) mysqli_stmt_close($stmtGenero);
     
 } catch(Exception $e) {
     http_response_code(400);
