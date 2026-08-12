@@ -7,6 +7,16 @@ import { formatearFecha } from '../utils/utilidades.js';
 
 // Variable global dentro del módulo para almacenar las facultades descargadas
 let todasLasFacultades = [];
+let estadoFormularioInicial = '';
+
+function capturarEstadoFormulario() {
+    setTimeout(() => {
+        const form = document.getElementById('formEvento');
+        if (form) {
+            estadoFormularioInicial = new URLSearchParams(new FormData(form)).toString();
+        }
+    }, 200); // 200ms para asegurar que los checkboxes terminaron de renderizarse
+}
 
 /**
  * Rellena los select de actividades en el formulario
@@ -40,26 +50,16 @@ export function poblarCheckboxesCampus(campus) {
 
     container.innerHTML = '';
     
-    // ESTILOS (Grid responsive)
-    container.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 10px;
-        max-height: 180px;
-        overflow-y: auto;
-        padding: 10px;
-        border: 1px solid #eee;
-        border-radius: 6px;
-        background: #f9f9f9;
-    `;
+    // ESTILOS DELEGADOS AL CSS EXTERNO
     
     // RENDERIZAR TODOS LOS CAMPUS
     campus.forEach(c => {
+        const codigoHTML = (c.codigo && String(c.codigo).toLowerCase() !== 'null') ? `<span class="siglas">${c.codigo}</span>` : '';
         container.innerHTML += `
-        <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
-            <input type="checkbox" name="campus[]" value="${c.id}" style="margin-right: 10px;">
-            <span style="font-weight: 500;">${c.nombre}</span> 
-            <span style="color: #666; margin-left: 5px; font-size: 0.9em;">(${c.codigo || ''})</span>
+        <label class="checkbox-item">
+            <input type="checkbox" name="campus[]" value="${c.id}">
+            <span class="nombre">${c.nombre}</span> 
+            ${codigoHTML}
         </label>
         `;
     });
@@ -75,7 +75,7 @@ export function poblarCheckboxesFacultades(facultades) {
     const container = document.getElementById('facultades-checkbox');
     if (container) {
         // Mensaje inicial esperando selección de campus
-        container.innerHTML = '<p style="color: #666; font-style: italic; padding: 15px; text-align: center;">Primero selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
+        container.innerHTML = '<p style="grid-column: 1 / -1; width: 100%; color: #666; font-style: italic; padding: 15px; text-align: center;">Primero selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
     }
 }
 
@@ -90,13 +90,13 @@ export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas
     if (!container) return;
     
     if (todasLasFacultades.length === 0) {
-        container.innerHTML = '<p style="color: red; font-weight: bold;">Error: No se pudo cargar la lista de Facultades.</p>';
+        container.innerHTML = '<p style="grid-column: 1 / -1; width: 100%; text-align: center; color: red; font-weight: bold;">Error: No se pudo cargar la lista de Facultades.</p>';
         return;
     }
     
     // Si NO hay campus seleccionados, mostrar mensaje
     if (!campusIds || campusIds.length === 0) {
-        container.innerHTML = '<p style="color: #666; font-style: italic; padding: 15px; text-align: center;">Selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
+        container.innerHTML = '<p style="grid-column: 1 / -1; width: 100%; color: #666; font-style: italic; padding: 15px; text-align: center;">Selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
         return;
     }
 
@@ -106,34 +106,25 @@ export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas
     );
 
     if (facultadesMostrar.length === 0) {
-        container.innerHTML = '<p style="color: #003366; font-style: italic; padding: 10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
+        container.innerHTML = '<p style="grid-column: 1 / -1; width: 100%; text-align: center; color: #003366; font-style: italic; padding: 10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
         return;
     }
 
     container.innerHTML = '';
     
-    container.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 10px;
-        max-height: 180px;
-        overflow-y: auto;
-        padding: 10px;
-        border: 1px solid #eee;
-        border-radius: 6px;
-        background: #f9f9f9;
-    `;
+    // Estilos delegados al CSS externo
 
     facultadesMostrar.forEach(facultad => {
         // Verificar si debe estar marcado (útil al editar o al filtrar sin perder selección)
         // Se verifica tanto como número como string para asegurar compatibilidad
         const isChecked = facultadesSeleccionadas.includes(String(facultad.id)) || facultadesSeleccionadas.includes(facultad.id) ? 'checked' : '';
+        const siglasHTML = (facultad.siglas && String(facultad.siglas).toLowerCase() !== 'null') ? `<span class="siglas">${facultad.siglas}</span>` : '';
         
         container.innerHTML += `
-            <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 3px;">
-                <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right: 10px;">
-                <span style="font-weight: 500;">${facultad.nombre}</span> 
-                <span style="color: #666; margin-left: 5px;">(${facultad.siglas})</span>
+            <label class="checkbox-item">
+                <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked}>
+                <span class="nombre">${facultad.nombre}</span> 
+                ${siglasHTML}
             </label>
         `;
     });
@@ -291,6 +282,7 @@ export function poblarFormularioParaEditar(evento, periodoActivoNombre) {
 
     // 3. Ejecutar el filtro visual y marcar las facultades guardadas
     renderizarFacultadesFiltradas(campusSeleccionados, facultadesGuardadas);
+    capturarEstadoFormulario();
 }
 
 /**
@@ -310,17 +302,36 @@ export function prepararModalParaCrear(periodoActivoNombre) {
     // LIMPIAR CHECKBOXES DE FACULTADES Y MOSTRAR MENSAJE
     const containerFacultades = document.getElementById('facultades-checkbox');
     if (containerFacultades) {
-        containerFacultades.innerHTML = '<p style="color: #666; font-style: italic; padding: 15px; text-align: center;">Primero selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
+        containerFacultades.innerHTML = '<p style="grid-column: 1 / -1; width: 100%; color: #666; font-style: italic; padding: 15px; text-align: center;">Primero selecciona una o más Unidades Académicas arriba para ver sus facultades.</p>';
     }
+    
+    // Limpiar barra de búsqueda de facultades
+    const searchFacultad = document.getElementById('buscar-facultad-modal');
+    if (searchFacultad) searchFacultad.value = '';
 
     document.getElementById('modalEvento').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Bloquear scroll de fondo
+    capturarEstadoFormulario();
 }
 
 /**
  * Cierra el modal de evento.
+ * @param {boolean} forzar - Si es true, ignora los cambios sin guardar (ej. al guardar con éxito)
  */
-export function cerrarModal() {
+export function cerrarModal(forzar = false) {
+    if (forzar !== true) {
+        const form = document.getElementById('formEvento');
+        if (form) {
+            const estadoActual = new URLSearchParams(new FormData(form)).toString();
+            if (estadoActual !== estadoFormularioInicial) {
+                if (!confirm('¿Seguro que quieres salir? Hay datos que no se han guardado.')) {
+                    return; // Detener el cierre del modal
+                }
+            }
+        }
+    }
     document.getElementById('modalEvento').style.display = 'none';
+    document.body.style.overflow = ''; // Restaurar scroll de fondo
 }
 
 /**
