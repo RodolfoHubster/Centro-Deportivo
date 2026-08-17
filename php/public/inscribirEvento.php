@@ -87,6 +87,9 @@ try {
     $telefono = isset($_POST['telefono']) ? mysqli_real_escape_string($conexion, trim($_POST['telefono'])) : NULL; // <-- NUEVO
     
     $carrera_id = isset($_POST['carrera']) && !empty($_POST['carrera']) ? intval($_POST['carrera']) : NULL;
+    // Mismos nombres que usa unirseEquipo.php, para que ambos flujos guarden igual
+    $campus_id = isset($_POST['campus']) && !empty($_POST['campus']) ? intval($_POST['campus']) : NULL;
+    $facultad_id = isset($_POST['facultad']) && !empty($_POST['facultad']) ? intval($_POST['facultad']) : NULL;
     $tipo_participante = isset($_POST['tipo_participante']) ? mysqli_real_escape_string($conexion, trim($_POST['tipo_participante'])) : 'Estudiante';
     
     // === Capturar el horario (De campos Desde/Hasta a Texto) ===
@@ -199,20 +202,22 @@ try {
                                  apellido_materno = ?,
                                  correo = ?, 
                                  telefono = ?,
-                                 genero = ?, 
-                                 carrera_id = ?, 
+                                 genero = ?,
+                                 carrera_id = ?,
+                                 campus_id = ?,
+                                 facultad_id = ?,
                                  rol = ?,
                                  activo = 1
                              WHERE id = ?";
         $stmt = mysqli_prepare($conexion, $sqlUpdateUsuario);
-        
+
         if (!$stmt) {
             throw new Exception('Error al preparar actualización: ' . mysqli_error($conexion));
         }
-        
+
         mysqli_stmt_bind_param(
             $stmt,
-            'ssssssisi',
+            'ssssssiiisi',
             $nombres,
             $apellido_paterno,
             $apellido_materno,
@@ -220,6 +225,8 @@ try {
             $telefono,
             $genero,
             $carrera_id,
+            $campus_id,
+            $facultad_id,
             $tipo_participante,
             $usuario_id
         );
@@ -231,19 +238,19 @@ try {
         mysqli_stmt_close($stmt);
         $usuario_nuevo = true;
         
-        $sqlUsuario = "INSERT INTO usuario 
+        $sqlUsuario = "INSERT INTO usuario
                        (matricula, apellido_paterno, apellido_materno, nombre,
-                        correo, telefono, genero, carrera_id, rol, activo, contrasena) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
+                        correo, telefono, genero, carrera_id, campus_id, facultad_id, rol, activo, contrasena)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL)";
         $stmt = mysqli_prepare($conexion, $sqlUsuario);
-        
+
         if (!$stmt) {
             throw new Exception('Error al preparar inserción de usuario: ' . mysqli_error($conexion));
         }
-        
+
         mysqli_stmt_bind_param(
-            $stmt, 
-            'sssssssis', 
+            $stmt,
+            'sssssssiiis',
             $matricula,
             $apellido_paterno,
             $apellido_materno,
@@ -252,6 +259,8 @@ try {
             $telefono,
             $genero,
             $carrera_id,
+            $campus_id,
+            $facultad_id,
             $tipo_participante
         );
         

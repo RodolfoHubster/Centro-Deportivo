@@ -5,6 +5,181 @@
 
 import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras, cargarCampus } from '../utils/formLogica.js';
 
+// =======================================================================
+// === UTILIDADES DE VALIDACIÓN Y DISPONIBILIDAD ===
+// =======================================================================
+
+/**
+ * Escapa texto antes de meterlo en un innerHTML o en un atributo.
+ *
+ * Los nombres de equipo los escribe cualquier usuario y se pintan en la lista
+ * de equipos: sin esto, un equipo llamado '" onfocus=... autofocus x="' rompe
+ * el atributo y ejecuta código en el navegador de todos los demás.
+ * (mysqli_real_escape_string protege la consulta SQL, no el HTML de salida.)
+ */
+function escaparHtml(valor) {
+    return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
+ * Coloca el cursor al inicio del campo de correo prellenado con '@uabc.edu.mx'.
+ *
+ * setSelectionRange lanza InvalidStateError en un input type="email": el spec
+ * sólo lo permite en text, search, url, tel y password. Por eso se cambia el
+ * tipo a 'text' un instante y se restaura enseguida — restaurarlo es
+ * obligatorio, porque la validación del correo depende de type="email".
+ */
+function ponerCursorAlInicio(input) {
+    const tipoOriginal = input.type;
+    try {
+        input.type = 'text';
+        input.setSelectionRange(0, 0);
+    } catch (e) {
+        // Si el navegador tampoco lo permite, sólo no se mueve el cursor.
+    } finally {
+        input.type = tipoOriginal;
+    }
+}
+
+/**
+ * Engancha el truco del cursor a un campo de correo, una sola vez por campo.
+ */
+function conectarCursorCorreo(input) {
+    if (!input || input.dataset.cursorEvent) return;
+
+    input.addEventListener('focus', function () {
+        if (this.value !== '@uabc.edu.mx') return;
+        // Se difiere para que el navegador no vuelva a colocar el cursor al final.
+        setTimeout(() => ponerCursorAlInicio(this), 10);
+    });
+    input.dataset.cursorEvent = 'true';
+}
+
+/**
+ * Muestra u oculta una sección opcional del formulario SIN romper el envío.
+ *
+ * Un campo con "required" dentro de un contenedor 'display:none' bloquea el
+ * submit de forma silenciosa: el navegador no puede enfocarlo para mostrar el
+ * aviso, así que simplemente ignora el clic y el botón parece muerto.
+ * Por eso, al ocultar la sección le quitamos 'required' y la deshabilitamos.
+ */
+function alternarSeccionOpcional(seccion, visible) {
+    if (!seccion) return;
+
+    seccion.style.display = visible ? 'block' : 'none';
+
+    seccion.querySelectorAll('input, select, textarea').forEach(campo => {
+        if (visible) {
+            campo.disabled = false;
+            if (campo.dataset.requeridoOriginal === 'true') campo.required = true;
+        } else {
+            if (campo.required) campo.dataset.requeridoOriginal = 'true';
+            campo.required = false;
+            campo.disabled = true; // Evita además enviar valores vacíos al PHP
+        }
+    });
+}
+
+/**
+ * Red de seguridad: libera de 'required' cualquier campo que no esté visible,
+ * para que el navegador nunca se quede bloqueado sin poder avisar al usuario.
+ */
+function liberarCamposOcultos(form) {
+    if (!form) return;
+    form.querySelectorAll('[required]').forEach(campo => {
+        if (campo.type !== 'hidden' && campo.offsetParent === null) {
+            campo.required = false;
+        }
+    });
+}
+
+/**
+ * Conecta el botón de envío con la red de seguridad y avisa al usuario
+ * cuando falta algún campo (en lugar de no hacer nada).
+ */
+function blindarEnvioFormulario(form, btnSubmit) {
+    if (!form || !btnSubmit) return;
+
+    btnSubmit.addEventListener('click', () => {
+        liberarCamposOcultos(form);
+
+        if (!form.checkValidity()) {
+            const primerInvalido = form.querySelector('input:invalid, select:invalid, textarea:invalid');
+            if (primerInvalido) primerInvalido.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+}
+
+/**
+ * Obtiene los días de juego del evento.
+ * 1) Del dato que ya tenemos, 2) de la tarjeta del listado, 3) del backend.
+ * El paso 3 es indispensable cuando se entra por QR/enlace directo
+ * (torneos.html?id_evento=###), porque la tarjeta puede no estar dibujada
+ * en la página (paginación) y antes se perdía la disponibilidad.
+ */
+function resolverDiasJuego(eventoId, diasProvistos = null) {
+    if (diasProvistos && String(diasProvistos).trim() !== '') {
+        return Promise.resolve(String(diasProvistos));
+    }
+
+    const tarjeta = document.querySelector(`[data-evento-id="${eventoId}"]`) ||
+                    document.querySelector(`[data-id="${eventoId}"]`);
+    const diasTarjeta = tarjeta ? tarjeta.getAttribute('data-dias-juego') : '';
+
+    if (diasTarjeta && diasTarjeta.trim() !== '') {
+        return Promise.resolve(diasTarjeta);
+    }
+
+    return fetch('../php/public/obtenerEventos.php?activos=true')
+        .then(response => response.json())
+        .then(data => {
+            const evento = (data.eventos || []).find(e => e.id == eventoId);
+            return evento && evento.dias_juego ? String(evento.dias_juego) : '';
+        })
+        .catch(error => {
+            console.error('No se pudieron obtener los días de juego:', error);
+            return '';
+        });
+}
+
+/**
+ * Dibuja los checkboxes de días y muestra la sección de disponibilidad
+ * sólo cuando el evento tiene días configurados.
+ *
+ * Devuelve una promesa que resuelve en 'true' cuando la sección quedó visible,
+ * para que quien necesite prellenar esos campos espere a que existan.
+ */
+function configurarDisponibilidad(seccion, contenedorDias, eventoId, diasProvistos = null) {
+    if (!seccion || !contenedorDias) return Promise.resolve(false);
+
+    // Se arranca oculta y sin campos obligatorios: si el evento no tiene días,
+    // el formulario se puede enviar igual.
+    alternarSeccionOpcional(seccion, false);
+
+    return resolverDiasJuego(eventoId, diasProvistos).then(dias => {
+        const listaDias = String(dias || '')
+            .split(',')
+            .map(dia => dia.trim())
+            .filter(dia => dia !== '');
+
+        if (listaDias.length === 0) return false;
+
+        contenedorDias.innerHTML = listaDias.map(dia => `
+            <label class="radio-option" style="padding: 8px 15px; white-space: nowrap; flex: 0 0 auto;">
+                <input type="checkbox" name="dias_usuario[]" value="${escaparHtml(dia)}">
+                <span>${escaparHtml(dia)}</span>
+            </label>`).join('');
+
+        alternarSeccionOpcional(seccion, true);
+        return true;
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // Verificar si viene desde un QR (parámetro id_evento en URL)
     const urlParams = new URLSearchParams(window.location.search);
@@ -40,6 +215,10 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
                         return;
                     }
 
+                    // Los días de juego se toman del evento, no de la tarjeta:
+                    // al entrar por QR la tarjeta puede no estar en la página.
+                    const diasJuego = evento.dias_juego || '';
+
                     if (tipoRegistro === 'Por equipos') {
                         // === CAMBIO: SIEMPRE ABRIR LISTA DE EQUIPOS PRIMERO ===
                         // Pasamos 'tieneCupo' para saber si mostramos el botón de "Crear Equipo" dentro del modal
@@ -48,14 +227,14 @@ function obtenerDatosEventoYMostrarFormulario(eventoId) {
                         const fInicio = evento.fecha_inicio;
                         const fTermino = evento.fecha_termino;
 
-                        mostrarFormularioUnirseEquipo(eventoId, nombreEvento, tieneCupo, min, max, fInicio, fTermino);
+                        mostrarFormularioUnirseEquipo(eventoId, nombreEvento, tieneCupo, min, max, fInicio, fTermino, diasJuego);
                     } else {
                         // Lógica Individual (Sin cambios)
                         if (!tieneCupo) {
                             mostrarToast(`El evento "${nombreEvento}" ha alcanzado el cupo máximo.`, 'error');
-                            return; 
+                            return;
                         }
-                        mostrarFormularioInscripcion(eventoId, nombreEvento);
+                        mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego);
                     }
 
                     setTimeout(() => {
@@ -100,7 +279,7 @@ function mostrarModalGeneroQR(eventoId, nombreEvento) {
         <div style="background: white; padding: 30px; border-radius: 16px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); position: relative; font-family: sans-serif;">
             <button type="button" id="btnCerrarModalGeneroQR" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #666; font-size: 20px; font-weight: bold;">&times;</button>
             <h2 style="color: #003366; margin-top: 10px; margin-bottom: 5px;">Pausa Activa</h2>
-            <p style="color: #00843D; font-weight: 600; margin-bottom: 20px;">${nombreEvento}</p>
+            <p style="color: #00843D; font-weight: 600; margin-bottom: 20px;">${escaparHtml(nombreEvento)}</p>
             <p style="color: #666; font-size: 15px; margin-bottom: 25px;">Selecciona tu género para ver las carreras y registrarte:</p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button id="btnGeneroHombreQR" style="padding: 14px; background: linear-gradient(135deg, #1565c0, #1e88e5); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
@@ -170,6 +349,7 @@ function agregarBotonesInscripcion() {
         const tipoRegistro = tarjeta.getAttribute('data-tipo-registro') || 'Individual';
         const min = tarjeta.getAttribute('data-integrantes-min') || 8;
         const max = tarjeta.getAttribute('data-integrantes-max') || 0;
+        const diasJuego = tarjeta.getAttribute('data-dias-juego') || '';
 
         const contenedorBotones = tarjeta.querySelector('.card-actions, .evento-actions, .btn-container');
         if (!contenedorBotones) return;
@@ -216,7 +396,7 @@ function agregarBotonesInscripcion() {
                 
                 btnCrearEquipo.addEventListener('click', () => {
                     // Acción directa al formulario de creación
-                    mostrarFormularioEquipo(eventoId, nombreEvento, min, max, fechaInicio, fechaTermino);
+                    mostrarFormularioEquipo(eventoId, nombreEvento, min, max, fechaInicio, fechaTermino, diasJuego);
                 });
                 contenedorBotones.appendChild(btnCrearEquipo);
             }
@@ -260,7 +440,7 @@ function agregarBotonesInscripcion() {
             btnUnirseEquipo.addEventListener('click', () => {
                 // AQUÍ LA CLAVE: Le pasamos '!equiposLlenos' como tercer parámetro.
                 // Esto hará que el modal de lista MUESTRE el botón de "Crear Equipo" adentro también.
-                mostrarFormularioUnirseEquipo(eventoId, nombreEvento, !equiposLlenos, min, max, fechaInicio, fechaTermino);
+                mostrarFormularioUnirseEquipo(eventoId, nombreEvento, !equiposLlenos, min, max, fechaInicio, fechaTermino, diasJuego);
             });
 
             contenedorBotones.appendChild(btnUnirseEquipo);
@@ -281,7 +461,7 @@ function agregarBotonesInscripcion() {
             btnInscribir.style.cssText = estilosBaseBoton + `margin-top: 15px;`;
 
             btnInscribir.addEventListener('click', () => {
-                mostrarFormularioInscripcion(eventoId, nombreEvento);
+                mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego);
             });
             
             contenedorBotones.appendChild(btnInscribir);
@@ -305,7 +485,7 @@ function agregarBotonesInscripcion() {
     });
 }
 
-function mostrarFormularioInscripcion(eventoId, nombreEvento) {
+function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) {
     const modalExistente = document.getElementById('modal-inscripcion')
     if(modalExistente){
         modalExistente.remove()
@@ -354,12 +534,6 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
         <path d="M6 6L18 18" stroke="#333333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
 </button>
-            <button type="button" id="btnCerrarX" style="position: absolute; top: 15px; right: 15px;z-index: 1000; background: transparent; border: none; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; color: #d61a1a; padding: 0;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block;">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
 
             <div style="text-align: center; margin-bottom: 30px;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
@@ -372,7 +546,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                 </div>
                 <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Formulario de Registro</h2>
                 <p style="color: #666; margin: 0; font-size: 15px;">Completa todos los campos requeridos para registrarte</p>
-                <h3 style="color: #00843D; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${nombreEvento}</h3>
+                <h3 style="color: #00843D; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${escaparHtml(nombreEvento)}</h3>
             </div>
             
             <form id="formInscripcion">
@@ -396,13 +570,13 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                         </label>
 
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal Administrativo" checked 
+                            <input type="radio" name="tipo_participante" value="Personal Administrativo"
                                     style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
                             <span style="font-size: 15px; font-weight: 500;">Personal Administrativo</span>
                         </label>
 
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
-                            <input type="radio" name="tipo_participante" value="Personal de Servicio" checked 
+                            <input type="radio" name="tipo_participante" value="Personal de Servicio"
                                     style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;">
                             <span style="font-size: 15px; font-weight: 500;">Personal de Servicio</span>
                         </label>
@@ -544,14 +718,6 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
                     </small>
                 </div>
 
-                <div id="seccion-disponibilidad-usuario" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
-                    <h4 style="margin-top: 0; color: #003366; font-size: 15px; margin-bottom: 12px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
-                    <div style="margin-bottom: 15px;">
-                        <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 13px;">1. Selecciona los días que puedes asistir:</label>
-                        <div id="contenedor-checks-dias" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
-                    </div>
-                </div>
-
                 <input type="hidden" name="evento_id" value="${eventoId}">
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
@@ -623,30 +789,15 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     document.body.appendChild(modal);
 
     // LÓGICA DINÁMICA DE DÍAS
-    // LÓGICA DINÁMICA DE DÍAS (Inscripcion.js)
-    const tarjetaAsociada = document.querySelector(`[data-evento-id="${eventoId}"]`) || 
-                            document.querySelector(`[data-id="${eventoId}"]`);
+    // Si el evento no tiene días configurados, la sección queda oculta Y sin
+    // campos obligatorios, para que el botón "Registrarse" nunca quede bloqueado.
+    configurarDisponibilidad(
+        document.getElementById('seccion-disponibilidad-usuario'),
+        document.getElementById('contenedor-checks-dias'),
+        eventoId,
+        diasJuego
+    );
 
-    const diasJuego = tarjetaAsociada ? tarjetaAsociada.getAttribute('data-dias-juego') : '';
-    const seccionDisp = document.getElementById('seccion-disponibilidad-usuario');
-    const contenedorDias = document.getElementById('contenedor-checks-dias');
-
-    if (diasJuego && diasJuego.trim() !== "") {
-        const diasDelEvento = String(diasJuego).split(','); 
-        contenedorDias.innerHTML = ''; 
-        diasDelEvento.forEach(dia => {
-            const diaLimpio = dia.trim();
-            contenedorDias.innerHTML += `
-                <label class="radio-option" style="padding: 8px 15px; white-space: nowrap; flex: 0 0 auto;">
-                    <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}"> 
-                    <span>${diaLimpio}</span>
-                </label>`;
-        });
-        seccionDisp.style.display = 'block'; 
-    } else {
-        seccionDisp.style.display = 'none'; 
-    }
-    
     // Cargar facultades (Versión nueva usando formLogica)
     const selectCampus = document.getElementById('select-campus');
     const selectFacultad = document.getElementById('select-facultad');
@@ -687,19 +838,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
             if(helpCorreo) helpCorreo.style.display = 'block';
         }
 
-        // TRUCO: Si la caja solo dice @uabc.edu.mx, al dar clic el cursor se va al principio
-        if (!inputCorreo.dataset.cursorEvent) {
-            inputCorreo.addEventListener('focus', function() {
-                if (this.value === '@uabc.edu.mx') {
-                    try {
-                        setTimeout(() => this.setSelectionRange(0, 0), 10);
-                    } catch (e) {
-                        // Se ignora el error si el tipo 'email' no soporta selección
-                    }
-                }
-            });
-            inputCorreo.dataset.cursorEvent = "true";
-        }
+        conectarCursorCorreo(inputCorreo);
     };
 
     // Manejar cambio de tipo de participante
@@ -712,9 +851,9 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
         });
     });
 
-    // EJECUTAR AL CARGAR: 
-    // Esto es importante porque en tu HTML tienes "checked" en varios radios.
-    // Esto asegura que si "Personal de Servicio" aparece marcado por defecto, el correo ya esté libre.
+    // EJECUTAR AL CARGAR:
+    // Deja el formulario coherente con el tipo marcado por defecto (Estudiante)
+    // sin esperar a que el usuario toque un radio.
     const tipoInicial = modal.querySelector('input[name="tipo_participante"]:checked')?.value;
     if (tipoInicial) {
         actualizarCamposSegunTipo(tipoInicial, document);
@@ -744,7 +883,10 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento) {
     });
     
     // Enviar inscripción
-    document.getElementById('formInscripcion').addEventListener('submit', (e) => {
+    const formInscripcion = document.getElementById('formInscripcion');
+    blindarEnvioFormulario(formInscripcion, document.getElementById('btnSubmit'));
+
+    formInscripcion.addEventListener('submit', (e) => {
         e.preventDefault();
         enviarInscripcion(e.target, modal);
     });
@@ -770,19 +912,21 @@ function enviarInscripcion(form, modal) {
     datosEnvio.append('telefono', formData.get('telefono') || '');
     datosEnvio.append('genero', formData.get('genero'));
     datosEnvio.append('carrera', formData.get('carrera') || '');
+    // El formulario los pide como obligatorios y hasta ahora se descartaban aquí:
+    // 'usuario' ya tiene las columnas campus_id/facultad_id (las llena unirseEquipo.php).
+    datosEnvio.append('campus', formData.get('campus') || '');
+    datosEnvio.append('facultad', formData.get('facultad') || '');
     datosEnvio.append('tipo_participante', formData.get('tipo_participante'));
     
-    // Obtenemos las horas
+    // Obtenemos las horas (sólo si el evento pidió disponibilidad)
     const horaInicio = formData.get('hora_inicio');
     const horaFin = formData.get('hora_fin');
-    
+
     //  Enviarlo como un solo texto (Ej: "13:00 - 15:00")
     // Esto es útil si solo vas a guardar un string en la base de datos
-    const horarioTexto = `${horaInicio} - ${horaFin}`;
-    datosEnvio.append('horario_disponible', horarioTexto);
-
-    // Día disponible de los participantes
-    datosEnvio.append('dias_disponibles', formData.get('dias_disponibles'));
+    if (horaInicio && horaFin) {
+        datosEnvio.append('horario_disponible', `${horaInicio} - ${horaFin}`);
+    }
 
     // Capturar días correctamente en registro individual
     const diasSeleccionadosInd = Array.from(form.querySelectorAll('input[name="dias_usuario[]"]:checked'))
@@ -885,7 +1029,7 @@ function mostrarModalExito(mensaje, modalRegistro) {
                 </svg>
             </div>
             <h2 style="color: #003366; margin: 0 0 15px 0; font-size: 28px; font-weight: 700;">¡Registro Exitoso!</h2>
-            <p style="color: #666; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">${mensaje}</p>
+            <p style="color: #666; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">${escaparHtml(mensaje)}</p>
             <button onclick="location.reload()" 
                     style="padding: 14px 40px; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0, 132, 61, 0.3);">
                 Aceptar
@@ -928,7 +1072,7 @@ function mostrarToast(mensaje, tipo = 'success') {
     const icon = tipo === 'success' ? '✓' : '✕';
     toast.innerHTML = `
         <span style="font-size: 20px;">${icon}</span>
-        <span>${mensaje}</span>
+        <span>${escaparHtml(mensaje)}</span>
     `;
     
     if (!document.getElementById('toast-animations')) {
@@ -964,8 +1108,12 @@ function mostrarToast(mensaje, tipo = 'success') {
  * Muestra el formulario para registrar un equipo completo.
  * VERSIÓN CORREGIDA: RESPONSIVE (Móvil Friendly)
  */
-function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, maxIntegrantes = 0) {
-    let contadorIntegrantes = 0; 
+function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, maxIntegrantes = 0, fechaInicio = null, fechaTermino = null, diasJuego = null) {
+    let contadorIntegrantes = 0;
+
+    // Vienen como texto desde los data-attributes de la tarjeta
+    minIntegrantes = parseInt(minIntegrantes, 10) || 1;
+    maxIntegrantes = parseInt(maxIntegrantes, 10) || 0;
     
     const modalExistente = document.getElementById('modal-inscripcion-equipo');
     if(modalExistente) modalExistente.remove();
@@ -1068,32 +1216,17 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
     document.body.appendChild(modal);
 
     // LÓGICA DINÁMICA DE DÍAS (EQUIPO)
-    // ✅ CORRECCIÓN: Buscamos por el atributo de datos sin importar la clase CSS
-    // Dentro de mostrarFormularioEquipo en Inscripcion.js
-    const tarjetaAsociadaEq = document.querySelector(`[data-evento-id="${eventoId}"]`) || 
-                            document.querySelector(`[data-id="${eventoId}"]`);
-
-    const diasJuegoEq = tarjetaAsociadaEq ? tarjetaAsociadaEq.getAttribute('data-dias-juego') : '';
-    const seccionDispEq = document.getElementById('seccion-disponibilidad-equipo');
-    const contenedorDiasEq = document.getElementById('contenedor-checks-dias-equipo');
-
-    if (diasJuegoEq && diasJuegoEq.trim() !== "") {
-        const diasDelEventoEq = String(diasJuegoEq).split(','); 
-        contenedorDiasEq.innerHTML = '';
-        diasDelEventoEq.forEach(dia => {
-            const diaLimpio = dia.trim();
-            contenedorDiasEq.innerHTML += `
-                <label class="radio-option" style="padding: 8px 15px; white-space: nowrap; flex: 0 0 auto;">
-                    <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}"> 
-                    <span>${diaLimpio}</span>
-                </label>`;
-        });
-        seccionDispEq.style.display = 'block'; // ¡Esto es lo que hace que aparezca!
-    } else {
-        // Si el evento NO tiene días definidos en la tarjeta, puedes decidir ocultarlo o mostrarlo vacío.
-        // Si quieres que SIEMPRE aparezcan los horarios, cambia esto a 'block'.
-        seccionDispEq.style.display = 'none'; 
-    }
+    // Los días llegan del evento (QR/tarjeta) y, si no, se consultan al backend.
+    // Mientras la sección esté oculta, sus campos NO son obligatorios: antes
+    // 'hora_inicio' y 'hora_fin' seguían siendo required dentro de un div
+    // display:none y el navegador cancelaba el envío en silencio (el botón
+    // "Registrar Equipo" parecía no responder).
+    configurarDisponibilidad(
+        document.getElementById('seccion-disponibilidad-equipo'),
+        document.getElementById('contenedor-checks-dias-equipo'),
+        eventoId,
+        diasJuego
+    );
 
     // CAMBIO 3: ESTILOS DINÁMICOS Y MEDIA QUERIES
     if (!document.getElementById('estilos-inscripcion-dinamicos')) {
@@ -1153,12 +1286,14 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             <input type="hidden" name="integrantes[0][genero]" data-bind-to="[genero]">
             <input type="hidden" name="integrantes[0][correo]" data-bind-to="[correo]">
             <input type="hidden" name="integrantes[0][tipo_participante]" data-bind-to="[tipo_participante]">
-            <input type="hidden" name="integrantes[0][carrera_id]" data-bind-to="[carrera_id]"> 
+            <input type="hidden" name="integrantes[0][carrera_id]" data-bind-to="[carrera_id]">
+            <input type="hidden" name="integrantes[0][campus_id]" data-bind-to="[campus_id]">
+            <input type="hidden" name="integrantes[0][facultad]" data-bind-to="[facultad]">
         ` : '';
 
         divIntegrante.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: #00843D; font-size: 18px;">${titulo}</h3>
+                <h3 style="margin: 0; color: #00843D; font-size: 18px;">${escaparHtml(titulo)}</h3>
                 ${!esCapitan ? '<button type="button" class="btn-quitar-integrante" style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 12px;">✕ Quitar</button>' : ''}
             </div>
             
@@ -1360,9 +1495,12 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         if (e.target === modal) modal.remove();
     });
 
-    document.getElementById('formInscripcionEquipo').addEventListener('submit', (e) => {
+    const formEquipo = document.getElementById('formInscripcionEquipo');
+    blindarEnvioFormulario(formEquipo, document.getElementById('btnSubmitEquipo'));
+
+    formEquipo.addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
         if (contadorIntegrantes < minIntegrantes) {
             mostrarToast(`Se requiere un mínimo de ${minIntegrantes} integrantes para registrar el equipo`, 'error');
             return;
@@ -1535,22 +1673,7 @@ function actualizarCamposEquipo(tipo, cardElement) {
         }
     }
 
-    // TRUCO DEL CURSOR PARA EQUIPOS
-    if (inputCorreo && !inputCorreo.dataset.cursorEvent) {
-    inputCorreo.addEventListener('focus', function() {
-        if (this.value === '@uabc.edu.mx') {
-            // Truco: Cambiamos el tipo a 'text' momentáneamente para permitir la selección
-            const originalType = this.type;
-            this.type = 'text'; 
-            
-            setTimeout(() => {
-                this.setSelectionRange(0, 0);
-                this.type = originalType; // Lo regresamos a 'email'
-            }, 1);
-        }
-    });
-    inputCorreo.dataset.cursorEvent = "true";
-}
+    conectarCursorCorreo(inputCorreo);
 
     // 3. LÓGICA DE MATRÍCULA Y CAMPOS ACADÉMICOS
     if (tipo === 'Estudiante') {
@@ -1613,9 +1736,14 @@ function actualizarCamposEquipo(tipo, cardElement) {
  * en los campos ocultos 'integrantes[0][...]'
  */
 function adjuntarListenersCapitan(cardElement) {
+    // Los campos visibles del capitán se llaman '[algo]' y enviarInscripcionEquipo
+    // descarta toda clave que empiece con '['; por eso cada uno necesita su espejo
+    // en 'integrantes[0][...]'. Faltaban campus y facultad: el capitán era el único
+    // integrante que llegaba al backend sin ellos.
     const campos = [
-        'capitan_matricula', '[apellido_paterno]', '[apellido_materno]', 
-        '[nombres]', '[genero]', '[correo]', '[tipo_participante]', '[carrera_id]'
+        'capitan_matricula', '[apellido_paterno]', '[apellido_materno]',
+        '[nombres]', '[genero]', '[correo]', '[tipo_participante]',
+        '[carrera_id]', '[campus_id]', '[facultad]'
     ];
     
     campos.forEach(campo => {
@@ -1752,9 +1880,14 @@ function enviarInscripcionEquipo(form, modal) {
  * Muestra el modal con la lista de equipos disponibles para unirse
  * Se añade al archivo Inscripcion.js después de la función enviarInscripcionEquipo
  */
-function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquipo = false, min = 8, max = 0, fInicio = null, fTermino = null) {
+function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquipo = false, min = 8, max = 0, fInicio = null, fTermino = null, diasJuego = null) {
     const modalExistente = document.getElementById('modal-unirse-equipo');
     if(modalExistente) modalExistente.remove();
+
+    // Se arrastra el contexto completo del evento hasta el formulario de unirse,
+    // para que el botón "← Volver" regrese a esta misma pantalla tal cual estaba
+    // (antes volvía con permiteCrearEquipo=false y min/max fijos en 8/0).
+    const contextoEvento = { permiteCrearEquipo, min, max, fInicio, fTermino, diasJuego };
 
     const modal = document.createElement('div');
     modal.id = 'modal-unirse-equipo';
@@ -1808,7 +1941,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
                     </svg>
                 </div>
                 <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Equipos Disponibles</h2>
-                <h3 style="color: #007bff; margin: 0; font-size: 18px; font-weight: 600;">${nombreEvento}</h3>
+                <h3 style="color: #007bff; margin: 0; font-size: 18px; font-weight: 600;">${escaparHtml(nombreEvento)}</h3>
             </div>
 
             ${botonCrearHTML}
@@ -1838,7 +1971,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
         document.getElementById('btnIrACrearEquipo').addEventListener('click', () => {
             modal.remove(); // Cerramos modal actual
             // Abrimos modal de registro
-            mostrarFormularioEquipo(eventoId, nombreEvento, min, max, fInicio, fTermino);
+            mostrarFormularioEquipo(eventoId, nombreEvento, min, max, fInicio, fTermino, diasJuego);
         });
     }
 
@@ -1854,7 +1987,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
             listaContainer.style.display = 'block';
 
             if (data.success && data.equipos && data.equipos.length > 0) {
-                mostrarListaEquipos(data.equipos, listaContainer, eventoId, nombreEvento);
+                mostrarListaEquipos(data.equipos, listaContainer, eventoId, nombreEvento, contextoEvento);
             } else {
                 // Mensaje si no hay equipos, ajustado si se puede crear o no
                 const mensajeExtra = permiteCrearEquipo 
@@ -1864,7 +1997,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
                 listaContainer.innerHTML = `
                     <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 12px;">
                         <p style="color: #666; font-size: 16px; margin: 0;">No se encontraron equipos registrados.</p>
-                        <p style="color: #00843D; font-size: 14px; margin: 10px 0 0 0; font-weight: 600;">${mensajeExtra}</p>
+                        <p style="color: #00843D; font-size: 14px; margin: 10px 0 0 0; font-weight: 600;">${escaparHtml(mensajeExtra)}</p>
                     </div>
                 `;
             }
@@ -1886,7 +2019,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
 /**
  * Renderiza la lista de equipos disponibles
  */
-function mostrarListaEquipos(equipos, container, eventoId, nombreEvento) {
+function mostrarListaEquipos(equipos, container, eventoId, nombreEvento, contextoEvento = {}) {
     let html = '<div style="display: grid; gap: 20px;">';
 
     equipos.forEach(equipo => {
@@ -1909,7 +2042,7 @@ function mostrarListaEquipos(equipos, container, eventoId, nombreEvento) {
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <div style="flex: 1; min-width: 200px;">
                         <h3 style="margin: 0 0 5px 0; color: #003366; font-size: 20px; font-weight: 700;">
-                            ${equipo.nombre_equipo}
+                            ${escaparHtml(equipo.nombre_equipo)}
                         </h3>
                         <p style="margin: 0; color: #666; font-size: 14px;">
                             Registrado el ${new Date(equipo.fecha_registro).toLocaleDateString('es-MX', { 
@@ -1945,13 +2078,13 @@ function mostrarListaEquipos(equipos, container, eventoId, nombreEvento) {
                     <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
                         <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase;">Integrantes actuales:</p>
                         <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.4;">
-                            ${equipo.integrantes_preview.substring(0, 100)}${equipo.integrantes_preview.length > 100 ? '...' : ''}
+                            ${escaparHtml(equipo.integrantes_preview.substring(0, 100))}${equipo.integrantes_preview.length > 100 ? '...' : ''}
                         </p>
                     </div>
                 ` : ''}
 
                 ${equipo.tiene_cupo ? `
-                    <button class="btn-seleccionar-equipo" data-equipo-id="${equipo.id}" data-nombre-equipo="${equipo.nombre_equipo}"
+                    <button class="btn-seleccionar-equipo" data-equipo-id="${equipo.id}" data-nombre-equipo="${escaparHtml(equipo.nombre_equipo)}"
                             style="width: 100%; padding: 12px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"/>
@@ -1997,7 +2130,7 @@ function mostrarListaEquipos(equipos, container, eventoId, nombreEvento) {
             e.stopPropagation();
             const equipoId = btn.getAttribute('data-equipo-id');
             const nombreEquipo = btn.getAttribute('data-nombre-equipo');
-            mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nombreEvento);
+            mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nombreEvento, contextoEvento);
         });
     });
 }
@@ -2005,9 +2138,11 @@ function mostrarListaEquipos(equipos, container, eventoId, nombreEvento) {
 /**
  * Muestra el formulario para que un participante se una a un equipo específico
  */
-function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nombreEvento) {
+function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nombreEvento, contextoEvento = {}) {
     // Cerrar el modal de lista de equipos
     document.getElementById('modal-unirse-equipo')?.remove();
+
+    const diasJuego = contextoEvento.diasJuego ?? null;
 
     // Crear el modal del formulario
     const modal = document.createElement('div');
@@ -2040,9 +2175,9 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                 </div>
                 <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unirse al Equipo</h2>
                 <p style="color: #666; margin: 0 0 15px 0; font-size: 15px;">Completa tus datos para unirte</p>
-                <h3 style="color: #00843D; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">${nombreEvento}</h3>
+                <h3 style="color: #00843D; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">${escaparHtml(nombreEvento)}</h3>
                 <div style="padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%); border-radius: 10px; border-left: 4px solid #007bff;">
-                    <p style="margin: 0; color: #007bff; font-weight: 700; font-size: 18px;">${nombreEquipo}</p>
+                    <p style="margin: 0; color: #007bff; font-weight: 700; font-size: 18px;">${escaparHtml(nombreEquipo)}</p>
                 </div>
             </div>
             
@@ -2169,82 +2304,63 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
     document.body.appendChild(modal);
     
     // =================================================================
-    // LÓGICA DINÁMICA DE DÍAS CORREGIDA
+    // LÓGICA DINÁMICA DE DÍAS
+    // Los días llegan del evento (QR/tarjeta) o se consultan al backend, y la
+    // sección sólo exige horario cuando está visible.
     // =================================================================
-    // BUSCA ESTE BLOQUE EN Inscripcion.js Y REEMPLÁZALO:
-
-    // 1. Buscamos la tarjeta por ID de forma robusta
-    const tarjetaEvento = document.querySelector(`[data-evento-id="${eventoId}"]`) || 
-                        document.querySelector(`[data-id="${eventoId}"]`);
-
-    // 2. Leemos los días (que ya vienen del PHP gracias a tu cambio en obtenerEventos.php)
-    const diasConfigurados = tarjetaEvento ? tarjetaEvento.getAttribute('data-dias-juego') : '';
-
-    // 3. Referenciamos los elementos del modal
-    const seccionDisp = document.getElementById('seccion-disponibilidad-usuario-unirse');
-    const contenedorChecks = document.getElementById('contenedor-checks-dias-unirse');
-
-    if (diasConfigurados && diasConfigurados.trim() !== "") {
-        const listaDias = diasConfigurados.split(',');
-        contenedorChecks.innerHTML = ''; // Limpiar "Cargando..."
-        
-        listaDias.forEach(dia => {
-            const diaLimpio = dia.trim();
-            if(diaLimpio !== "") {
-                contenedorChecks.innerHTML += `
-                    <label class="radio-option" style="padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" name="dias_usuario[]" value="${diaLimpio}" style="width: 18px; height: 18px; accent-color: #00843D;"> 
-                        <span style="font-size: 14px;">${diaLimpio}</span>
-                    </label>`;
-            }
-        });
-        
-        if(seccionDisp) seccionDisp.style.display = 'block';
-    } else {
-        // Si no hay días, ocultamos la sección por completo
-        if(seccionDisp) seccionDisp.style.display = 'none';
-    }
+    const disponibilidadLista = configurarDisponibilidad(
+        document.getElementById('seccion-disponibilidad-usuario-unirse'),
+        document.getElementById('contenedor-checks-dias-unirse'),
+        eventoId,
+        diasJuego
+    );
 
     // =================================================================
-    // === LÓGICA OCULTA: BUSCAR HORARIO DEL EQUIPO Y RELLENAR ===
+    // === HEREDAR EL HORARIO YA DECLARADO POR EL EQUIPO ===
+    // Se espera a 'disponibilidadLista' porque los checkboxes de días se pintan
+    // de forma asíncrona: sin esperar, no habría nada que marcar todavía.
+    // Sólo se prellena; el usuario puede cambiar cualquier valor.
     // =================================================================
     if (equipoId) {
-        // Petición silenciosa para buscar el horario del equipo
-        fetch(`../php/public/obtenerHorarioEquipo.php?equipo_id=${equipoId}`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    // Si encontramos los datos, ya no necesitamos la lógica vieja de hora_inicio/hora_fin,
-                    // pero mantenemos esto por compatibilidad con tu BD
-                    if(data.dias_disponibles) {
-                        const inputDias = document.getElementById('public_hidden_dias');
-                        if(inputDias) inputDias.value = data.dias_disponibles;
-                    }
-                    if(data.horario_disponible && data.horario_disponible.includes(' - ')) {
-                        const partes = data.horario_disponible.split(' - ');
-                        const inputInicio = document.getElementById('public_hidden_inicio');
-                        const inputFin = document.getElementById('public_hidden_fin');
-                        
-                        if(inputInicio) inputInicio.value = partes[0].trim();
-                        if(inputFin) inputFin.value = partes[1].trim();
-                    }
+        Promise.all([
+            disponibilidadLista,
+            fetch(`../php/public/obtenerHorarioEquipo.php?equipo_id=${equipoId}`).then(res => res.json())
+        ])
+            .then(([seccionVisible, data]) => {
+                if (!seccionVisible || !data || !data.success) return;
+
+                if (data.dias_disponibles) {
+                    const diasEquipo = String(data.dias_disponibles)
+                        .split(',')
+                        .map(dia => dia.trim().toLowerCase())
+                        .filter(dia => dia !== '');
+
+                    modal.querySelectorAll('input[name="dias_usuario[]"]').forEach(check => {
+                        if (diasEquipo.includes(check.value.trim().toLowerCase())) {
+                            check.checked = true;
+                        }
+                    });
+                }
+
+                // El backend guarda el rango como "13:00 - 15:00" (inscribirEvento.php
+                // también escribe "13:00 a 15:00"), así que se aceptan ambos separadores.
+                const rango = String(data.horario_disponible || '').split(/\s+(?:-|a)\s+/);
+                if (rango.length === 2) {
+                    const inputInicio = modal.querySelector('input[name="hora_inicio"]');
+                    const inputFin = modal.querySelector('input[name="hora_fin"]');
+
+                    if (inputInicio && !inputInicio.value) inputInicio.value = rango[0].trim();
+                    if (inputFin && !inputFin.value) inputFin.value = rango[1].trim();
                 }
             })
-            .catch(err => console.error("No se pudo obtener horario equipo:", err));
+            .catch(err => console.error('No se pudo obtener horario equipo:', err));
     }
 
     // === INICIALIZAR CORREO UABC AL ABRIR EL MODAL UNIRSE ===
     const inputCorreoDefault = document.getElementById('input-correo');
     if (inputCorreoDefault && inputCorreoDefault.value === '') {
         inputCorreoDefault.value = '@uabc.edu.mx';
-        if (!inputCorreoDefault.dataset.cursorEvent) {
-            inputCorreoDefault.addEventListener('focus', function() {
-                if (this.value === '@uabc.edu.mx') {
-                    setTimeout(() => this.setSelectionRange(0, 0), 10);
-                }
-            });
-            inputCorreoDefault.dataset.cursorEvent = "true";
-        }
+        conectarCursorCorreo(inputCorreoDefault);
     }
 
     // Función para validar campo en tiempo real
@@ -2370,7 +2486,16 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
 
     document.getElementById('btnVolverListaEquipos').addEventListener('click', () => {
         modal.remove();
-        mostrarFormularioUnirseEquipo(eventoId, nombreEvento);
+        mostrarFormularioUnirseEquipo(
+            eventoId,
+            nombreEvento,
+            contextoEvento.permiteCrearEquipo ?? false,
+            contextoEvento.min ?? 8,
+            contextoEvento.max ?? 0,
+            contextoEvento.fInicio ?? null,
+            contextoEvento.fTermino ?? null,
+            diasJuego
+        );
     });
 
     modal.querySelector('.btnCerrarXUnirseIntegrante').addEventListener('click', () => modal.remove());
@@ -2378,9 +2503,12 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
         if (e.target === modal) modal.remove();
     });
 
-    document.getElementById('formUnirseIntegrante').addEventListener('submit', (e) => {
+    const formUnirse = document.getElementById('formUnirseIntegrante');
+    blindarEnvioFormulario(formUnirse, document.getElementById('btnSubmitUnirse'));
+
+    formUnirse.addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
         let todosValidos = true;
         inputs.forEach(input => {
             validarCampo(input);

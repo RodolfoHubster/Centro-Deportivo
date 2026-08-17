@@ -169,11 +169,11 @@ try {
     $sqlCheckUsuario = "SELECT id FROM usuario WHERE matricula = ?";
     $stmtCheck = mysqli_prepare($conexion, $sqlCheckUsuario);
 
-    $sqlUpdateUsuario = "UPDATE usuario SET nombre=?, apellido_paterno=?, apellido_materno=?, correo=?, telefono=?, genero=?, carrera_id=?, rol=?, activo=1 WHERE id=?";
+    $sqlUpdateUsuario = "UPDATE usuario SET nombre=?, apellido_paterno=?, apellido_materno=?, correo=?, telefono=?, genero=?, carrera_id=?, campus_id=?, facultad_id=?, rol=?, activo=1 WHERE id=?";
     $stmtUpdate = mysqli_prepare($conexion, $sqlUpdateUsuario);
 
     // Se han ajustado las columnas y los placeholders para que coincidan (9 campos + '1' de activo)
-    $sqlInsertUsuario = "INSERT INTO usuario (matricula, nombre, apellido_paterno, apellido_materno, correo, telefono, genero, carrera_id, rol, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
+    $sqlInsertUsuario = "INSERT INTO usuario (matricula, nombre, apellido_paterno, apellido_materno, correo, telefono, genero, carrera_id, campus_id, facultad_id, rol, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
     $stmtInsert = mysqli_prepare($conexion, $sqlInsertUsuario);
 
     foreach ($integrantes_procesados as $integrante) {
@@ -187,6 +187,10 @@ try {
         $genero = mysqli_real_escape_string($conexion, trim($integrante['genero']));
         
         $carrera_id = (!empty($integrante['carrera_id'])) ? intval($integrante['carrera_id']) : NULL;
+        // El formulario ya enviaba estos campos por integrante y aqui se descartaban,
+        // asi que campus_id/facultad_id quedaban en NULL. unirseEquipo.php si los guarda.
+        $campus_id = (!empty($integrante['campus_id'])) ? intval($integrante['campus_id']) : NULL;
+        $facultad_id = (!empty($integrante['facultad'])) ? intval($integrante['facultad']) : NULL;
         
         // Validación extra de nombres
         if (empty($nombres)) throw new Exception('Todos los integrantes deben tener nombre');
@@ -208,11 +212,11 @@ try {
         if ($row = mysqli_fetch_assoc($resultadoUsuario)) {
             // === ACTUALIZAR ===
             $current_usuario_id = $row['id'];
-            mysqli_stmt_bind_param($stmtUpdate, 'ssssssisi', $nombres, $apellido_paterno, $apellido_materno, $correo, $telefono_actual, $genero, $carrera_id, $tipo_participante, $current_usuario_id);
+            mysqli_stmt_bind_param($stmtUpdate, 'ssssssiiisi', $nombres, $apellido_paterno, $apellido_materno, $correo, $telefono_actual, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante, $current_usuario_id);
             mysqli_stmt_execute($stmtUpdate);
         } else {
             // === INSERTAR ===
-            mysqli_stmt_bind_param($stmtInsert, 'sssssssis', $matricula, $nombres, $apellido_paterno, $apellido_materno, $correo, $telefono_actual, $genero, $carrera_id, $tipo_participante);
+            mysqli_stmt_bind_param($stmtInsert, 'sssssssiiis', $matricula, $nombres, $apellido_paterno, $apellido_materno, $correo, $telefono_actual, $genero, $carrera_id, $campus_id, $facultad_id, $tipo_participante);
             if (!mysqli_stmt_execute($stmtInsert)) {
                 if (strpos(mysqli_stmt_error($stmtInsert), 'correo') !== false) {
                     throw new Exception("El correo {$correo} ya está registrado.");
