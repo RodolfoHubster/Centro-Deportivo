@@ -8,6 +8,14 @@ import { formatearFecha } from '../utils/utilidades.js';
 // Variable global dentro del módulo para almacenar las facultades descargadas
 let todasLasFacultades = [];
 let todasLasCarreras = [];
+let estadoFormularioInicial = "";
+
+export function capturarEstadoFormulario() {
+    const form = document.getElementById('formEvento');
+    if (form) {
+        estadoFormularioInicial = new URLSearchParams(new FormData(form)).toString();
+    }
+}
 
 /**
  * Rellena los select de actividades en el formulario
@@ -161,7 +169,7 @@ export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas
                        style="width:17px;height:17px;cursor:pointer;flex-shrink:0;"
                        onclick="event.stopPropagation()">
                 <span style="font-weight:600;font-size:0.95em;color:#1a3a5c;flex:1;">${facultad.nombre}</span>
-                <span style="color:#7a9cc8;font-size:0.8em;margin-right:4px;">(${facultad.siglas})</span>
+                ${(facultad.siglas && String(facultad.siglas).toLowerCase() !== 'null' && facultad.siglas.trim() !== '') ? `<span style="color:#7a9cc8;font-size:0.8em;margin-right:4px;">(${facultad.siglas})</span>` : ''}
                 <span class="fac-chevron" style="font-size:0.85em;color:#7a9cc8;transition:transform 0.2s;transform:${facChecked ? 'rotate(180deg)' : 'rotate(0deg)'};">▼</span>
             `;
             facCard.appendChild(headerEl);
@@ -326,10 +334,10 @@ export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas
         facultadesMostrar.forEach(facultad => {
             const isChecked = facultadesSeleccionadas.includes(String(facultad.id)) || facultadesSeleccionadas.includes(facultad.id) ? 'checked' : '';
             container.innerHTML += `
-                <label style="display:flex;align-items:center;padding:8px;cursor:pointer;border-radius:3px;">
-                    <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked} style="margin-right:10px;">
-                    <span style="font-weight:500;">${facultad.nombre}</span>
-                    <span style="color:#666;margin-left:5px;">(${facultad.siglas})</span>
+                <label class="checkbox-item">
+                    <input type="checkbox" name="facultades[]" value="${facultad.id}" ${isChecked}>
+                    <span class="nombre">${facultad.nombre}</span>
+                    ${(facultad.siglas && String(facultad.siglas).toLowerCase() !== 'null' && facultad.siglas.trim() !== '') ? `<span class="siglas">${facultad.siglas}</span>` : ''}
                 </label>
             `;
         });
@@ -521,6 +529,8 @@ export function poblarFormularioParaEditar(evento, periodoActivoNombre) {
         }
         renderizarFacultadesFiltradas(campusSeleccionados, facultadesGuardadas);
     }
+    
+    setTimeout(capturarEstadoFormulario, 100); // Esperar a que los checkboxes se rendericen
 }
 
 /**

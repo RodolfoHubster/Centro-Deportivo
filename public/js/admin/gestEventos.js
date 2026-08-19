@@ -1,7 +1,7 @@
 // js/admin/gestEventos.js
 
 import * as api from '../services/apiEventos.js?v=4'; 
-import * as ui from '../ui/uiEventos.js?v=4';       
+import * as ui from '../ui/uiEventos.js?v=7';       
 import * as modalQR from '../components/qrModal.js?v=4'; 
 import { mostrarMensaje } from '../utils/utilidades.js'; 
 
