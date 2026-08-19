@@ -240,7 +240,7 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
                         <line x1="23" y1="11" x2="17" y2="11"/>
                     </svg>
                 </div>
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Añadir Participante</h2>
+                <h2 style="color: var(--color-azul-uabc); margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Añadir Participante</h2>
                 <p style="color: #666; margin: 0; font-size: 15px;">Completa todos los campos para registrar al participante</p>
                 <h3 style="color: #00843D; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${nombreEvento}</h3>
             </div>
@@ -248,7 +248,7 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
             <form id="formInscripcionAdmin">
                 
                 <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #00843D;">
-                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">
+                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: var(--color-azul-uabc); font-size: 16px;">
                         Tipo de Participante <span style="color: #dc3545;">*</span>
                     </label>
                     
@@ -347,7 +347,7 @@ function mostrarModalAnadirIndividual(eventoId, nombreEvento) {
                 </div>
 
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: var(--color-azul-uabc); font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
                         Disponibilidad de Juego <span style="color: #dc3545;">*</span>
                     </label>
                     
@@ -543,7 +543,7 @@ function mostrarModalListaEquipos(eventoId, nombreEvento) {
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                 </div>
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unir Participante a Equipo</h2>
+                <h2 style="color: var(--color-azul-uabc); margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unir Participante a Equipo</h2>
                 <p style="color: #666; margin: 0; font-size: 15px;">Selecciona un equipo existente para añadir al participante</p>
                 <h3 style="color: #007bff; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${nombreEvento}</h3>
             </div>
@@ -613,7 +613,7 @@ function mostrarListaEquiposAdmin(equipos, container, eventoId, nombreEvento) {
                 
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <div style="flex: 1; min-width: 200px;">
-                        <h3 style="margin: 0 0 5px 0; color: #003366; font-size: 20px; font-weight: 700;">
+                        <h3 style="margin: 0 0 5px 0; color: var(--color-azul-uabc); font-size: 20px; font-weight: 700;">
                             ${equipo.nombre_equipo}
                         </h3>
                         <p style="margin: 0; color: #666; font-size: 14px;">Total miembros: ${equipo.total_integrantes}</p>
@@ -627,7 +627,7 @@ function mostrarListaEquiposAdmin(equipos, container, eventoId, nombreEvento) {
                 <div style="margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 14px; font-weight: 600; color: #666;">Ocupación</span>
-                        <span style="font-size: 14px; font-weight: 700; color: #003366;">
+                        <span style="font-size: 14px; font-weight: 700; color: var(--color-azul-uabc);">
                             ${equipo.total_integrantes} / ${maxTexto}
                         </span>
                     </div>
@@ -698,7 +698,7 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
             </button>
 
             <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Añadir Integrante a Equipo</h2>
+                <h2 style="color: var(--color-azul-uabc); margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Añadir Integrante a Equipo</h2>
                 <h3 style="color: #00843D; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">${nombreEvento}</h3>
                 <div style="padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%); border-radius: 10px; border-left: 4px solid #007bff;">
                     <p style="margin: 0; color: #007bff; font-weight: 700; font-size: 18px;">${nombreEquipo}</p>
@@ -713,7 +713,7 @@ function mostrarModalAnadirIntegranteAEquipo(equipoId, nombreEquipo, eventoId, n
                 <input type="hidden" name="hora_inicio" id="hidden_hora_inicio">
                 <input type="hidden" name="hora_fin" id="hidden_hora_fin">
                 <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #00843D;">
-                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">
+                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: var(--color-azul-uabc); font-size: 16px;">
                         Tipo de Participante <span style="color: #dc3545;">*</span>
                     </label>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
@@ -1084,7 +1084,7 @@ function renderizarResumenCupo(evento) {
         
         html = `
             <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff;">
-                <p style="margin: 0 0 10px 0; font-weight: bold; color: #003366; font-size: 15px;">Resumen del Torneo</p>
+                <p style="margin: 0 0 10px 0; font-weight: bold; color: var(--color-azul-uabc); font-size: 15px;">Resumen del Torneo</p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 14px;">
                     <div>
                         <strong>Tipo de Registro:</strong> <span>Por equipos</span>
@@ -1120,7 +1120,7 @@ function renderizarResumenCupo(evento) {
             html = `
                 <div style="margin-top: 10px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="font-weight: 600; color: #003366;">Cupo de Participantes:</span>
+                        <span style="font-weight: 600; color: var(--color-azul-uabc);">Cupo de Participantes:</span>
                         <span style="font-weight: 700; color: ${tieneCupo ? '#28a745' : '#dc3545'};">
                             ${totalRegistrados} / ${cupoMaximo} ${tieneCupo ? '' : '(Lleno)'}
                         </span>
@@ -1252,7 +1252,7 @@ function renderizarTablaParticipantes() {
 
                     // Ajustado el colspan a 9 para incluir la nueva columna
                     filaEncabezado.innerHTML = `
-                        <td colspan="9" style="padding: 10px; background: ${estiloFondo}; font-weight: bold; color: #003366; text-align: left; border-top: 2px solid ${estiloBorde};">
+                        <td colspan="9" style="padding: 10px; background: ${estiloFondo}; font-weight: bold; color: var(--color-azul-uabc); text-align: left; border-top: 2px solid ${estiloBorde};">
                             ${contenidoEncabezado}
                         </td>
                     `;
@@ -1649,7 +1649,7 @@ async function cargarEstadisticasPausa(eventoId) {
             // Fila principal: Facultad
             htmlRows += `
             <tr style="background:#f8f9fa; cursor:pointer; border-bottom: 2px solid #dee2e6;" onclick="const rows=document.querySelectorAll('.carrera-row-${fac.facultad_id}'); const ind=this.querySelector('.toggle-indicator'); if(rows && ind){ const isHidden=rows[0].style.display==='none'; rows.forEach(r=>r.style.display=isHidden?'table-row':'none'); ind.textContent=isHidden?'-':'+'; }">
-                <td style="font-weight:700; color:#003366;">
+                <td style="font-weight:700; color:var(--color-azul-uabc);">
                     <span class="toggle-indicator" style="font-size:1.1rem; display:inline-block; width:20px; font-family:monospace;">-</span> ${fac.facultad_nombre}
                 </td>
                 <td style="text-align:center; font-weight:bold;">${fac.cupo_hombres}</td>
@@ -1738,4 +1738,4 @@ async function cargarEstadisticasPausa(eventoId) {
     } catch (err) {
         cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#e53e3e;">Error: ${err.message}</td></tr>`;
     }
-}
+}
