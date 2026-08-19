@@ -323,7 +323,7 @@ function mostrarInscripciones(lista) {
             
             infoEquipoHTML = `
                 <div style="display:flex; align-items:center;">
-                    <span style="font-weight:600; color:#003366;">${insc.nombre_equipo || 'Sin Nombre'}</span>
+                    <span style="font-weight:600; color:var(--color-azul-uabc);">${insc.nombre_equipo || 'Sin Nombre'}</span>
                     ${iconoCapitan}
                 </div>
                 <small style="color:#666; font-size: 0.8em;">(Equipo)</small>

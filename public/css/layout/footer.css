@@ -30,12 +30,8 @@
     color: #f0f0f0;
 }
 
-/* Wrapper para centrar el contenido y dar márgenes laterales */
-.footer-content-wrapper {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
+/* Wrapper del footer. El ancho y el centrado los define la regla compartida
+   de layout.css, para que quede alineado con el header y el contenido. */
 
 /* --------------------------------------------------------------------------
    2. SECCIÓN DE REDES SOCIALES
@@ -73,12 +69,14 @@
 /* --------------------------------------------------------------------------
    3. COLUMNAS DE ENLACES (GRID)
    -------------------------------------------------------------------------- */
-/* Layout de Grid para las columnas de enlaces */
+/* Columnas de enlaces. Antes eran 4 columnas metidas en un grid de 2 (quedaban
+   2x2) y una de ellas llevaba un titulo larguisimo que descuadraba las lineas
+   divisorias. Ahora son 3 columnas de enlaces reales que se acomodan solas. */
 .footer-links {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 30px;
-    margin-bottom: 40px;
+    margin-bottom: 35px;
 }
 
 /* Estilos de cada columna */
@@ -91,10 +89,11 @@
     border-bottom: 2px solid #6a6a6a;
     padding-bottom: 10px;
 
-    /* ✅ AGREGAR ESTAS 3 LÍNEAS */
-    min-height: 4rem;       /* Espacio mínimo para el título más largo */
+    /* Reserva para dos renglones: si un titulo se parte en columnas angostas,
+       las lineas divisorias de todas las columnas siguen a la misma altura. */
+    min-height: 3.2rem;
     display: flex;
-    align-items: flex-end;  /* Texto pegado abajo → border-bottom siempre al mismo nivel */
+    align-items: flex-end;
 }
 
 .footer-column ul {
@@ -119,7 +118,46 @@
 }
 
 /* --------------------------------------------------------------------------
-   4. BARRA DE COPYRIGHT
+   4. CRÉDITOS DEL EQUIPO
+   Descripción: Franja propia para los desarrolladores. Antes era una "columna
+                de enlaces" mas, con un titulo de 90 caracteres.
+   -------------------------------------------------------------------------- */
+.footer-creditos {
+    border-top: 1px solid #6a6a6a;
+    padding-top: 25px;
+    margin-bottom: 35px;
+}
+
+.footer-creditos h3 {
+    font-size: 1.1rem;
+    margin: 0 0 8px 0;
+    color: var(--color-blanco);
+}
+
+.footer-creditos p {
+    margin: 0 0 15px 0;
+    font-size: 0.95rem;
+    color: #d8d8d8;
+}
+
+/* Los nombres en fila, no en lista vertical: ocupan menos y se leen mejor */
+.footer-equipo {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+}
+
+.footer-equipo li {
+    font-size: 0.9rem;
+    color: #f0f0f0;
+    white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   5. BARRA DE COPYRIGHT
    -------------------------------------------------------------------------- */
 .footer-copyright {
     background-color: #1c1c1c; /* Tono más oscuro que el footer principal */
@@ -135,7 +173,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   5. BOTÓN "VOLVER ARRIBA"
+   6. BOTÓN "VOLVER ARRIBA"
    -------------------------------------------------------------------------- */
 .back-to-top {
     position: absolute;
@@ -158,7 +196,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   6. RESPONSIVE DESIGN (Móvil)
+   7. RESPONSIVE DESIGN (Móvil)
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
     /* Cambiar Grid a una sola columna */
@@ -172,10 +210,23 @@
         text-align: center;
     }
 
-    /* Quitar borde inferior de títulos para apariencia más limpia */
+    /* En una sola columna ya no hay lineas que alinear entre si */
     .footer-column h3 {
         border-bottom: none;
         padding-bottom: 5px;
+        min-height: 0;
+        display: block;
+    }
+
+    /* Créditos también centrados */
+    .footer-creditos {
+        text-align: center;
+    }
+
+    .footer-equipo {
+        flex-direction: column;
+        gap: 6px;
+        align-items: center;
     }
 
     /* Reubicar botón 'Volver Arriba' */
@@ -186,7 +237,5 @@
         width: fit-content;
     }
 
-    .footer-content-wrapper {
-        padding: 0 15px;
-    }
+
 }

@@ -278,7 +278,7 @@ function mostrarModalGeneroQR(eventoId, nombreEvento) {
     modal.innerHTML = `
         <div style="background: white; padding: 30px; border-radius: 16px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); position: relative; font-family: sans-serif;">
             <button type="button" id="btnCerrarModalGeneroQR" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #666; font-size: 20px; font-weight: bold;">&times;</button>
-            <h2 style="color: #003366; margin-top: 10px; margin-bottom: 5px;">Pausa Activa</h2>
+            <h2 style="color: var(--color-azul-uabc); margin-top: 10px; margin-bottom: 5px;">Pausa Activa</h2>
             <p style="color: #00843D; font-weight: 600; margin-bottom: 20px;">${escaparHtml(nombreEvento)}</p>
             <p style="color: #666; font-size: 15px; margin-bottom: 25px;">Selecciona tu género para ver las carreras y registrarte:</p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -544,7 +544,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) 
                         <line x1="23" y1="11" x2="17" y2="11"/>
                     </svg>
                 </div>
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Formulario de Registro</h2>
+                <h2 style="color: var(--color-azul-uabc); margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Formulario de Registro</h2>
                 <p style="color: #666; margin: 0; font-size: 15px;">Completa todos los campos requeridos para registrarte</p>
                 <h3 style="color: #00843D; margin: 15px 0 0 0; font-size: 22px; font-weight: 600;">${escaparHtml(nombreEvento)}</h3>
             </div>
@@ -552,7 +552,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) 
             <form id="formInscripcion">
                 
                 <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #00843D;">
-                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">
+                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: var(--color-azul-uabc); font-size: 16px;">
                         Tipo de Participante <span style="color: #dc3545;">*</span>
                     </label>
                     
@@ -660,7 +660,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) 
 
                 
                 <div id="seccion-disponibilidad-usuario" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 25px;">
-                    <h4 style="margin-top: 0; color: #003366; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
+                    <h4 style="margin-top: 0; color: var(--color-azul-uabc); font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
                     
                     <div style="margin-bottom: 20px;">
                         <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">1. Selecciona los días que puedes asistir:</label>
@@ -1028,7 +1028,7 @@ function mostrarModalExito(mensaje, modalRegistro) {
                     <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
             </div>
-            <h2 style="color: #003366; margin: 0 0 15px 0; font-size: 28px; font-weight: 700;">¡Registro Exitoso!</h2>
+            <h2 style="color: var(--color-azul-uabc); margin: 0 0 15px 0; font-size: 28px; font-weight: 700;">¡Registro Exitoso!</h2>
             <p style="color: #666; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">${escaparHtml(mensaje)}</p>
             <button onclick="location.reload()" 
                     style="padding: 14px 40px; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0, 132, 61, 0.3);">
@@ -1143,11 +1143,11 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             </button>
 
             <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Registro de Equipo</h2>
+                <h2 style="color: var(--color-azul-uabc); margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Registro de Equipo</h2>
                 <p style="color: #666; margin: 0 0 15px 0; font-size: 14px;">Inscribe a tu equipo (${minIntegrantes} - ${maxIntegrantes > 0 ? maxIntegrantes : 'Sin límite'} integrantes)</p>
                 
                 <!-- El titulo del formulario por equipo ya no aparece con el cuadro -->
-                <h3 style="margin: 0; color: #003366; font-weight: 600; font-size: 20px;">
+                <h3 style="margin: 0; color: var(--color-azul-uabc); font-weight: 600; font-size: 20px;">
                     <span style="color: #00843D;">${nombreEvento || 'No especificado'}</span>
                 </h3>
             </div>
@@ -1156,7 +1156,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                 <input type="hidden" name="evento_id" value="${eventoId}">
                 
                 <div style="margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #003366; font-size: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--color-azul-uabc); font-size: 16px;">
                         Nombre del Equipo <span style="color: #dc3545;">*</span>
                     </label>
                     <input type="text" name="nombre_equipo" required class="form-input"
@@ -1164,7 +1164,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                 </div>
 
                 <div id="seccion-disponibilidad-equipo" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #003366; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: var(--color-azul-uabc); font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
                         Disponibilidad de Juego del Equipo <span style="color: #dc3545;">*</span>
                     </label>
                     <div style="margin-bottom: 15px;">
@@ -1194,7 +1194,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                             style="padding: 12px 20px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; flex-grow: 1;">
                         + Añadir Integrante
                     </button>
-                    <p style="margin: 0; font-weight: 600; color: #003366; font-size: 16px; white-space: nowrap;">
+                    <p style="margin: 0; font-weight: 600; color: var(--color-azul-uabc); font-size: 16px; white-space: nowrap;">
                         Total: <span id="contador-integrantes">0</span> ${maxTexto}
                     </p>
                 </div>
@@ -1300,7 +1300,7 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             ${hiddenFieldsCapitan}
 
             <div style="background: #f4f8f4; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #003366; font-size: 14px;">Tipo de Participante <span style="color: #dc3545;">*</span></label>
+                <label style="display: block; margin-bottom: 12px; font-weight: 600; color: var(--color-azul-uabc); font-size: 14px;">Tipo de Participante <span style="color: #dc3545;">*</span></label>
                 <div class="radio-group-responsive">
                     <label class="radio-option">
                         <input type="radio" name="${nombreBase}[tipo_participante]" value="Estudiante" checked> Estudiante
@@ -1903,7 +1903,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
     if (permiteCrearEquipo) {
         botonCrearHTML = `
             <div style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px dashed #00843D; border-radius: 12px; text-align: center;">
-                <h4 style="margin: 0 0 10px 0; color: #003366; font-size: 18px;">¿No encuentras tu equipo?</h4>
+                <h4 style="margin: 0 0 10px 0; color: var(--color-azul-uabc); font-size: 18px;">¿No encuentras tu equipo?</h4>
                 <p style="margin: 0 0 15px 0; font-size: 14px; color: #555;">Puedes registrar un equipo nuevo e invitar a tus compañeros.</p>
                 <button id="btnIrACrearEquipo" style="
                     background: #00843D; color: white; border: none; padding: 12px 25px; 
@@ -1940,7 +1940,7 @@ function mostrarFormularioUnirseEquipo(eventoId, nombreEvento, permiteCrearEquip
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                 </div>
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Equipos Disponibles</h2>
+                <h2 style="color: var(--color-azul-uabc); margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Equipos Disponibles</h2>
                 <h3 style="color: #007bff; margin: 0; font-size: 18px; font-weight: 600;">${escaparHtml(nombreEvento)}</h3>
             </div>
 
@@ -2041,7 +2041,7 @@ function mostrarListaEquipos(equipos, container, eventoId, nombreEvento, context
                 
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <div style="flex: 1; min-width: 200px;">
-                        <h3 style="margin: 0 0 5px 0; color: #003366; font-size: 20px; font-weight: 700;">
+                        <h3 style="margin: 0 0 5px 0; color: var(--color-azul-uabc); font-size: 20px; font-weight: 700;">
                             ${escaparHtml(equipo.nombre_equipo)}
                         </h3>
                         <p style="margin: 0; color: #666; font-size: 14px;">
@@ -2060,7 +2060,7 @@ function mostrarListaEquipos(equipos, container, eventoId, nombreEvento, context
                 <div style="margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 14px; font-weight: 600; color: #666;">Integrantes</span>
-                        <span style="font-size: 14px; font-weight: 700; color: #003366;">
+                        <span style="font-size: 14px; font-weight: 700; color: var(--color-azul-uabc);">
                             ${equipo.total_integrantes} / ${maxTexto}
                         </span>
                     </div>
@@ -2173,7 +2173,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                         <line x1="23" y1="11" x2="17" y2="11"/>
                     </svg>
                 </div>
-                <h2 style="color: #003366; margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unirse al Equipo</h2>
+                <h2 style="color: var(--color-azul-uabc); margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">Unirse al Equipo</h2>
                 <p style="color: #666; margin: 0 0 15px 0; font-size: 15px;">Completa tus datos para unirte</p>
                 <h3 style="color: #00843D; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">${escaparHtml(nombreEvento)}</h3>
                 <div style="padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%); border-radius: 10px; border-left: 4px solid #007bff;">
@@ -2186,7 +2186,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                 <input type="hidden" name="evento_id" value="${eventoId}">
                 
                 <div style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #00843D;">
-                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #003366; font-size: 16px;">Tipo de Participante <span style="color: #dc3545;">*</span></label>
+                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: var(--color-azul-uabc); font-size: 16px;">Tipo de Participante <span style="color: #dc3545;">*</span></label>
                     <div style="display: grid; gap: 12px;">
                         <label class="radio-option" style="display: flex; align-items: center; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; transition: all 0.2s;">
                             <input type="radio" name="tipo_participante" value="Estudiante" checked style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #00843D;"><span style="font-size: 15px; font-weight: 500;">Estudiante</span>
@@ -2270,7 +2270,7 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                 </div>
 
                 <div id="seccion-disponibilidad-usuario-unirse" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 25px;">
-                    <h4 style="margin-top: 0; color: #003366; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
+                    <h4 style="margin-top: 0; color: var(--color-azul-uabc); font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Disponibilidad de Juego <span style="color: #dc3545;">*</span></h4>
                     <div style="margin-bottom: 20px;">
                         <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">1. Selecciona los días que puedes asistir:</label>
                         <div id="contenedor-checks-dias-unirse" style="display: flex; flex-wrap: wrap; gap: 12px;"></div>

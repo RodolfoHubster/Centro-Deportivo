@@ -13,8 +13,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Altura mínima ajustada: 100vh menos la altura aproximada del header */
-    min-height: calc(100vh - 100px); 
+    /* Altura minima: la pantalla menos el cromo fijo real (header + nav) */
+    min-height: calc(100vh - var(--chrome-total)); 
     padding: 20px;
 }
 
@@ -25,7 +25,7 @@
 .login-card {
     background: var(--color-blanco);
     padding: 30px 40px;
-    border-radius: var(--borde-redondeado-grande);
+    border-radius: var(--borde-redondo-grande);
     text-align: center;
     box-shadow: var(--sombra-profunda); /* Sombra más fuerte para destacar */
     

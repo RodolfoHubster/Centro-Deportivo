@@ -70,7 +70,7 @@
 
 .evento-info h3 {
     margin-top: 0;
-    color: #003366;
+    color: var(--color-azul-uabc);
     font-size: 1.25rem;
 }
 
@@ -235,16 +235,16 @@
 }
 
 .checkbox-item:hover {
-    border-color: var(--color-verde-uabc, #006633);
+    border-color: var(--color-verde-uabc);
     background: #f0fdf4; /* Verde muy claro */
     box-shadow: 0 2px 5px rgba(0, 102, 51, 0.1);
 }
 
 /* Estilo cuando el checkbox está seleccionado */
 .checkbox-item:has(input:checked) {
-    border-color: var(--color-verde-uabc, #006633);
+    border-color: var(--color-verde-uabc);
     background: #e8f5e9;
-    box-shadow: 0 0 0 1px var(--color-verde-uabc, #006633);
+    box-shadow: 0 0 0 1px var(--color-verde-uabc);
 }
 
 /* IMPORTANTE: Agregamos #formEvento para ganarle a la regla general de inputs que les ponía width: 100% */
@@ -254,7 +254,7 @@
     width: 18px !important;
     height: 18px !important;
     padding: 0 !important;
-    accent-color: var(--color-verde-uabc, #006633);
+    accent-color: var(--color-verde-uabc);
     cursor: pointer;
     flex-shrink: 0;
     flex-grow: 0;

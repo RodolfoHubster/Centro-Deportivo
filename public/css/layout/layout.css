@@ -9,21 +9,44 @@
    Descripción: Compensación de espacio superior para el header fijo.
    -------------------------------------------------------------------------- */
    body {
-    /* Calculamos el espacio exacto sumando altura del header + borde + espacio extra */
-    padding-top: calc(var(--header-height) + var(--header-border) + 45px);
+    /* Reservamos EXACTAMENTE lo que ocupa el cromo fijo (header + nav).
+       En movil --nav-height vale 0, asi que el hueco se ajusta solo:
+       ya no hay que tocar este valor en ningun media query. */
+    padding-top: var(--chrome-total);
 }
 
 /* --------------------------------------------------------------------------
-   2. CONTENEDOR DE CONTENIDO (.page-content)
+   2. ANCHO COMPARTIDO DE LAS TRES FRANJAS
+   Descripción: Header, contenido y footer miden lo mismo, asi el logo, la
+                tarjeta blanca y el pie quedan alineados en la misma columna.
+                El fondo verde del header y el gris del footer siguen siendo
+                de borde a borde; lo que se alinea es su contenido.
+   -------------------------------------------------------------------------- */
+.header-content-wrapper,
+.page-content,
+.footer-content-wrapper {
+    /* El porcentaje manda en pantallas normales; el tope evita lineas de texto
+       larguisimas en monitores grandes (antes llegaba a 2036px en uno de 2560). */
+    width: min(80%, var(--ancho-contenido));
+    max-width: none;
+    margin-left: auto;
+    margin-right: auto;
+    /* Sin padding lateral: el ancho de arriba ya define la columna */
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* --------------------------------------------------------------------------
+   3. CONTENEDOR DE CONTENIDO (.page-content)
    Descripción: Caja blanca principal donde va la información de cada página.
    -------------------------------------------------------------------------- */
 .page-content {
-    max-width: 80%;
-    margin: 30px auto;
+    margin-top: 30px;
+    margin-bottom: 30px;
     padding: 30px 40px;
     
     background: var(--color-blanco);
-    border-radius: var(--borde-redondeado-grande);
+    border-radius: var(--borde-redondo-grande);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave para separar del fondo */
     text-align: left;
 }
@@ -44,7 +67,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   3. CONTENEDOR DE FILTROS (.filtros-containter)
+   4. CONTENEDOR DE FILTROS (.filtros-containter)
    Descripción: Barra gris para selectores de filtrado (Eventos/Torneos).
    Nota: Mantenemos el nombre de clase original (containter) por compatibilidad HTML.
    -------------------------------------------------------------------------- */
@@ -71,19 +94,24 @@
 }
 
 /* --------------------------------------------------------------------------
-   4. RESPONSIVE DESIGN (ADAPTACIÓN MÓVIL)
+   5. RESPONSIVE DESIGN (ADAPTACIÓN MÓVIL)
    -------------------------------------------------------------------------- */
 
 /* Breakpoint Intermedio (Tablets grandes / Laptops pequeñas) */
 @media (max-width: 845px) {
-    body {
-        padding-top: 85px; /* Ajuste manual para cuando el header cambia de altura */
+    /* Nota: el padding-top del body ya no se toca aqui. Lo controla
+       --chrome-total (variables.css), que se recalcula solo en <=1020px. */
+
+    .header-content-wrapper,
+    .page-content,
+    .footer-content-wrapper {
+        width: min(90%, var(--ancho-contenido));
     }
 
     .page-content {
-        max-width: 90%;
         padding: 25px 30px;
-        margin: 20px auto;
+        margin-top: 20px;
+        margin-bottom: 20px;
     }
 
     .filtros-containter {
@@ -94,10 +122,16 @@
 
 /* Breakpoint Móvil (Tablets / Celulares) */
 @media (max-width: 768px) {
+    .header-content-wrapper,
+    .page-content,
+    .footer-content-wrapper {
+        width: min(95%, var(--ancho-contenido));
+    }
+
     .page-content {
-        max-width: 95%;
         padding: 20px 15px;
-        margin: 15px auto;
+        margin-top: 15px;
+        margin-bottom: 15px;
     }
 
     .page-content p {

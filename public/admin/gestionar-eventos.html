@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestionar Eventos - Admin</title>
-  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/main.css?v=19">
 </head>
 <body>
 
@@ -359,14 +359,14 @@
               justify-content:center; align-items:center;">
       <div style="background:#fff; padding:30px; border-radius:10px; max-width:400px;
                   width:90%; text-align:center; position:relative;
-                  box-shadow:0 10px 30px rgba(0,0,0,0.3); border-top:5px solid #006633;">
+                  box-shadow:0 10px 30px rgba(0,0,0,0.3); border-top:5px solid var(--color-verde-uabc);">
           <button type="button" onclick="cerrarSelectorTipo()"
                   style="position:absolute; top:10px; right:15px; background:transparent;
                          border:none; font-size:24px; cursor:pointer; color:#666; line-height:1;">&times;</button>
-          <h3 style="margin-bottom:20px; color:#003366; font-size:1.2rem;">&#191;Qu&#233; tipo de actividad deseas crear?</h3>
+          <h3 style="margin-bottom:20px; color:var(--color-azul-uabc); font-size:1.2rem;">&#191;Qu&#233; tipo de actividad deseas crear?</h3>
           <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
               <button type="button" id="btnSeleccionarEventoNormal"
-                      style="padding:12px 25px; background:#006633; color:white; border:none;
+                      style="padding:12px 25px; background:var(--color-verde-uabc); color:white; border:none;
                              border-radius:6px; cursor:pointer; font-weight:bold; font-size:1rem;">Evento</button>
               <button type="button" id="btnSeleccionarPausaActiva"
                       style="padding:12px 25px; background:#007bff; color:white; border:none;
@@ -379,7 +379,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- Tu archivo JS -->
   <script src="../js/admin/gestEventos.js?v=2" type="module"></script>
-  <script src="../js/headFooter.js"></script>
+  <script src="../js/headFooter.js?v=19"></script>
 
   <script>
     // Funciones globales para el modal selector

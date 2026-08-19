@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Eventos - Centro Deportivo UABC</title>
-  <link rel="stylesheet" href="css/main.css?v=7">
+  <link rel="stylesheet" href="css/main.css?v=19">
 </head>
 <body>
   <div id="header-placeholder"></div>
@@ -12,9 +12,10 @@
   <main class="page-content">
 
     <h1>Eventos Deportivos</h1>
-    
+    <p style="margin-bottom: 20px;">Consulta los eventos deportivos programados en el Centro Deportivo UABC e inscríbete al que te interese.</p>
+
     <div class="filtros-admin-container">
-      <h3 style="margin-top: 0; color: #003366; font-size: 1.1rem; margin-bottom: 15px;">Filtra y encuentra tu evento:</h3>
+      <h3 style="margin-top: 0; color: var(--color-azul-uabc); font-size: 1.1rem; margin-bottom: 15px;">Filtra y encuentra tu evento:</h3>
       <div class="filtros-admin-grid">
           
           <div>
@@ -48,10 +49,25 @@
       <button id="btnLimpiarFiltrosPublico" class="btn-limpiar-filtros">Limpiar Filtros</button>
   </div>
 
-  </div>
-    <p>Aqui se mostraran los eventos deportivos programados en el Centro Deportivo UABC.</p>
-    
-    <div id="lista-eventos"></div>
+    <div id="lista-eventos" class="eventos-container"></div>
+
+    <div class="pagination-controls">
+      <div class="pagination-grupo">
+        <label for="limiteRegistros">Mostrar:</label>
+        <select id="limiteRegistros">
+          <option value="6">6 eventos</option>
+          <option value="12">12 eventos</option>
+          <option value="24">24 eventos</option>
+        </select>
+      </div>
+      <div class="pagination-grupo">
+        <span id="infoPaginacion" class="pagination-info">Calculando...</span>
+        <div class="pagination-botones">
+          <button id="btnPrevPage" class="btn-paginacion" disabled>&lt; Anterior</button>
+          <button id="btnNextPage" class="btn-paginacion">Siguiente &gt;</button>
+        </div>
+      </div>
+    </div>
 
   </main> 
 
@@ -65,7 +81,7 @@
       
       <div style="padding:20px 25px 15px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
         <div>
-          <h3 style="margin:0 0 4px; color:#003366; font-size:1.15rem;">Selecciona tu Facultad y Carrera</h3>
+          <h3 style="margin:0 0 4px; color:var(--color-azul-uabc); font-size:1.15rem;">Selecciona tu Facultad y Carrera</h3>
           <p style="margin:0; font-size:0.88rem; color:#666;">
             Registrándote como: <strong id="modalPausa-sexoLabel" style="font-size:0.95rem;">—</strong>
           </p>
@@ -89,7 +105,7 @@
   </div>
   <!-- ===== FIN MODAL PAUSA ACTIVA ===== -->
 
-  <script src="js/headFooter.js"></script>
+  <script src="js/headFooter.js?v=19"></script>
   <script src="js/user/Eventos.js"></script>
   <script src="js/user/Inscripcion.js" type="module"></script>
   <script src="js/user/InscripcionPausa.js"></script>

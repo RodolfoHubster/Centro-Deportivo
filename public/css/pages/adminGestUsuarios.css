@@ -57,7 +57,7 @@
 .info-usuario h3 {
     margin: 0 0 5px 0;
     font-size: 1.1rem;
-    color: #003366; /* Azul Institucional */
+    color: var(--color-azul-uabc); /* Azul Institucional */
 }
 
 .info-usuario p {

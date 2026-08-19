@@ -72,14 +72,14 @@ export function generarQR(id_evento, tipo_actividad) { // MODIFICADO
                 </svg>
             </button>
 
-            <h2 style="margin: 0 0 10px 0; color: #003366; font-size: 24px; text-align: center;">Código QR Generado</h2>
+            <h2 style="margin: 0 0 10px 0; color: var(--color-azul-uabc); font-size: 24px; text-align: center;">Código QR Generado</h2>
             <p style="margin: 0 0 25px 0; color: #666; text-align: center; font-size: 15px;">Escanea este código para registrarte al evento</p>
             <div style="display: flex; justify-content: center; margin: 25px 0; padding: 25px; background: #f9f9f9; border-radius: 8px; border: 2px dashed #ddd;">
                 <div id="codigoQR"></div>
             </div>
             <div style="margin: 20px 0; padding: 15px; background: #e8f5e9; border-radius: 5px; border-left: 4px solid #28a745;">
                 <p style="margin: 0; font-size: 13px; color: #555; word-break: break-all; line-height: 1.6;">
-                    <strong style="display: block; margin-bottom: 8px; color: #003366; font-size: 14px;">Enlace directo:</strong>
+                    <strong style="display: block; margin-bottom: 8px; color: var(--color-azul-uabc); font-size: 14px;">Enlace directo:</strong>
                     <span style="color: #28a745; font-family: 'Courier New', monospace; font-size: 12px;">${enlaceEvento}</span>
                 </p>
             </div>
@@ -120,7 +120,7 @@ export function generarQR(id_evento, tipo_actividad) { // MODIFICADO
             const logo = new Image();
             
             // Aquí pones la ruta de tu logo. Según tu proyecto podría ser el de la UABC o el del centro:
-            logo.src = '../images/cimarrones-tijuana.png'; // o '../images/LogoUABC.png'
+            logo.src = '../images/cimarrones-tijuana.png?v=17'; // o '../images/LogoUABC.png'
             
             logo.onload = () => {
                 // El logo ocupará el 25% del QR para no romper la lectura
@@ -214,7 +214,7 @@ export function mostrarModalExitoConQR(id_evento, mensaje, tipo_actividad) { // 
                 <h2 style="margin: 0 0 8px 0; color: #28a745; font-size: 26px;">Evento Creado Exitosamente</h2>
                 <p style="margin: 0; color: #666;">${mensaje}</p>
             </div>
-            <h3 style="margin: 20px 0 15px 0; color: #003366; text-align: center;">Código QR del Evento</h3>
+            <h3 style="margin: 20px 0 15px 0; color: var(--color-azul-uabc); text-align: center;">Código QR del Evento</h3>
             <div style="display: flex; justify-content: center; margin: 20px 0; padding: 30px; background: #f8f9fa; border-radius: 12px; border: 3px dashed #28a745;">
                 <div id="codigoQRExito"></div>
             </div>
@@ -258,7 +258,7 @@ export function mostrarModalExitoConQR(id_evento, mensaje, tipo_actividad) { // 
         if (canvas) {
             const ctx = canvas.getContext("2d");
             const logo = new Image();
-            logo.src = '../images/cimarrones-tijuana.png'; // Tu logo
+            logo.src = '../images/cimarrones-tijuana.png?v=17'; // Tu logo
             
             logo.onload = () => {
                 const logoSize = canvas.width * 0.25; 

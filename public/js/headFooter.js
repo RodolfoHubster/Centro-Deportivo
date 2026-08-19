@@ -9,10 +9,15 @@ link.rel = 'icon';
 link.href = faviconPath;
 document.head.appendChild(link);
 
+// Version de los parciales. El header y el footer se piden por fetch, asi que
+// sin esto el navegador se queda con la copia vieja cuando se editan.
+// Subir este numero al cambiar includes/header.html, footer.html o headerAdmin.html.
+const APP_VERSION = '19';
+
 // RUTAS (Definidas globalmente)
-const headerURL = isAdminPage ? '../includes/header.html' : 'includes/header.html';
-const footerURL = isAdminPage ? '../includes/footer.html' : 'includes/footer.html';
-const headerAdminURL = isAdminPage ? '../includes/headerAdmin.html' : 'includes/headerAdmin.html';
+const headerURL = (isAdminPage ? '../includes/header.html' : 'includes/header.html') + '?v=' + APP_VERSION;
+const footerURL = (isAdminPage ? '../includes/footer.html' : 'includes/footer.html') + '?v=' + APP_VERSION;
+const headerAdminURL = (isAdminPage ? '../includes/headerAdmin.html' : 'includes/headerAdmin.html') + '?v=' + APP_VERSION;
 
 // Rutas de PHP
 const cerrarSesionPHP = isAdminPage ? '../../php/admin/cerrarSesion.php' : '../php/admin/cerrarSesion.php';
@@ -37,6 +42,7 @@ if (headerPlaceholder) {
 
             // B. ¡AQUÍ ES EL MOMENTO SEGURO! Inicializamos el menú ahora que ya existe el HTML
             initMenuHamburguesa();
+            vigilarAlturaNav();
 
             // C. Lógica específica de admin
             if (isAdminPage) {
@@ -121,6 +127,35 @@ function initMenuHamburguesa() {
         });
     } else {
         console.warn("No se encontró el botón .mobile-menu-toggle o el menú .main-nav");
+    }
+}
+
+/* Mantiene --nav-height sincronizada con lo que MIDE de verdad la barra de
+   navegación. El body reserva ese espacio (--chrome-total), así que si el menú
+   crece a dos filas (por ejemplo al agregar un enlace, o con textos largos en
+   pantallas de ~1100px) el contenido baja solo en vez de quedar tapado.
+   En móvil el menú es lateral y no ocupa espacio, por eso ahí vale 0. */
+function ajustarAlturaNav() {
+    const mainNav = document.querySelector('.main-nav');
+    if (!mainNav) return;
+
+    // Usamos EXACTAMENTE la misma consulta que el CSS (max-width: 1020px) para
+    // que JS y CSS no puedan discrepar en anchos fraccionarios (ej. 1020.5px).
+    const esMenuLateral = window.matchMedia('(max-width: 1020px)').matches;
+    const alto = esMenuLateral ? '0px' : mainNav.offsetHeight + 'px';
+
+    document.documentElement.style.setProperty('--nav-height', alto);
+}
+
+function vigilarAlturaNav() {
+    ajustarAlturaNav();
+    window.addEventListener('resize', ajustarAlturaNav);
+
+    // Si cambia el contenido del menú (links ocultos por rol, fuentes que
+    // terminan de cargar), volvemos a medir.
+    const mainNav = document.querySelector('.main-nav');
+    if (mainNav && window.ResizeObserver) {
+        new ResizeObserver(ajustarAlturaNav).observe(mainNav);
     }
 }
 
