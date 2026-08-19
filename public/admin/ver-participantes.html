@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Participantes - Admin</title>
-  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/main.css?v=19">
 </head>
 <body>
 
@@ -85,7 +85,7 @@
           <div id="stat-total-mujeres" style="font-size:2.2rem; font-weight:800; line-height:1;">0</div>
           <div style="font-size:0.9rem; opacity:0.9; margin-top:4px;">Mujer</div>
         </div>
-        <div style="background:linear-gradient(135deg,#006633,#00a651); color:#fff; border-radius:12px; padding:20px; text-align:center;">
+        <div style="background:linear-gradient(135deg,var(--color-verde-uabc),#00a651); color:#fff; border-radius:12px; padding:20px; text-align:center;">
           <div id="stat-total-general" style="font-size:2.2rem; font-weight:800; line-height:1;">0</div>
           <div style="font-size:0.9rem; opacity:0.9; margin-top:4px;">Total participantes</div>
         </div>
@@ -144,7 +144,7 @@
     <div class="modal-contenido" style="background: white; border-radius: 12px; width: 100%; max-width: 650px; position: relative; display: flex; flex-direction: column; max-height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         
         <div style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="margin: 0; font-size: 20px; color: #003366;">Editar Participante</h2>
+            <h2 style="margin: 0; font-size: 20px; color: var(--color-azul-uabc);">Editar Participante</h2>
             <span onclick="cerrarModal()" style="font-size: 30px; font-weight: bold; color: #999; cursor: pointer; line-height: 20px;">&times;</span>
         </div>
         
@@ -172,7 +172,8 @@
     </div>
   </div>
   <script src="../js/admin/participantes.js" type="module"></script>
-  <script src="../js/headFooter.js"></script>
+  <script src="../js/ui/tablaResponsive.js?v=19"></script>
+  <script src="../js/headFooter.js?v=19"></script>
   <script src="../js/admin/generarReporte.js?v=5"></script>
 </body>
 </html>

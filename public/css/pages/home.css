@@ -76,20 +76,38 @@
    3. VARIANTES DE IMAGEN Y COLOR
    -------------------------------------------------------------------------- */
 
+/* Nota sobre las imagenes: se sirven en WebP cuando el navegador lo soporta y
+   en JPG cuando no. La primera declaracion es el respaldo: los navegadores que
+   no entienden image-set() la conservan y descartan la segunda. */
+
 /* Tarjeta de Eventos (Verde) */
 .welcome-card--eventos::before {
     background-image:
-    /* Gradiente verde superpuesto para legibilidad */
-    linear-gradient(135deg, rgba(131, 225, 112, 0.7), rgb(54, 162, 21, 0.8)),
-    url(../../images/EventoImg1Home.jpg);
+        /* Gradiente verde superpuesto para legibilidad */
+        linear-gradient(135deg, rgba(131, 225, 112, 0.7), rgba(54, 162, 21, 0.8)),
+        url(../../images/EventoImg1Home.jpg);
+
+    background-image:
+        linear-gradient(135deg, rgba(131, 225, 112, 0.7), rgba(54, 162, 21, 0.8)),
+        image-set(
+            url(../../images/EventoImg1Home.webp) type("image/webp"),
+            url(../../images/EventoImg1Home.jpg)  type("image/jpeg")
+        );
 }
 
 /* Tarjeta de Torneos (Dorado) */
 .welcome-card--torneos::before {
     background-image:
-    /* Gradiente dorado superpuesto */
-    linear-gradient(135deg, rgb(249, 178, 51, 0.7), rgba(226, 237, 24, 0.7)),
-    url(../../images/TorneoImg1Home.jpg);
+        /* Gradiente dorado superpuesto */
+        linear-gradient(135deg, rgba(249, 178, 51, 0.7), rgba(226, 237, 24, 0.7)),
+        url(../../images/TorneoImg1Home.jpg);
+
+    background-image:
+        linear-gradient(135deg, rgba(249, 178, 51, 0.7), rgba(226, 237, 24, 0.7)),
+        image-set(
+            url(../../images/TorneoImg1Home.webp) type("image/webp"),
+            url(../../images/TorneoImg1Home.jpg)  type("image/jpeg")
+        );
 }
 
 /* --------------------------------------------------------------------------
@@ -153,7 +171,9 @@
 }
 
 .contact-promo p {
-    color: var(--color-gris-claro);
+    /* Antes usaba --color-gris-claro (#ccc): sobre el fondo #f9f9f9 daba un
+       contraste de 1.5:1, muy por debajo del minimo accesible de 4.5:1. */
+    color: var(--color-gris-oscuro);
     margin: 0 0 20px 0;
     font-size: 1rem;
     line-height: 1.5;

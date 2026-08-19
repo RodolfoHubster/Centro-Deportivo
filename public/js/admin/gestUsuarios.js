@@ -150,7 +150,7 @@ function mostrarUsuarios(usuarios) {
     container.innerHTML = ''; 
     usuarios.forEach(user => {
         
-        let colorRol = user.rol === 'Administrador' ? '#f9b233' : '#003366'; 
+        let colorRol = user.rol === 'Administrador' ? '#f9b233' : 'var(--color-azul-uabc)'; 
         let estadoLabel = '';
         let botonAccion = '';
 
@@ -166,7 +166,7 @@ function mostrarUsuarios(usuarios) {
         container.innerHTML += `
             <div class="usuario-card" style="--color-rol: ${colorRol};">
                 <div class="info-usuario">
-                    <h3 style="color: #003366;">${user.apellido_paterno} ${user.apellido_materno || ''} ${user.nombre}</h3>
+                    <h3 style="color: var(--color-azul-uabc);">${user.apellido_paterno} ${user.apellido_materno || ''} ${user.nombre}</h3>
                     <p><strong>Correo:</strong> ${user.correo}</p>
                     <p><strong>Matrícula:</strong> ${user.matricula}</p>
                     <p><strong>Rol:</strong> <span style="font-weight: bold; color: var(--color-rol);">${user.rol}</span></p>

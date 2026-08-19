@@ -62,7 +62,7 @@
 .evento-card h2 {
     margin: 5px 0 10px 0;
     font-size: 1.3rem; /* Tamaño seguro */
-    color: #003366; 
+    color: var(--color-azul-uabc); 
     font-weight: 700;
     line-height: 1.2;
     /* Evita que títulos largos rompan el ancho */

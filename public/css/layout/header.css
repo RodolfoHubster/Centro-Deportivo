@@ -15,7 +15,9 @@
     right: 0;
     width: 100%;
     z-index: 1002; /* Por encima de todo el contenido */
-    min-height: var(--header-height);
+    /* El alto real del header lo define UNA sola variable (borde incluido),
+       la misma que usan el nav fijo y el padding del body. */
+    min-height: var(--header-total);
     border-bottom: var(--header-border) solid var(--color-dorado-uabc);
 }
 
@@ -25,10 +27,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between; /* Logo izq, Título centro, Usuario der */
-    padding: 8px 30px;
-    width: 100%;
-    max-width: 1920px; /* Limite para pantallas ultra-wide */
-    margin: 0 auto;
+    /* Solo padding vertical: el ancho y el centrado los define la regla
+       compartida de layout.css (header + contenido + footer alineados). */
+    padding: 8px 0;
     position: relative;
     box-sizing: border-box;
 }
@@ -48,10 +49,13 @@
    -------------------------------------------------------------------------- */
 .main-header .logo {
     cursor: pointer;
+    flex-shrink: 0; /* el logo nunca cede ancho; el que cede es el titulo */
 }
 
 .main-header .logo a {
-    display: inline-block;
+    /* block (y no inline-block) para que la imagen no arrastre el hueco de
+       linea base, que sumaba ~4px extra al alto del header. */
+    display: block;
 }
 
 .main-header .logo img {
@@ -178,14 +182,17 @@
     display: none; /* Oculto en escritorio */
     flex-direction: column;
     justify-content: space-around;
-    width: 30px;
-    height: 25px;
+    /* 44x44 es el area tactil minima recomendada. El padding hace que las
+       barras se sigan viendo de 30x24, pero el boton se puede picar bien. */
+    width: 44px;
+    height: 44px;
+    padding: 10px 7px;
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0;
     z-index: 1003;
-    margin-left: 15px;
+    margin-left: 10px;
+    flex-shrink: 0;
 }
 
 .mobile-menu-toggle span {
@@ -227,7 +234,10 @@
 /* B. Móvil (< 1020px) */
 @media (max-width: 1020px) {
     .header-content-wrapper {
-        padding: 12px 15px;
+        /* 8px vertical + los 44px del boton hamburguesa + 5px de borde = 65px,
+           por debajo de los 70px de --header-total: asi el alto del header lo
+           decide la variable y no el contenido. */
+        padding: 8px 0;
         align-items: center;
         min-height: 60px;
     }
@@ -237,13 +247,20 @@
         height: 40px;
     }
 
-    /* Ajustar Título Centrado */
+    /* Título: en móvil deja de estar centrado en absoluto.
+       Al ser un item flex mas ocupa solo el espacio que sobra entre el logo
+       y la hamburguesa, asi que ya no puede encimarse con ninguno de los dos
+       (antes se traslapaba con el logo en pantallas de 414px o menos). */
     .main-header .title {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        max-width: 55%;
+        position: static;
+        transform: none;
+        left: auto;
+        top: auto;
+        flex: 1 1 auto;
+        min-width: 0;       /* permite que el texto se recorte en vez de desbordar */
+        max-width: none;
+        padding: 0 10px;
+        text-align: center;
     }
 
     .main-header .title h1 {
@@ -255,6 +272,9 @@
 
     .main-header .title p {
         font-size: 0.65rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Ocultar elementos de escritorio */
@@ -273,10 +293,6 @@
 @media (max-width: 480px) {
     .main-header .logo img {
         height: 35px;
-    }
-
-    .main-header .title {
-        max-width: 50%;
     }
 
     .main-header .title h1 {

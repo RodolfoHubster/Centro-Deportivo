@@ -119,7 +119,7 @@
                             data-carrera-id="${car.carrera_id}"
                             data-carrera-nombre="${car.carrera_nombre}"
                             ${lleno ? 'disabled' : ''}
-                            style="width:100%;padding:8px;background:${lleno ? '#a0aec0' : 'linear-gradient(135deg,#006633,#00a651)'};
+                            style="width:100%;padding:8px;background:${lleno ? '#a0aec0' : 'linear-gradient(135deg,var(--color-verde-uabc),#00a651)'};
                                    color:#fff;border:none;border-radius:5px;font-weight:bold;font-size:0.9rem;
                                    cursor:${lleno ? 'not-allowed' : 'pointer'};transition:opacity 0.2s;">
                             ${lleno ? 'Sin espacios disponibles' : 'Unirme a esta carrera'}

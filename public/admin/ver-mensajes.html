@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ver Mensajes - Admin</title>
-  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/main.css?v=19">
 </head>
 <body>
 
@@ -75,12 +75,12 @@
       
       mensajes.forEach(msg => {
         const card = document.createElement('div');
-        card.style.cssText = 'background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #003366;';
+        card.style.cssText = 'background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid var(--color-azul-uabc);';
         
         card.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
             <div>
-              <h3 style="margin: 0 0 5px 0; color: #003366;">${msg.asunto}</h3>
+              <h3 style="margin: 0 0 5px 0; color: var(--color-azul-uabc);">${msg.asunto}</h3>
               <p style="margin: 0; color: #666; font-size: 14px;">
                 <strong>${msg.nombre}</strong> - ${msg.correo}
               </p>
@@ -109,7 +109,7 @@
       }
     });
   </script> 
-  <script src="../js/headFooter.js"></script>
+  <script src="../js/headFooter.js?v=19"></script>
 
 </body>
 </html>

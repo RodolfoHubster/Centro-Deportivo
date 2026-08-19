@@ -5,14 +5,7 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. AJUSTES GENERALES DEL CONTENEDOR
-   -------------------------------------------------------------------------- */
-   .page-content {
-    border-radius: 8px; /* Radio específico para esta página si difiere del global */
-}
-
-/* --------------------------------------------------------------------------
-   2. SECCIONES DE CONTACTO (Agrupación por Campus)
+   1. SECCIONES DE CONTACTO (Agrupación por Campus)
    -------------------------------------------------------------------------- */
 .contact-section {
     margin-bottom: 40px;
@@ -35,7 +28,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   3. GRID DE TARJETAS DE CONTACTO
+   2. GRID DE TARJETAS DE CONTACTO
    -------------------------------------------------------------------------- */
 .contact-grid {
     display: grid;
@@ -45,7 +38,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   4. TARJETA DE CONTACTO INDIVIDUAL
+   3. TARJETA DE CONTACTO INDIVIDUAL
    Descripción: Caja con la información de cada persona/departamento.
    -------------------------------------------------------------------------- */
 .contact-card {
@@ -81,6 +74,15 @@
 .contact-card a {
     color: var(--color-verde-uabc);
     text-decoration: none;
+}
+
+/* Los correos largos (p.ej. cristian.jesus.perez.cardenas@uabc.edu.mx) son una
+   sola palabra sin espacios: sin esto empujaban la pagina 40px de mas y
+   aparecia scroll horizontal en pantallas de 360px o menos. */
+.contact-card p,
+.contact-card a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .contact-card a:hover {

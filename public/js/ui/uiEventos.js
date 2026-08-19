@@ -105,7 +105,7 @@ export function renderizarFacultadesFiltradas(campusIds, facultadesSeleccionadas
     const facultadesMostrar = todasLasFacultades.filter(f => campusIds.includes(String(f.campus_id)));
 
     if (facultadesMostrar.length === 0) {
-        container.innerHTML = '<p style="color:#003366;font-style:italic;padding:10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
+        container.innerHTML = '<p style="color:var(--color-azul-uabc);font-style:italic;padding:10px;">No hay facultades asociadas a las unidades seleccionadas.</p>';
         return;
     }
 
@@ -403,7 +403,7 @@ export function mostrarEventos(eventos) {
             <div class="evento-layout">
                 
                 <div class="evento-info">
-                    <h3 style="margin: 0 0 10px 0; color: #003366; display: flex; align-items: center;">
+                    <h3 style="margin: 0 0 10px 0; color: var(--color-azul-uabc); display: flex; align-items: center;">
                         ${evento.nombre} 
                         ${etiquetaFinalizado} 
                     </h3>

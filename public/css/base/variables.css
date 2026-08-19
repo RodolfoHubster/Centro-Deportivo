@@ -10,6 +10,8 @@
        1. IDENTIDAD INSTITUCIONAL (COLORES MARCA)
        ---------------------------------------------------------------------- */
     --color-verde-uabc:   #006633;  /* Color principal */
+    --color-azul-uabc:    #003366;  /* Azul institucional: títulos de tarjetas,
+                                       modales y etiquetas de formulario */
     --color-dorado-uabc:  #f9b233;  /* Color secundario/acento */
     --color-dorado-hover: #e5a322;  /* Versión oscura para estados :hover */
 
@@ -45,6 +47,37 @@
     /* ----------------------------------------------------------------------
        6. LAYOUT Y DIMENSIONES
        ---------------------------------------------------------------------- */
-    --header-height:      80px;     /* Altura fija del header */
+    --header-height:      80px;     /* Alto del header SIN contar su borde */
     --header-border:      5px;      /* Grosor del borde inferior del header */
+
+    /* Alto REAL del header (lo que ocupa en pantalla, borde incluido).
+       Lo usan el nav fijo y el padding del body: si cambia, todo se acomoda solo. */
+    --header-total:       calc(var(--header-height) + var(--header-border));
+
+    /* Alto de la barra de navegacion de escritorio (0 en movil: es off-canvas) */
+    --nav-height:         65px;
+
+    /* Espacio fijo total ocupado arriba (header + nav). Lo reserva el body. */
+    --chrome-total:       calc(var(--header-total) + var(--nav-height));
+
+    /* Tope de ancho compartido por header, contenido y footer. Sin el, el
+       contenido crecia sin limite (2036px en un monitor de 2560px) y las tres
+       franjas usaban topes distintos (header 1920, contenido libre, footer 1000). */
+    --ancho-contenido:    1400px;
+}
+
+/* --------------------------------------------------------------------------
+   7. REDEFINICION EN MOVIL (<= 1020px)
+   Descripcion: A partir de aqui el nav deja de ser una barra horizontal y pasa
+                a ser un menu lateral, por lo que ya no ocupa espacio propio;
+                el header ademas se compacta. Redefinir las variables en un solo
+                lugar evita tener que parchear el valor a mano en cada hoja.
+   IMPORTANTE: 1020px es EL breakpoint del header/nav. Debe coincidir con el de
+               header.css y navigation.css.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1020px) {
+    :root {
+        --header-total:  70px;  /* Header compacto (logo de 40px + padding) */
+        --nav-height:    0px;   /* El menu lateral no empuja el contenido */
+    }
 }

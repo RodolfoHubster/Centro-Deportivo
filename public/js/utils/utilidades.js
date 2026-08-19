@@ -90,7 +90,7 @@ export function mostrarModalExito(mensaje, callback = null) {
                     <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
             </div>
-            <h2 style="color: #003366; margin: 0 0 15px 0; font-size: 28px; font-weight: 700;">¡Éxito!</h2>
+            <h2 style="color: var(--color-azul-uabc); margin: 0 0 15px 0; font-size: 28px; font-weight: 700;">¡Éxito!</h2>
             <p style="color: #666; margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">${mensaje}</p>
             <button id="btnAceptarExito" 
                     style="padding: 14px 40px; background: linear-gradient(135deg, #00843D 0%, #00a651 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0, 132, 61, 0.3);">

@@ -14,7 +14,9 @@
     
     /* Posicionamiento Fijo debajo del Header */
     position: fixed;
-    top: var(--header-height); /* Altura sincronizada con variables.css */
+    /* --header-total incluye el borde dorado: antes se usaba --header-height
+       (sin borde) y el nav quedaba 5px por debajo del header. */
+    top: var(--header-total);
     left: 0;
     right: 0;
     width: 100%;
@@ -31,11 +33,13 @@
     padding: 0;
     margin: 0;
     flex-wrap: wrap; /* Permite que los items bajen si no caben */
-    gap: 20px;
+    /* Sin gap: el espacio entre items lo da el margin del li (antes se sumaban
+       los dos y los 6 enlaces del menu admin no cabian en una sola fila). */
+    gap: 0;
 }
 
 .main-nav ul li {
-    margin: 5px 15px;
+    margin: 5px 4px;
 }
 
 /* Estilos de los links individuales */
@@ -45,7 +49,7 @@
     font-weight: bold;
     font-size: 1rem;
     white-space: nowrap;
-    padding: 8px 15px;
+    padding: 8px 12px;
     display: inline-block;
     transition: color 0.3s;
 }
@@ -95,7 +99,10 @@
     /* --- Contenedor Lateral (Slide-in) --- */
     .main-nav {
         position: fixed;
-        top: 70px; /* Ajuste específico para altura de header móvil */
+        /* Misma variable que en escritorio: en <=1020px vale 70px.
+           Antes era un 70px fijo mientras el header medía 80px, así que
+           los primeros 10px del menú quedaban escondidos tras el header. */
+        top: var(--header-total);
         left: auto;
         right: -100%; /* Oculto fuera de pantalla a la derecha */
         width: auto;
