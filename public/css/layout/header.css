@@ -153,6 +153,7 @@
     font-size: 1rem;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    transition: color 0.3s ease;
 }
 
 .main-header .logout svg {
@@ -163,6 +164,7 @@
 
 /* Efecto Hover en Logout */
 .main-header .logout:hover a.header-btn,
+.main-header .logout:hover span,
 .main-header .logout:hover {
     color: var(--color-dorado-uabc); 
     transform: translateX(3px);      

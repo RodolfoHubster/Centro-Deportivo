@@ -212,19 +212,71 @@
 #campus-checkbox {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 10px;
-    max-height: 180px;
-    overflow-y: auto;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    background: #f9f9f9;
+    gap: 12px; 
+    max-height: 220px; 
+    overflow-y: auto; 
+    padding: 15px;
+    border: 1px solid #e0e0e0; 
+    border-radius: 8px; 
+    background: #fdfdfd;
 }
 
-/* Facultades: base para eventos normales (el JS puede sobreescribir con cssText) */
-#facultades-checkbox {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+/* ESTILOS MEJORADOS PARA LOS CHECKBOXES (CAMPUS Y FACULTADES) */
+.checkbox-item {
+    display: flex; 
+    align-items: center; 
+    padding: 10px 12px; 
+    cursor: pointer; 
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    user-select: none;
+}
+
+.checkbox-item:hover {
+    border-color: var(--color-verde-uabc, #006633);
+    background: #f0fdf4; /* Verde muy claro */
+    box-shadow: 0 2px 5px rgba(0, 102, 51, 0.1);
+}
+
+/* Estilo cuando el checkbox está seleccionado */
+.checkbox-item:has(input:checked) {
+    border-color: var(--color-verde-uabc, #006633);
+    background: #e8f5e9;
+    box-shadow: 0 0 0 1px var(--color-verde-uabc, #006633);
+}
+
+/* IMPORTANTE: Agregamos #formEvento para ganarle a la regla general de inputs que les ponía width: 100% */
+#formEvento .checkbox-item input[type="checkbox"] {
+    margin: 0 !important;
+    margin-right: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+    padding: 0 !important;
+    accent-color: var(--color-verde-uabc, #006633);
+    cursor: pointer;
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+.checkbox-item span.nombre {
+    font-weight: 500;
+    color: #333;
+    font-size: 0.95rem;
+    flex-grow: 1;
+    line-height: 1.2;
+}
+
+.checkbox-item span.siglas {
+    color: #666;
+    margin-left: 8px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    background: #eef2f5;
+    padding: 3px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
     gap: 10px;
     max-height: 180px;
     overflow-y: auto;

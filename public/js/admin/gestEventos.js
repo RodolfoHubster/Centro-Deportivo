@@ -1,7 +1,7 @@
 // js/admin/gestEventos.js
 
 import * as api from '../services/apiEventos.js?v=4'; 
-import * as ui from '../ui/uiEventos.js?v=4';       
+import * as ui from '../ui/uiEventos.js?v=7';       
 import * as modalQR from '../components/qrModal.js?v=4'; 
 import { mostrarMensaje } from '../utils/utilidades.js'; 
 
@@ -222,6 +222,7 @@ async function handleListaEventosClick(e) {
                 eventoEditandoId = id;
                 ui.poblarFormularioParaEditar(evento, periodoActivoGlobal);
                 document.getElementById('modalEvento').style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Bloquear scroll de fondo
                 document.getElementById('mensaje-respuesta').style.display = 'none';
             }
         }
@@ -274,6 +275,9 @@ try {
         const data = await api.guardarEvento(formData, modoEdicion);
         if (data.success) {
             ui.cerrarModal(); 
+            
+            // 1. Cerrar el modal del formulario de creación/edición forzando el cierre sin advertencia
+            ui.cerrarModal(true); 
 
             todosLosEventos = await api.cargarEventos(true);
             aplicarFiltrosAdmin();
@@ -414,6 +418,24 @@ function configurarListenersEventos() {
         });
     }
 
+    // Búsqueda en vivo de facultades en el modal
+    const searchFacultadModal = document.getElementById('buscar-facultad-modal');
+    if (searchFacultadModal) {
+        searchFacultadModal.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const checkboxes = document.querySelectorAll('#facultades-checkbox .checkbox-item');
+            checkboxes.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // --- LISTENERS DE PAGINACIÓN ---
     const selectLimite = document.getElementById('limiteRegistros');
     const btnPrev = document.getElementById('btnPrevPage');
     const btnNext = document.getElementById('btnNextPage');
@@ -479,13 +501,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCerrarModalX) btnCerrarModalX.addEventListener('click', ui.cerrarModal);
     
     if(modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) ui.cerrarModal();
-        });
+        // Se ha comentado esta línea para evitar que el modal se cierre al dar clic fuera y perder información
+        // modal.addEventListener('click', (e) => {
+        //     if (e.target === modal) ui.cerrarModal();
+        // });
         const contenido = modal.querySelector('.admin-modal-contenido');
         if(contenido) contenido.addEventListener('click', (e) => e.stopPropagation());
     }
+
+    // Agregar funcionalidad para cerrar el modal con la tecla Esc
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+            ui.cerrarModal();
+        }
+    });
 });
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const modalSelector = document.getElementById('modalSelectorTipoEvento');

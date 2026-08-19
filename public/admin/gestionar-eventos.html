@@ -15,32 +15,31 @@
   <main class="page-content">
     <h1>Gestionar Eventos</h1>
     
-    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+    <div class="filtros-admin-container">
+      <div class="filtros-admin-grid">
         
-        <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Buscar:</label>
-          <input type="text" id="filtro-buscar-admin" placeholder="Nombre, lugar..." 
-                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <div class="campo-full">
+          <label>Buscar:</label>
+          <input type="text" id="filtro-buscar-admin" placeholder="Nombre, lugar...">
         </div>
 
-        <div class="form-group">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;" for="filtro-campus-admin">Campus:</label>
-          <select id="filtro-campus-admin" class="form-control">
+        <div>
+          <label for="filtro-campus-admin">Campus:</label>
+          <select id="filtro-campus-admin">
             <option value="">Todos</option>
             </select>
         </div>
 
         <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Facultad:</label>
-          <select id="filtro-facultad-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+          <label>Facultad:</label>
+          <select id="filtro-facultad-admin">
             <option value="">Todas las facultades</option>
             </select>
         </div>
 
         <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Categoría:</label>
-          <select id="filtro-categoria-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+          <label>Categoría:</label>
+          <select id="filtro-categoria-admin">
             <option value="">Todas las categorías</option>
             <option value="Fútbol">Fútbol</option>
             <option value="Fútbol Rápido">Fútbol Rápido</option>
@@ -53,8 +52,8 @@
         </div>
 
         <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Tipo:</label>
-          <select id="filtro-tipo-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+          <label>Tipo:</label>
+          <select id="filtro-tipo-admin">
             <option value="">Todos los tipos</option>
             <option value="Torneo">Torneo</option>
             <option value="Carrera">Evento (Carrera)</option>
@@ -69,8 +68,8 @@
         </div>
         
         <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Estado:</label>
-          <select id="filtro-estado-admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+          <label>Estado:</label>
+          <select id="filtro-estado-admin">
             <option value="activo">Activos (Por defecto)</option>
             <option value="inactivo">Finalizados</option>
             <option value="todos">Todos (Activos e Inactivos)</option>
@@ -79,7 +78,7 @@
       </div>
 
 
-      <button id="btnLimpiarFiltrosAdmin" style="margin-top: 15px; padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      <button id="btnLimpiarFiltrosAdmin" class="btn-limpiar-filtros">
         Limpiar Filtros
       </button>
     </div>
@@ -309,6 +308,11 @@
           <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
             Selecciona las facultades que pueden participar en este evento. Si no seleccionas ninguna, se asignarán todas automáticamente.
           </p>
+          
+          <div style="margin-bottom: 15px;">
+             <input type="text" id="buscar-facultad-modal" placeholder="Buscar facultad por nombre o siglas..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+          </div>
+
           <div id="facultades-checkbox" class="facultadres-grid">
             <p>Cargando facultades...</p>
           </div>
@@ -374,7 +378,7 @@
   <!-- Librería de QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- Tu archivo JS -->
-  <script src="../js/admin/gestEventos.js?v=4" type="module"></script>
+  <script src="../js/admin/gestEventos.js?v=2" type="module"></script>
   <script src="../js/headFooter.js"></script>
 
   <script>

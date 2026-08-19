@@ -778,10 +778,10 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) 
             border-color: #00843D !important;
             box-shadow: 0 0 0 3px rgba(0, 132, 61, 0.1) !important;
         }
-        .form-input:invalid:not(:placeholder-shown) {
+        .form-input.touched:invalid {
             border-color: #dc3545 !important;
         }
-        .form-input:valid:not(:placeholder-shown) {
+        .form-input.touched:valid {
             border-color: #28a745 !important;
         }
     `;
@@ -1257,8 +1257,8 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
             .radio-option input[type="radio"]:checked + span, .radio-option input[type="checkbox"]:checked + span { color: #00843D; font-weight: 600; }
             .radio-option:has(input[type="radio"]:checked), .radio-option:has(input[type="checkbox"]:checked) { border-color: #00843D !important; background: #f1f8f4 !important; }
             .form-input:focus { outline: none; border-color: #00843D !important; box-shadow: 0 0 0 3px rgba(0, 132, 61, 0.1) !important; }
-            .form-input:invalid:not(:placeholder-shown) { border-color: #dc3545 !important; }
-            .form-input:valid:not(:placeholder-shown) { border-color: #28a745 !important; }
+            .form-input.touched:invalid { border-color: #dc3545 !important; }
+            .form-input.touched:valid { border-color: #28a745 !important; }
             .radio-option { display: flex; align-items: center; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; transition: all 0.2s; }
             .radio-option input[type="radio"], .radio-option input[type="checkbox"] { margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #00843D; flex-shrink: 0; }
         `;

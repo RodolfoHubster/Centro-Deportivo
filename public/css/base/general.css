@@ -21,6 +21,10 @@
 /* --------------------------------------------------------------------------
    3. CUERPO (BODY)
    -------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0; /* Eliminar margen por defecto del navegador */
   font-family: 'Open Sans', sans-serif; 
@@ -37,6 +41,16 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-verde-uabc); /* Identidad institucional */
   font-weight: 700; /* Jerarquía visual fuerte */
   letter-spacing: -0.5px; /* Estilo moderno y compacto */
+}
+
+h1 {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+h2 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+h3 {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
 }
 
 /* --------------------------------------------------------------------------

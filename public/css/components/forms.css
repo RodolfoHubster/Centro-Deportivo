@@ -48,13 +48,17 @@
        transform: translateY(-1px); /* Micro-interacción de elevación */
    }
    
-   /* Validación: Campo válido (y no vacío) */
-   input:not(:placeholder-shown):valid {
+   /* Validación: Campo válido (después de interactuar) */
+   input.touched:valid,
+   select.touched:valid,
+   textarea.touched:valid {
        border-color: #28a745; /* Verde éxito */
    }
    
-   /* Validación: Campo inválido (y no vacío) */
-   input:not(:placeholder-shown):invalid {
+   /* Validación: Campo inválido (después de interactuar) */
+   input.touched:invalid,
+   select.touched:invalid,
+   textarea.touched:invalid {
        border-color: #dc3545; /* Rojo error */
    }
    

@@ -252,3 +252,14 @@ function cerrarSesionAdmin() {
             });
      }
 }
+
+// ==========================================
+// 5. VALIDACIÓN VISUAL DE FORMULARIOS
+// Añade clase 'touched' al perder el foco (blur) para mostrar rojo/verde
+// ==========================================
+document.addEventListener('blur', function(e) {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+        e.target.classList.add('touched');
+    }
+}, true);

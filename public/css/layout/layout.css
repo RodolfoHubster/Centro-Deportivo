@@ -81,8 +81,9 @@
     }
 
     .page-content {
-        padding: 20px;
-        margin: 20px auto; /* Márgenes laterales reducidos */
+        max-width: 90%;
+        padding: 25px 30px;
+        margin: 20px auto;
     }
 
     .filtros-containter {
@@ -94,8 +95,9 @@
 /* Breakpoint Móvil (Tablets / Celulares) */
 @media (max-width: 768px) {
     .page-content {
-        padding: 20px;
-        margin: 20px auto;
+        max-width: 95%;
+        padding: 20px 15px;
+        margin: 15px auto;
     }
 
     .page-content p {
