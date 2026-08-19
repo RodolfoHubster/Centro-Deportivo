@@ -17,8 +17,20 @@ export function actualizarCamposSegunTipo(tipo, context = document) {
 
     if (!labelMatricula) return;
 
+    // El valor llega del radio ('Personal Administrativo') y el PHP lo espera en
+    // otra caja ('Personal administrativo'). Comparar en minúsculas evita que un
+    // tipo válido se cuele al 'else' y termine tratado como Externo.
+    const tipoNormalizado = String(tipo || '').trim().toLowerCase();
+    const esServicio = tipoNormalizado === 'personal de servicio';
+    const tiposEmpleado = [
+        'docente',
+        'personal académico', 'personal academico',
+        'personal administrativo',
+        'personal de servicio'
+    ];
+
     // CASO 1: ESTUDIANTE
-    if (tipo === 'Estudiante') {
+    if (tipoNormalizado === 'estudiante') {
         labelMatricula.textContent = 'Matrícula';
         inputMatricula.placeholder = '12345678';
         inputMatricula.required = true;
@@ -33,10 +45,10 @@ export function actualizarCamposSegunTipo(tipo, context = document) {
         if(selectFacultad) selectFacultad.required = true;
         if(selectCarrera) selectCarrera.required = true;
 
-    // CASO 2: EMPLEADOS (Docente, Personal, etc.)
-    } else if (['Docente', 'Personal Académico', 'Personal de Servicio'].includes(tipo) || ['Docente', 'Personal administrativo', 'Personal de servicio'].includes(tipo)) {
-        
-        if (tipo === 'Personal de Servicio' || tipo === 'Personal de servicio') {
+    // CASO 2: EMPLEADOS (Docente, Personal administrativo, Personal de servicio)
+    } else if (tiposEmpleado.includes(tipoNormalizado)) {
+
+        if (esServicio) {
             labelMatricula.textContent = 'Matrícula o No. de Empleado (Opcional)'; // <-- SOLO AQUI
             inputMatricula.placeholder = 'Opcional';
             inputMatricula.required = false;
