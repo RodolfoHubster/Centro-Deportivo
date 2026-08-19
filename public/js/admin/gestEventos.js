@@ -274,10 +274,11 @@ async function handleFormSubmit(e) {
 try {
         const data = await api.guardarEvento(formData, modoEdicion);
         if (data.success) {
-            ui.cerrarModal(); 
-            
-            // 1. Cerrar el modal del formulario de creación/edición forzando el cierre sin advertencia
-            ui.cerrarModal(true); 
+            // Se cierra FORZANDO: los datos ya se guardaron, asi que preguntar
+            // "hay datos sin guardar, seguro que quieres salir?" es falso.
+            // Antes se llamaba primero sin forzar, y como el segundo cierre era
+            // forzado, responder "No" a esa advertencia no cancelaba nada.
+            ui.cerrarModal(true);
 
             todosLosEventos = await api.cargarEventos(true);
             aplicarFiltrosAdmin();
