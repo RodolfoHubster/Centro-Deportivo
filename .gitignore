@@ -2,3 +2,4 @@
 .env
 php/includes/credenciales-drive.json
 php/includes/token.json
+php/admin/debug_crear_evento.txt
