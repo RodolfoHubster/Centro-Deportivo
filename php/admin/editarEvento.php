@@ -38,18 +38,23 @@ try {
     // 1. VALIDAR CAMPOS OBLIGATORIOS (EL ID ES CLAVE)
     // ===================================
     
+    $tipo_creacion = isset($_POST['tipo_creacion']) ? $_POST['tipo_creacion'] : 'evento';
+      
     $camposRequeridos = [
         'id' => 'ID del evento', // El ID es obligatorio para editar
         'nombre' => 'Nombre del evento',
         'fecha_inicio' => 'Fecha de inicio',
         'fecha_termino' => 'Fecha de término',
-        'lugar' => 'Lugar',
-        'tipo_registro' => 'Tipo de registro',
         'categoria_deporte' => 'Categoría deportiva',
-        'tipo_actividad' => 'Tipo de actividad',
-        'ubicacion_tipo' => 'Tipo de ubicación',
         'id_promotor' => 'ID de Promotor'
     ];
+    
+    if ($tipo_creacion !== 'pausa_activa') {
+        $camposRequeridos['lugar'] = 'Lugar';
+        $camposRequeridos['tipo_registro'] = 'Tipo de registro';
+        $camposRequeridos['tipo_actividad'] = 'Tipo de actividad';
+        $camposRequeridos['ubicacion_tipo'] = 'Tipo de ubicación';
+    }
     
     foreach ($camposRequeridos as $campo => $nombreCampo) {
         if (!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
@@ -66,13 +71,26 @@ try {
     $descripcion = isset($_POST['descripcion']) ? mysqli_real_escape_string($conexion, trim($_POST['descripcion'])) : '';
     $fecha_inicio = mysqli_real_escape_string($conexion, $_POST['fecha_inicio']);
     $fecha_termino = mysqli_real_escape_string($conexion, $_POST['fecha_termino']);
-    $lugar = mysqli_real_escape_string($conexion, trim($_POST['lugar']));
-    $tipo_registro = mysqli_real_escape_string($conexion, $_POST['tipo_registro']);
+    $lugar = isset($_POST['lugar']) ? mysqli_real_escape_string($conexion, trim($_POST['lugar'])) : 'N/A';
+    $tipo_registro = isset($_POST['tipo_registro']) && trim($_POST['tipo_registro']) !== '' ? mysqli_real_escape_string($conexion, trim($_POST['tipo_registro'])) : 'Individual';
+    
     $categoria_deporte = mysqli_real_escape_string($conexion, $_POST['categoria_deporte']);
-    $tipo_actividad = mysqli_real_escape_string($conexion, $_POST['tipo_actividad']);
-    $ubicacion_tipo = mysqli_real_escape_string($conexion, $_POST['ubicacion_tipo']);
+    $tipo_actividad = isset($_POST['tipo_actividad']) && trim($_POST['tipo_actividad']) !== '' ? mysqli_real_escape_string($conexion, trim($_POST['tipo_actividad'])) : 'Pausa Activa';
+    $ubicacion_tipo = isset($_POST['ubicacion_tipo']) && trim($_POST['ubicacion_tipo']) !== '' ? mysqli_real_escape_string($conexion, trim($_POST['ubicacion_tipo'])) : 'N/A';
     $id_promotor = intval($_POST['id_promotor']);
     
+    // === FORZAR VALORES PARA PAUSA ACTIVA ===
+    if ($tipo_creacion === 'pausa_activa') {
+        $lugar = 'N/A';
+        $tipo_registro = 'Individual';
+        $tipo_actividad = 'Torneo'; // Debe coincidir con ENUM de MySQL
+        $ubicacion_tipo = 'Canchas internas'; // Debe coincidir con ENUM de MySQL
+    }
+    
+    $dias_juego = "";
+    if (isset($_POST['dias_juego']) && is_array($_POST['dias_juego'])) {
+        $dias_juego = mysqli_real_escape_string($conexion, implode(',', $_POST['dias_juego']));
+    }
     // ---------------------------------------------------------
     // CAMBIO IMPORTANTE: LOGICA PARA LEER CHECKBOXES DE CAMPUS
     // ---------------------------------------------------------
@@ -128,7 +146,8 @@ try {
                     id_promotor = ?,
                     cupo_maximo = ?,
                     integrantes_min = ?,
-                    integrantes_max = ?
+                    integrantes_max = ?,
+                    dias_juego=?
                   WHERE id = ?";
                   
     $stmt = mysqli_prepare($conexion, $sqlEvento);
@@ -139,7 +158,7 @@ try {
     
     mysqli_stmt_bind_param(
         $stmt,
-        'ssssssisssssiiiii',
+        'ssssssisssssiiiisi',
         $nombre,
         $descripcion,
         $fecha_inicio,
@@ -156,6 +175,7 @@ try {
         $cupo_maximo,
         $integrantes_min,  
         $integrantes_max,
+        $dias_juego,
         $evento_id // El ID va al final para el WHERE
     );
     
@@ -194,6 +214,32 @@ try {
             $facultades_registradas[] = $facultad_id;
         }
         mysqli_stmt_close($stmtFacultad);
+    }
+    
+    // === 5.3 RE-ASOCIAR CUPOS DE PAUSA ACTIVA ===
+    if ($tipo_creacion === 'pausa_activa') {
+        $sqlDeleteCupos = "DELETE FROM evento_carrera_cupos WHERE evento_id = ?";
+        $stmtDelCupos = mysqli_prepare($conexion, $sqlDeleteCupos);
+        if ($stmtDelCupos) {
+            mysqli_stmt_bind_param($stmtDelCupos, 'i', $evento_id);
+            mysqli_stmt_execute($stmtDelCupos);
+            mysqli_stmt_close($stmtDelCupos);
+        }
+
+        if (isset($_POST['cupos']) && is_array($_POST['cupos'])) {
+            $sqlCupos = "INSERT INTO evento_carrera_cupos (evento_id, carrera_id, cupo_hombres, cupo_mujeres) VALUES (?, ?, ?, ?)";
+            $stmtCupos = mysqli_prepare($conexion, $sqlCupos);
+            if ($stmtCupos) {
+                foreach ($_POST['cupos'] as $carrera_id => $espacios) {
+                    $carrera_id = intval($carrera_id);
+                    $hombres = isset($espacios['hombres']) ? intval($espacios['hombres']) : 0;
+                    $mujeres = isset($espacios['mujeres']) ? intval($espacios['mujeres']) : 0;
+                    mysqli_stmt_bind_param($stmtCupos, 'iiii', $evento_id, $carrera_id, $hombres, $mujeres);
+                    mysqli_stmt_execute($stmtCupos);
+                }
+                mysqli_stmt_close($stmtCupos);
+            }
+        }
     }
     
     // ===================================

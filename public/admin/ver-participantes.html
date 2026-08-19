@@ -51,7 +51,7 @@
     </div>
     <div id="mensaje-respuesta" style="display: none; margin-bottom: 15px;"></div>
 
-    <div class="tabla-container">
+    <div class="tabla-container" id="seccion-tabla-normal">
       <table id="tabla-participantes" class="admin-table">
         <thead>
           <tr>
@@ -70,8 +70,49 @@
           <tr><td colspan="8" style="text-align: center; padding: 20px;">Cargando participantes...</td></tr>
         </tbody>
       </table>
-
     </div>
+
+    <!-- ===== SECCIÓN PAUSA ACTIVA (se muestra solo para eventos tipo pausa_activa) ===== -->
+    <div id="seccion-pausa-activa" style="display:none;">
+      
+      <!-- Resumen general -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:15px; margin-bottom:25px;">
+        <div style="background:linear-gradient(135deg,#1a73e8,#0d47a1); color:#fff; border-radius:12px; padding:20px; text-align:center;">
+          <div id="stat-total-hombres" style="font-size:2.2rem; font-weight:800; line-height:1;">0</div>
+          <div style="font-size:0.9rem; opacity:0.9; margin-top:4px;">Hombre</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#e91e8c,#880e4f); color:#fff; border-radius:12px; padding:20px; text-align:center;">
+          <div id="stat-total-mujeres" style="font-size:2.2rem; font-weight:800; line-height:1;">0</div>
+          <div style="font-size:0.9rem; opacity:0.9; margin-top:4px;">Mujer</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#006633,#00a651); color:#fff; border-radius:12px; padding:20px; text-align:center;">
+          <div id="stat-total-general" style="font-size:2.2rem; font-weight:800; line-height:1;">0</div>
+          <div style="font-size:0.9rem; opacity:0.9; margin-top:4px;">Total participantes</div>
+        </div>
+      </div>
+
+      <!-- Tabla por facultad -->
+      <div class="tabla-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Facultad</th>
+              <th>Cupo Hombre</th>
+              <th>Hombres</th>
+              <th>Cupo Mujer</th>
+              <th>Mujeres</th>
+              <th>Total Registrados</th>
+              <th>Cupo Total</th>
+              <th>Ocupación</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-tabla-pausa">
+            <tr><td colspan="8" style="text-align:center;padding:20px;">Cargando estadísticas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- ===== FIN SECCIÓN PAUSA ACTIVA ===== -->
 
     <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -132,7 +173,6 @@
   </div>
   <script src="../js/admin/participantes.js" type="module"></script>
   <script src="../js/headFooter.js"></script>
-  <script src="../js/admin/generarReporte.js"></script>
-
+  <script src="../js/admin/generarReporte.js?v=5"></script>
 </body>
 </html>

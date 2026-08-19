@@ -53,6 +53,13 @@ try {
         $valores_params[] = '%' . $_GET['campus'] . '%';
     }
 
+    // Filtro por periodo
+    if (isset($_GET['periodo']) && !empty($_GET['periodo']) && $_GET['periodo'] !== 'Todos') {
+        $filtros[] = "e.periodo = ?";
+        $tipos_params .= 's';
+        $valores_params[] = $_GET['periodo'];
+    }
+
     // Otros filtros
     if (isset($_GET['categoria_deporte']) && !empty($_GET['categoria_deporte'])) {
         $filtros[] = "e.categoria_deporte = ?";
@@ -98,8 +105,8 @@ try {
     
     // --- CONSULTA SQL ---
     $sql = "SELECT 
-                e.id, e.nombre, e.descripcion, e.fecha_inicio, e.fecha_termino, e.periodo, e.lugar,
-                e.tipo_registro, e.categoria_deporte, e.tipo_actividad, e.ubicacion_tipo,
+                e.id, e.nombre, e.descripcion, e.dias_juego, e.fecha_inicio, e.fecha_termino, e.periodo, e.lugar,
+                e.tipo_registro, e.categoria_deporte, e.tipo_actividad, e.ubicacion_tipo, e.tipo_creacion,
                 e.cupo_maximo, e.integrantes_min, e.integrantes_max,
                 
                 CASE 

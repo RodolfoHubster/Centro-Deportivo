@@ -1,2 +1,4 @@
 /vendor/
 .env
+php/includes/credenciales-drive.json
+php/includes/token.json

@@ -100,13 +100,18 @@ document.addEventListener("DOMContentLoaded", () => {
         // Ejecutar primero la carga del evento y luego los participantes
         cargarEventoData(eventoIdActual)
             .then(() => {
-                // Configurar listener del botón SOLO después de cargar la data
-                const btnAdd = document.getElementById('btnAnadirParticipante');
-                if (btnAdd) {
-                     btnAdd.style.display = 'block'; // Mostrar el botón
-                     btnAdd.addEventListener('click', handleAnadirParticipanteClick);
+                // Detectar si es Pausa Activa
+                if (eventoActualData && eventoActualData.tipo_creacion === 'pausa_activa') {
+                    activarVistaPausaActiva(eventoIdActual);
+                } else {
+                    // Evento normal
+                    const btnAdd = document.getElementById('btnAnadirParticipante');
+                    if (btnAdd) {
+                         btnAdd.style.display = 'block';
+                         btnAdd.addEventListener('click', handleAnadirParticipanteClick);
+                    }
+                    return cargarParticipantes(eventoIdActual);
                 }
-                return cargarParticipantes(eventoIdActual);
             })
             .catch(error => {
                 mostrarMensaje('Error al obtener datos del evento. Redirigiendo...', 'error');
@@ -1577,3 +1582,160 @@ function procesarRespuestaAccion(res, nombreParticipante) {
         mostrarMensaje(res.mensaje, 'error');
     }
 }
+
+// ================================================================================
+// PAUSA ACTIVA — Vista de estadísticas por facultad
+// ================================================================================
+function activarVistaPausaActiva(eventoId) {
+    // Ocultar sección normal y controles innecesarios
+    const secNormal = document.getElementById('seccion-tabla-normal');
+    if (secNormal) secNormal.style.display = 'none';
+
+    const btnAdd = document.getElementById('btnAnadirParticipante');
+    if (btnAdd) btnAdd.style.display = 'none';
+
+    const paginacion = document.querySelector('.pagination-controls');
+    if (paginacion) paginacion.style.display = 'none';
+
+    // Mostrar sección de Pausa Activa
+    const secPausa = document.getElementById('seccion-pausa-activa');
+    if (secPausa) secPausa.style.display = 'block';
+
+    // Actualizar subtítulo
+    const subtitulo = document.getElementById('subtitulo-evento');
+    if (subtitulo) {
+        subtitulo.innerHTML = '<span style="background:#e8f5e9;color:#00843D;padding:3px 10px;border-radius:12px;font-weight:600;font-size:0.85rem;">⚡ Pausa Activa</span> — Estadísticas por facultad';
+    }
+
+    cargarEstadisticasPausa(eventoId);
+}
+
+async function cargarEstadisticasPausa(eventoId) {
+    const cuerpo = document.getElementById('cuerpo-tabla-pausa');
+    if (!cuerpo) return;
+
+    cuerpo.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">Cargando estadísticas...</td></tr>';
+
+    try {
+        const resp = await fetch(`../../php/admin/obtenerEstadisticasPausa.php?evento_id=${eventoId}`);
+        if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
+        const data = await resp.json();
+
+        if (!data.success) throw new Error(data.mensaje || 'Error al obtener estadísticas');
+
+        // Actualizar tarjetas de resumen
+        const elH = document.getElementById('stat-total-hombres');
+        const elM = document.getElementById('stat-total-mujeres');
+        const elG = document.getElementById('stat-total-general');
+        if (elH) elH.textContent = data.total_hombres;
+        if (elM) elM.textContent = data.total_mujeres;
+        if (elG) elG.textContent = data.total_general;
+
+        // Renderizar filas de la tabla
+        if (!data.facultades || data.facultades.length === 0) {
+            cuerpo.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#999;">No hay facultades configuradas para este evento.</td></tr>';
+            return;
+        }
+
+        let htmlRows = '';
+
+        data.facultades.forEach((fac, index) => {
+            const facCupoTotal   = fac.cupo_hombres + fac.cupo_mujeres;
+            const facRegistrados = fac.total_registrados;
+            const facPct         = facCupoTotal > 0 ? Math.round((facRegistrados / facCupoTotal) * 100) : 0;
+            const facColorPct    = facPct >= 100 ? '#e53e3e' : facPct >= 75 ? '#f6ad55' : '#48bb78';
+            const flagId         = `carreras-fac-${fac.facultad_id}`;
+
+            // Fila principal: Facultad
+            htmlRows += `
+            <tr style="background:#f8f9fa; cursor:pointer; border-bottom: 2px solid #dee2e6;" onclick="const rows=document.querySelectorAll('.carrera-row-${fac.facultad_id}'); const ind=this.querySelector('.toggle-indicator'); if(rows && ind){ const isHidden=rows[0].style.display==='none'; rows.forEach(r=>r.style.display=isHidden?'table-row':'none'); ind.textContent=isHidden?'-':'+'; }">
+                <td style="font-weight:700; color:#003366;">
+                    <span class="toggle-indicator" style="font-size:1.1rem; display:inline-block; width:20px; font-family:monospace;">-</span> ${fac.facultad_nombre}
+                </td>
+                <td style="text-align:center; font-weight:bold;">${fac.cupo_hombres}</td>
+                <td style="text-align:center;">
+                    <span style="background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:10px;font-weight:700;">
+                        ${fac.hombres_registrados}
+                    </span>
+                </td>
+                <td style="text-align:center; font-weight:bold;">${fac.cupo_mujeres}</td>
+                <td style="text-align:center;">
+                    <span style="background:#fce4ec;color:#880e4f;padding:2px 8px;border-radius:10px;font-weight:700;">
+                        ${fac.mujeres_registradas}
+                    </span>
+                </td>
+                <td style="text-align:center;font-weight:700; color:#333;">${facRegistrados}</td>
+                <td style="text-align:center; font-weight:bold;">${facCupoTotal}</td>
+                <td style="text-align:center;min-width:120px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="flex:1;background:#e2e8f0;border-radius:999px;height:8px;overflow:hidden;">
+                            <div style="width:${Math.min(facPct,100)}%;background:${facColorPct};height:100%;border-radius:999px;"></div>
+                        </div>
+                        <span style="font-size:0.8rem;color:#4a5568;white-space:nowrap;font-weight:bold;">${facPct}%</span>
+                    </div>
+                </td>
+            </tr>`;
+
+            // Cuerpo de Carreras
+            if (fac.carreras && fac.carreras.length > 0) {
+                fac.carreras.forEach(car => {
+                    const carCupoTotal   = car.cupo_hombres + car.cupo_mujeres;
+                    const carRegistrados = car.total_registrados;
+                    const carPct         = carCupoTotal > 0 ? Math.round((carRegistrados / carCupoTotal) * 100) : 0;
+                    const carColorPct    = carPct >= 100 ? '#e53e3e' : carPct >= 75 ? '#f6ad55' : '#48bb78';
+
+                    htmlRows += `
+                    <tr class="carrera-row-${fac.facultad_id}" style="display:table-row; background:#ffffff;">
+                        <td style="padding-left:40px; font-size:0.95rem; color:#555;">↳ ${car.carrera_nombre}</td>
+                        <td style="text-align:center; font-size:0.95rem; color:#666;">${car.cupo_hombres}</td>
+                        <td style="text-align:center; font-size:0.95rem;">
+                            <span style="color:#1565c0; font-weight:600;">${car.hombres_registrados}</span>
+                        </td>
+                        <td style="text-align:center; font-size:0.95rem; color:#666;">${car.cupo_mujeres}</td>
+                        <td style="text-align:center; font-size:0.95rem;">
+                            <span style="color:#880e4f; font-weight:600;">${car.mujeres_registradas}</span>
+                        </td>
+                        <td style="text-align:center;font-weight:600; color:#555;">${carRegistrados}</td>
+                        <td style="text-align:center; font-size:0.95rem; color:#666;">${carCupoTotal}</td>
+                        <td style="text-align:center;">
+                            <div style="display:flex;align-items:center;gap:6px; opacity:0.8;">
+                                <div style="flex:1;background:#edf2f7;border-radius:999px;height:6px;overflow:hidden;">
+                                    <div style="width:${Math.min(carPct,100)}%;background:${carColorPct};height:100%;border-radius:999px;"></div>
+                                </div>
+                                <span style="font-size:0.75rem;color:#4a5568;">${carPct}%</span>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+            } else {
+                htmlRows += `
+                <tr class="carrera-row-${fac.facultad_id}" style="display:table-row;">
+                    <td colspan="8" style="padding-left:40px; color:#999; font-style:italic;">Sin carreras asignadas</td>
+                </tr>`;
+            }
+        });
+
+        cuerpo.innerHTML = htmlRows;
+
+        // Fila de totales globales obtenidos del backend
+        const totalCupoH = data.cupo_total_hombres;
+        const totalCupoM = data.cupo_total_mujeres;
+        const totalCupo  = data.cupo_total_general;
+        const totalPct   = totalCupo > 0 ? Math.round((data.total_general / totalCupo) * 100) : 0;
+
+        cuerpo.innerHTML += `
+        <tr style="background:#f0fdf4;font-weight:800;border-top:2px solid #00843D;">
+            <td>TOTAL GENERAL</td>
+            <td style="text-align:center;">${totalCupoH}</td>
+            <td style="text-align:center;"><span style="background:#1565c0;color:#fff;padding:2px 8px;border-radius:10px;">${data.total_hombres}</span></td>
+            <td style="text-align:center;">${totalCupoM}</td>
+            <td style="text-align:center;"><span style="background:#880e4f;color:#fff;padding:2px 8px;border-radius:10px;">${data.total_mujeres}</span></td>
+            <td style="text-align:center;">${data.total_general}</td>
+            <td style="text-align:center;">${totalCupo}</td>
+            <td style="text-align:center;">${totalPct}%</td>
+        </tr>`;
+
+    } catch (err) {
+        cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#e53e3e;">Error: ${err.message}</td></tr>`;
+    }
+}

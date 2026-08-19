@@ -1,21 +1,24 @@
 // js/admin/adminDashboard.js
 
-// Verificar sesión al cargar
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     verificarSesion();
+    await cargarPeriodosDashboard();
     cargarEstadisticas();
+    
+    // Escuchar el cambio en el selector
+    const filtroPeriodo = document.getElementById('filtroPeriodoDashboard');
+    if (filtroPeriodo) {
+        filtroPeriodo.addEventListener('change', cargarEstadisticas);
+    }
 });
 
 function verificarSesion() {
-    // Nota: Ajusta la ruta ../../php/admin... según donde esté este JS
     fetch('../../php/admin/verificarSesion.php')
         .then(response => response.json())
         .then(data => {
             if (!data.loggedin) {
-                // No hay sesión válida, redirigir al login
                 window.location.href = '../login.html';
             } else {
-                // Sesión válida, mostrar mensaje de bienvenida
                 const mensaje = document.getElementById('mensaje-bienvenida');
                 if(mensaje) {
                     mensaje.textContent = `¡Hola ${data.nombre}! Aquí puedes administrar el contenido del sitio.`;
@@ -28,17 +31,45 @@ function verificarSesion() {
         });
 }
 
+async function cargarPeriodosDashboard() {
+    try {
+        const res = await fetch('../../php/admin/obtenerPeriodos.php');
+        const data = await res.json();
+        const select = document.getElementById('filtroPeriodoDashboard');
+        
+        if (select && data.success && data.periodos && data.periodos.length > 0) {
+            select.innerHTML = '<option value="Todos">Histórico Completo</option>';
+            data.periodos.forEach((p, index) => {
+                // Seleccionar el más reciente por defecto
+                const isSelected = index === 0 ? 'selected' : '';
+                select.innerHTML += `<option value="${p}" ${isSelected}>${p} ${index === 0 ? '(Activo)' : ''}</option>`;
+            });
+        } else if (select) {
+            select.innerHTML = '<option value="Todos">Histórico Completo</option>';
+        }
+    } catch (e) {
+        console.error("Error al cargar periodos:", e);
+    }
+}
+
 function cargarEstadisticas() {
-    // Llamamos al nuevo archivo que cuenta AMBOS datos
-    fetch('../../php/admin/obtenerContadores.php')
+    const periodoSelect = document.getElementById('filtroPeriodoDashboard');
+    const periodo = periodoSelect ? periodoSelect.value : '';
+    
+    let url = '../../php/admin/obtenerContadores.php';
+    if (periodo && periodo !== 'Todos') {
+        url += `?periodo=${periodo}`;
+    } else if (periodo === 'Todos') {
+        url += `?periodo=Todos`; // Manda 'Todos' para que el PHP lo entienda
+    }
+
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Actualizar Eventos
                 const totalEventos = document.getElementById('total-eventos');
                 if(totalEventos) totalEventos.textContent = data.total_eventos;
 
-                // Actualizar Inscripciones
                 const totalInscripciones = document.getElementById('total-inscripciones');
                 if(totalInscripciones) totalInscripciones.textContent = data.total_inscripciones;
             }

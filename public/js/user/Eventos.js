@@ -183,8 +183,10 @@ function mostrarEventos(eventos) {
 
         tarjeta.setAttribute('data-evento-id', evento.id);
         tarjeta.setAttribute('data-tipo-registro', evento.tipo_registro || 'Individual');
+        tarjeta.setAttribute('data-tipo-creacion', evento.tipo_creacion || 'evento');
         tarjeta.setAttribute('data-integrantes-min', evento.integrantes_min || 1);
         tarjeta.setAttribute('data-integrantes-max', evento.integrantes_max || 0);
+        tarjeta.setAttribute('data-dias-juego', evento.dias_juego || '');
 
         let badgeHTML = '';
         let llenoTotal = false; 
@@ -276,10 +278,59 @@ function mostrarEventos(eventos) {
         contenedor.appendChild(tarjeta);
     });
 
+    // Botones para eventos normales
     if (typeof agregarBotonesInscripcion === 'function') {
         agregarBotonesInscripcion();
     }
+    // Botones para Pausas Activas
+    agregarBotonesPausaActiva();
 }
+
+/**
+ * Agrega botones Hombre / Mujer a las tarjetas de tipo Pausa Activa
+ */
+function agregarBotonesPausaActiva() {
+    document.querySelectorAll('.evento-card[data-tipo-creacion="pausa_activa"]').forEach(tarjeta => {
+        // Ocultar/eliminar el contenedor de botones por defecto (Registrarse al evento)
+        const contenedorInscripcion = tarjeta.querySelector('.contenedor-botones-inscripcion');
+        if (contenedorInscripcion) {
+            contenedorInscripcion.remove();
+        }
+
+        const contenedorAcciones = tarjeta.querySelector('.card-actions');
+        if (!contenedorAcciones) return;
+
+        // Eliminar cualquier botón de inscripción que se haya agregado previamente (o por Inscripcion.js)
+        const btnInscripcionViejo = contenedorAcciones.querySelector('.btn-inscribir');
+        if (btnInscripcionViejo) btnInscripcionViejo.remove();
+
+        const eventoId = tarjeta.dataset.eventoId;
+
+        // Solo inyectar si aún no se ha inyectado
+        if (!contenedorAcciones.querySelector('.btn-pausa-hombre')) {
+            contenedorAcciones.innerHTML = `
+                <p style="margin-bottom:10px; font-weight:600; color:#333;">Selecciona tu género para registrarte:</p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn-pausa-sexo btn-pausa-hombre"
+                        onclick="abrirFlujoPausa('${eventoId}', 'Hombre')"
+                        style="flex:1; min-width:120px; padding:12px 10px; background:linear-gradient(135deg,#1a73e8,#0d47a1);
+                               color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:0.95rem;
+                               cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <span style="font-size:1.3rem;">&#9794;</span> Hombre
+                    </button>
+                    <button class="btn-pausa-sexo btn-pausa-mujer"
+                        onclick="abrirFlujoPausa('${eventoId}', 'Mujer')"
+                        style="flex:1; min-width:120px; padding:12px 10px; background:linear-gradient(135deg,#e91e8c,#880e4f);
+                               color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:0.95rem;
+                               cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <span style="font-size:1.3rem;">&#9792;</span> Mujer
+                    </button>
+                </div>
+            `;
+        }
+    });
+}
+
 
 function formatearFecha(fecha) {
     if (!fecha) return 'No definida';
