@@ -1,4 +1,20 @@
 <?php
+/* --------------------------------------------------------------------------
+   SALIDA LIMPIA PARA LAS RESPUESTAS JSON
+   Todos los endpoints de este proyecto responden JSON. Cualquier aviso que PHP
+   imprima ANTES del JSON lo vuelve invalido y el front revienta al parsearlo.
+
+   Pasaba en produccion: el servidor corre PHP 8.4 y google/apiclient 2.15 usa
+   parametros nullable implicitos, que 8.4 marca como Deprecated. Esos avisos
+   se colaban en la respuesta y ademas filtraban la ruta absoluta del servidor.
+
+   Los errores se siguen registrando en el log de PHP; solo dejan de imprimirse
+   en la respuesta, que es como debe ser en una API.
+   -------------------------------------------------------------------------- */
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 ini_set('session.cookie_httponly', 1); // Javascript no puede leer la cookie
 ini_set('session.use_only_cookies', 1); // Fuerza uso de cookies (no ID en URL)
 ini_set('session.cookie_secure', 1);   // Solo si tienes HTTPS (Recomendado)
