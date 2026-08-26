@@ -12,7 +12,7 @@ document.head.appendChild(link);
 // Version de los parciales. El header y el footer se piden por fetch, asi que
 // sin esto el navegador se queda con la copia vieja cuando se editan.
 // Subir este numero al cambiar includes/header.html, footer.html o headerAdmin.html.
-const APP_VERSION = '19';
+const APP_VERSION = '33';
 
 // RUTAS (Definidas globalmente)
 const headerURL = (isAdminPage ? '../includes/header.html' : 'includes/header.html') + '?v=' + APP_VERSION;

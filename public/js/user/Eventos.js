@@ -38,12 +38,18 @@ async function cargarEventosBaseDatos() {
         // Ajuste dependiendo de cómo responda tu PHP (array directo o dentro de .eventos)
         let eventosObtenidos = Array.isArray(data) ? data : (data.eventos || []);
 
-        // Guardamos los eventos que coincidan con la página actual (Torneo o No Torneo) y que estén activos
+        /* Repartimos entre la pagina de Eventos y la de Torneos.
+           Ojo con las pausas activas: se guardan con tipo_actividad='Torneo'
+           (asi las crea el formulario del admin), pero una pausa activa no es
+           un torneo. Sin esta excepcion aparecian listadas junto a los torneos
+           de futbol, que es el ultimo lugar donde alguien las buscaria.
+           Se reconocen por tipo_creacion. */
+        const esTorneoReal = (e) =>
+            e.tipo_actividad === 'Torneo' && e.tipo_creacion !== 'pausa_activa';
+
         todosLosEventosPublicos = eventosObtenidos.filter(e => {
             if (e.activo != 1) return false;
-            if (modoTorneos && e.tipo_actividad !== 'Torneo') return false;
-            if (!modoTorneos && e.tipo_actividad === 'Torneo') return false;
-            return true;
+            return modoTorneos ? esTorneoReal(e) : !esTorneoReal(e);
         });
 
         aplicarFiltrosPublicos(); // Dibujamos por primera vez
@@ -57,7 +63,7 @@ async function cargarEventosBaseDatos() {
 
 // --- CONFIGURACIÓN DE LOS BOTONES DE LA INTERFAZ ---
 function configurarListenersFiltrosYPaginacion() {
-    const filtrosIDs = ['filtro-buscar-publico', 'filtro-campus-publico', 'filtro-categoria-publico'];
+    const filtrosIDs = ['filtro-buscar-publico', 'filtro-campus-publico', 'filtro-categoria-publico', 'filtro-cuando-publico'];
     
     filtrosIDs.forEach(id => {
         const el = document.getElementById(id);
@@ -73,6 +79,8 @@ function configurarListenersFiltrosYPaginacion() {
             document.getElementById('filtro-buscar-publico').value = '';
             document.getElementById('filtro-campus-publico').value = '';
             document.getElementById('filtro-categoria-publico').value = '';
+            const elCuandoLimpiar = document.getElementById('filtro-cuando-publico');
+            if (elCuandoLimpiar) elCuandoLimpiar.value = '';
             paginaActualEventos = 1;
             aplicarFiltrosPublicos();
         });
@@ -106,19 +114,63 @@ function configurarListenersFiltrosYPaginacion() {
     }
 }
 
+/* Traduce dias_para_iniciar a una etiqueta corta y legible.
+   Devuelve null cuando el evento esta lejos: no vale la pena marcarlo. */
+function etiquetaProximidad(dias) {
+    const d = parseInt(dias, 10);
+    if (Number.isNaN(d)) return null;
+    if (d < 0)  return { texto: 'En curso', clase: 'proximidad--curso' };
+    if (d === 0) return { texto: 'Hoy',      clase: 'proximidad--hoy' };
+    if (d === 1) return { texto: 'Mañana',   clase: 'proximidad--hoy' };
+    if (d <= 7)  return { texto: `En ${d} días`, clase: 'proximidad--pronto' };
+    return null;
+}
+
+/* Deja el texto en minusculas y sin acentos, para poder comparar
+   "Activación Física" con "ACTIVACION FISICA" sin fallar. */
+function normalizar(texto) {
+    return String(texto || '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
 // --- MOTOR DE BÚSQUEDA Y PAGINACIÓN ---
 function aplicarFiltrosPublicos() {
     const elBuscar = document.getElementById('filtro-buscar-publico');
     const elCampus = document.getElementById('filtro-campus-publico');
     const elCategoria = document.getElementById('filtro-categoria-publico');
+    const elCuando = document.getElementById('filtro-cuando-publico');
 
     const busqueda = elBuscar ? elBuscar.value.toLowerCase() : '';
     const campus = elCampus ? elCampus.value : '';
     const categoria = elCategoria ? elCategoria.value : '';
+    const cuando = elCuando ? elCuando.value : '';
 
     const eventosFiltrados = todosLosEventosPublicos.filter(evento => {
-        // Filtro Categoría
-        if (categoria && evento.categoria_deporte !== categoria && evento.tipo_actividad !== categoria) return false;
+        // Filtro Categoría.
+        // Se compara normalizado (minusculas y sin acentos) y por coincidencia
+        // parcial, porque en la base las categorias estan escritas de formas
+        // distintas: "RALLY", "Rally deportivo" y "Rally Recreativo" son la
+        // misma cosa para quien busca. Solo miramos categoria_deporte:
+        // tipo_actividad unicamente distingue Carrera de Torneo, que es lo que
+        // separa esta pagina de la de torneos.
+        if (categoria && !normalizar(evento.categoria_deporte).includes(normalizar(categoria))) return false;
+
+        // Filtro por cercania. dias_para_iniciar lo calcula la consulta SQL:
+        // 0 = arranca hoy, 1 = manana, negativo = ya empezo y sigue en curso.
+        if (cuando) {
+            const dias = parseInt(evento.dias_para_iniciar, 10);
+            if (Number.isNaN(dias)) return false;
+
+            if (cuando === 'curso') {
+                if (dias > 0) return false;          // aun no empieza
+            } else {
+                const limite = parseInt(cuando, 10);
+                if (dias < 0 || dias > limite) return false;
+            }
+        }
         
         // Filtro Campus
         if (campus && !String(evento.campus_nombre || evento.campus_id).includes(campus)) return false;
@@ -219,60 +271,54 @@ function mostrarEventos(eventos) {
         if (equiposLlenos) tarjeta.setAttribute('data-equipos-llenos', 'true');
 
         const facultadInfo = evento.facultades_nombres
-            ? `<div class="meta-row" style="margin-top: 8px;">
-                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                 <span style="font-size: 0.9rem; color: #555; margin-left: 8px;"><strong>Facultad:</strong> ${evento.facultades_nombres}</span>
+            ? `<div class="meta-fila">
+                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                 <span><strong>Facultad:</strong> ${evento.facultades_nombres}</span>
                </div>`
             : '';
 
+        const iconoFecha = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+        const iconoLugar = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+
+        // Si empieza y termina el mismo dia, no repetimos la fecha
+        const fechaIni = formatearFecha(evento.fecha_inicio);
+        const fechaFin = formatearFecha(evento.fecha_termino);
+        const fechaTexto = (fechaIni === fechaFin) ? fechaIni : `${fechaIni} - ${fechaFin}`;
+
+        const prox = etiquetaProximidad(evento.dias_para_iniciar);
+        const proximidadHTML = prox
+            ? `<span class="proximidad ${prox.clase}">${prox.texto}</span>`
+            : '';
+
         tarjeta.innerHTML = `
-            <button onclick="toggleEventoCompleto(this, event)" style="
-                position: absolute !important; top: 15px !important; right: 15px !important;
-                width: 30px !important; height: 30px !important; background: transparent !important;
-                border: none !important; box-shadow: none !important; font-size: 1.5rem !important;
-                color: #555 !important; cursor: pointer !important; z-index: 100 !important;
-                padding: 0 !important; margin: 0 !important; display: flex !important;
-                align-items: center !important; justify-content: center !important;
-                transition: transform 0.3s ease !important; outline: none !important;">
-                ▼
-            </button>
-
-            <div class="card-header" style="padding-right: 40px;">
-                ${badgeHTML}
-                <h2 style="margin-top: 5px;">${evento.nombre}</h2>
+            <div class="evento-principal">
+                <h2>${evento.nombre}</h2>
+                <div class="evento-meta">
+                    <span class="meta-dato">${iconoFecha}<span>${fechaTexto}</span>${proximidadHTML}</span>
+                    <span class="meta-dato">${iconoLugar}<span>${evento.lugar}</span></span>
+                </div>
             </div>
-            
-            <div class="card-body">
-                <div class="info-visible" style="margin-bottom: 10px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="stroke: var(--color-verde-uabc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        <span style="font-size: 0.9rem; color: #444; margin-left: 8px;">
-                            ${formatearFecha(evento.fecha_inicio)} - ${formatearFecha(evento.fecha_termino)}
-                        </span>
-                    </div>
 
-                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="stroke: var(--color-verde-uabc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        <span style="font-size: 0.9rem; color: #444; margin-left: 8px;">${evento.lugar}</span>
+            <div class="evento-lateral">
+                ${badgeHTML}
+                <button type="button" class="evento-toggle"
+                        onclick="toggleEventoCompleto(this, event)"
+                        aria-expanded="false"
+                        aria-label="Ver detalles de ${evento.nombre}">&#9660;</button>
+            </div>
+
+            <div class="evento-contenido-oculto" style="display: none;">
+                <p class="description">${evento.descripcion || 'Sin descripcion disponible.'}</p>
+
+                <div class="meta-extra">
+                    ${facultadInfo}
+                    <div class="meta-fila">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span><strong>Tipo:</strong> ${evento.tipo_actividad || 'General'}${evento.categoria_deporte ? ' &bull; ' + evento.categoria_deporte : ''}</span>
                     </div>
                 </div>
 
-                <div class="evento-contenido-oculto" style="display: none; border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
-                    <p class="description" style="margin-bottom: 15px; color: #333;">${evento.descripcion || 'Sin descripción disponible.'}</p>
-                    
-                    <div class="meta-extra">
-                        ${facultadInfo}
-                        <div style="display: flex; align-items: center; margin-top: 8px;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                            <span style="font-size: 0.9rem; color: #555; margin-left: 8px;">
-                                <strong>Tipo:</strong> ${evento.tipo_actividad || 'General'} 
-                                ${evento.categoria_deporte ? `• ${evento.categoria_deporte}` : ''}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="card-actions" style="margin-top: 20px;"></div>
-                </div>
+                <div class="card-actions"></div>
             </div>
         `;
         contenedor.appendChild(tarjeta);
@@ -310,17 +356,17 @@ function agregarBotonesPausaActiva() {
         if (!contenedorAcciones.querySelector('.btn-pausa-hombre')) {
             contenedorAcciones.innerHTML = `
                 <p style="margin-bottom:10px; font-weight:600; color:#333;">Selecciona tu género para registrarte:</p>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <div style="display:flex; gap:10px; flex-wrap:wrap; max-width:460px;">
                     <button class="btn-pausa-sexo btn-pausa-hombre"
                         onclick="abrirFlujoPausa('${eventoId}', 'Hombre')"
-                        style="flex:1; min-width:120px; padding:12px 10px; background:linear-gradient(135deg,#1a73e8,#0d47a1);
+                        style="flex:1 1 160px; max-width:220px; padding:12px 10px; background:linear-gradient(135deg,#1a73e8,#0d47a1);
                                color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:0.95rem;
                                cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
                         <span style="font-size:1.3rem;">&#9794;</span> Hombre
                     </button>
                     <button class="btn-pausa-sexo btn-pausa-mujer"
                         onclick="abrirFlujoPausa('${eventoId}', 'Mujer')"
-                        style="flex:1; min-width:120px; padding:12px 10px; background:linear-gradient(135deg,#e91e8c,#880e4f);
+                        style="flex:1 1 160px; max-width:220px; padding:12px 10px; background:linear-gradient(135deg,#e91e8c,#880e4f);
                                color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:0.95rem;
                                cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
                         <span style="font-size:1.3rem;">&#9792;</span> Mujer
@@ -348,12 +394,34 @@ window.toggleEventoCompleto = function(btn, event) {
     }
     const tarjeta = btn.closest('.evento-card');
     const contenido = tarjeta.querySelector('.evento-contenido-oculto');
-    
-    if (contenido.style.display === 'none') {
-        contenido.style.display = 'block';
-        btn.style.transform = 'rotate(180deg)';
-    } else {
-        contenido.style.display = 'none';
-        btn.style.transform = 'rotate(0deg)';
+
+    const abriendo = (contenido.style.display === 'none' || contenido.style.display === '');
+
+    // Comportamiento de acordeon: al abrir uno, se cierran los demas.
+    // Con varios abiertos a la vez la lista se volvia larguisima y costaba
+    // comparar entre eventos, que es justo para lo que sirve la vista en filas.
+    if (abriendo) {
+        document.querySelectorAll('.evento-card.abierta').forEach(otra => {
+            if (otra === tarjeta) return;
+            cerrarDetalleEvento(otra);
+        });
     }
+
+    contenido.style.display = abriendo ? 'block' : 'none';
+
+    // La clase mueve la flecha desde el CSS, sin estilos en linea
+    tarjeta.classList.toggle('abierta', abriendo);
+    btn.setAttribute('aria-expanded', abriendo ? 'true' : 'false');
 };
+
+/* Cierra el detalle de una tarjeta dejando todo consistente:
+   el contenido, la clase que gira la flecha y el estado accesible. */
+function cerrarDetalleEvento(tarjeta) {
+    const contenido = tarjeta.querySelector('.evento-contenido-oculto');
+    if (contenido) contenido.style.display = 'none';
+
+    tarjeta.classList.remove('abierta');
+
+    const boton = tarjeta.querySelector('.evento-toggle');
+    if (boton) boton.setAttribute('aria-expanded', 'false');
+}

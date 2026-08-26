@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Torneos - Centro Deportivo UABC</title>
-  <link rel="stylesheet" href="css/main.css?v=19">
+  <link rel="stylesheet" href="css/main.css?v=33">
 </head>
 <body>
 
@@ -46,6 +46,16 @@
                 </select>
             </div>
 
+          <div>
+              <label>Cu&aacute;ndo:</label>
+              <select id="filtro-cuando-publico">
+                  <option value="">Cualquier fecha</option>
+                  <option value="curso">En curso ahora</option>
+                  <option value="7">Pr&oacute;ximos a comenzar (7 d&iacute;as)</option>
+                  <option value="30">Este mes</option>
+              </select>
+          </div>
+
         </div>
         <button id="btnLimpiarFiltrosPublico" class="btn-limpiar-filtros">Limpiar Filtros</button>
     </div>
@@ -71,15 +81,19 @@
 
     </main>
 
-  <script src="js/user/Eventos.js"></script>
-  <script src="js/user/Inscripcion.js?v=2" type="module"></script>
+  <script src="js/user/Eventos.js?v=33"></script>
+  <script src="js/user/Inscripcion.js?v=33" type="module"></script>
   <div id="footer-placeholder"></div> 
-  <script src="js/headFooter.js?v=19"></script>
+  <script src="js/headFooter.js?v=33"></script>
 
   <!-- ===== MODAL: Selección de Facultad (Pausa Activa) ===== -->
   <div id="modalFacultadesPausa" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
        background:rgba(0,0,0,0.65); z-index:99999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
-    <div style="background:#fff; border-radius:14px; width:100%; max-width:520px; max-height:85vh;
+    <div style="background:#fff; border-radius:14px; width:100%; max-width:520px;
+                /* Altura fija: antes era max-height y el modal crecia o encogia
+                   con cada busqueda. Ahora el tamano no cambia y la lista hace
+                   scroll por dentro. */
+                height:min(85vh, 620px);
                 display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
       
       <div style="padding:20px 25px 15px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
@@ -90,6 +104,18 @@
           </p>
         </div>
         <button class="btn-cerrar-modal-pausa" style="background:transparent; border:none; font-size:1.6rem; cursor:pointer; color:#999; line-height:1; padding:5px;">&times;</button>
+      </div>
+
+      <!-- Buscador de carrera: filtra entre TODAS las carreras del evento,
+           sin tener que ir facultad por facultad. -->
+      <div style="padding:14px 25px; border-bottom:1px solid #e2e8f0; flex-shrink:0; background:#f8fafc;">
+        <label for="buscarCarreraPausa" style="display:block; font-weight:700; font-size:0.85rem; color:var(--color-azul-uabc); margin-bottom:6px;">
+          Busca tu carrera
+        </label>
+        <input type="search" id="buscarCarreraPausa" autocomplete="off"
+               placeholder="Escribe parte del nombre. Ej. software, derecho..."
+               style="width:100%; padding:10px 12px; border:2px solid #e0e0e0; border-radius:8px; font-size:1rem;">
+        <p id="buscarCarreraPausaInfo" style="margin:6px 0 0; font-size:0.8rem; color:#666;"></p>
       </div>
 
       <!-- Lista de facultades (scrollable) -->
@@ -108,7 +134,7 @@
   </div>
   <!-- ===== FIN MODAL PAUSA ACTIVA ===== -->
 
-  <script src="js/user/InscripcionPausa.js"></script>
+  <script src="js/user/InscripcionPausa.js?v=33"></script>
 
 </body>
 </html>

@@ -115,6 +115,12 @@ try {
                 END AS registros_actuales,
 
                 e.codigo_qr, e.activo, e.campus_id,
+
+                /* Dias que faltan para que arranque el evento.
+                   Negativo = ya empezo. Lo usa el front para ordenar,
+                   etiquetar los proximos y filtrar por cercania. */
+                DATEDIFF(e.fecha_inicio, CURDATE()) AS dias_para_iniciar,
+
                 a.nombre AS actividad,
                 c.nombre AS campus_nombre,
                 c.codigo AS campus_codigo,
@@ -152,7 +158,12 @@ try {
             $whereClause
             
             GROUP BY e.id
-            ORDER BY e.fecha_inicio DESC";
+            /* Antes era 'fecha_inicio DESC', que ponia lo mas lejano primero:
+               un evento que arrancaba manana quedaba en la posicion 23 de 32.
+               Ahora lo vigente va primero y ordenado por cercania. */
+            ORDER BY
+                (e.fecha_termino < CURDATE()) ASC,
+                e.fecha_inicio ASC";
     
     if (count($valores_params) > 0) {
         $stmt = mysqli_prepare($conexion, $sql);

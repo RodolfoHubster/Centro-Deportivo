@@ -274,10 +274,11 @@ async function handleFormSubmit(e) {
 try {
         const data = await api.guardarEvento(formData, modoEdicion);
         if (data.success) {
-            ui.cerrarModal(); 
-            
-            // 1. Cerrar el modal del formulario de creación/edición forzando el cierre sin advertencia
-            ui.cerrarModal(true); 
+            // Se cierra FORZANDO: los datos ya se guardaron, asi que preguntar
+            // "hay datos sin guardar, seguro que quieres salir?" es falso.
+            // Antes se llamaba primero sin forzar, y como el segundo cierre era
+            // forzado, responder "No" a esa advertencia no cancelaba nada.
+            ui.cerrarModal(true);
 
             todosLosEventos = await api.cargarEventos(true);
             aplicarFiltrosAdmin();
@@ -315,6 +316,16 @@ try {
 // ==========================================================
 // === LÓGICA DE FILTRADO Y PAGINACIÓN ===
 // ==========================================================
+/* Igual que en el lado publico: minusculas y sin acentos, para que un filtro
+   encuentre "RALLY", "Rally deportivo" y "Rally Recreativo" por igual. */
+function normalizarTexto(texto) {
+    return String(texto || '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
 function aplicarFiltrosAdmin() {
     const busqueda = document.getElementById('filtro-buscar-admin').value.toLowerCase();
     const facultad = document.getElementById('filtro-facultad-admin').value;
@@ -322,7 +333,9 @@ function aplicarFiltrosAdmin() {
     const categoria = document.getElementById('filtro-categoria-admin').value;
     const tipo = document.getElementById('filtro-tipo-admin').value;
     const periodo = document.getElementById('filtro-periodo-admin').value;
-    const estado = document.getElementById('filtro-estado-admin').value; 
+    const estado = document.getElementById('filtro-estado-admin').value;
+    const elCuando = document.getElementById('filtro-cuando-admin');
+    const cuando = elCuando ? elCuando.value : ''; 
 
     const eventosFiltrados = todosLosEventos.filter(evento => {
         if (estado === 'activo' && evento.activo != 1) return false;
@@ -332,7 +345,19 @@ function aplicarFiltrosAdmin() {
         if (facultad && !eventoFacultades.includes(facultad)) return false;
         if (busqueda && !evento.nombre.toLowerCase().includes(busqueda) && 
             !(evento.lugar && evento.lugar.toLowerCase().includes(busqueda))) return false;
-        if (categoria && evento.categoria_deporte !== categoria) return false;
+        if (categoria && !normalizarTexto(evento.categoria_deporte).includes(normalizarTexto(categoria))) return false;
+
+        // Cercania: dias_para_iniciar viene calculado desde la consulta SQL
+        if (cuando) {
+            const dias = parseInt(evento.dias_para_iniciar, 10);
+            if (Number.isNaN(dias)) return false;
+            if (cuando === 'curso')       { if (dias > 0) return false; }
+            else if (cuando === 'pasado') { if (dias >= 0) return false; }
+            else {
+                const limite = parseInt(cuando, 10);
+                if (dias < 0 || dias > limite) return false;
+            }
+        }
         if (tipo && evento.tipo_actividad !== tipo) return false;
         if (periodo && evento.periodo != periodo) return false; // El JS oculta aquí lo que no coincide
         return true;
@@ -382,7 +407,7 @@ function configurarListenersEventos() {
 
     const filtrosIDs = [
         'filtro-buscar-admin', 'filtro-facultad-admin', 'filtro-campus-admin', 
-        'filtro-categoria-admin', 'filtro-tipo-admin', 'filtro-periodo-admin', 
+        'filtro-categoria-admin', 'filtro-tipo-admin', 'filtro-periodo-admin', 'filtro-cuando-admin', 
         'filtro-estado-admin'
     ];
     

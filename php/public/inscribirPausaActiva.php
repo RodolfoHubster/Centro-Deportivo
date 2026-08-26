@@ -1,6 +1,19 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+
+/* CORS acotado. Antes decia 'Access-Control-Allow-Origin: *', lo que permitia
+   que CUALQUIER sitio web hiciera POST aqui y llenara los cupos desde fuera.
+   El front vive en el mismo dominio, asi que no necesita CORS; la lista queda
+   por si algun dia se consume desde otro origen propio. */
+$origenesPermitidos = [
+    'https://cimahub-fcitec.tij.uabc.mx',
+    'http://localhost',
+];
+$origen = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origen !== '' && in_array($origen, $origenesPermitidos, true)) {
+    header('Access-Control-Allow-Origin: ' . $origen);
+    header('Vary: Origin');
+}
 header('Access-Control-Allow-Methods: POST');
 
 include '../includes/conexion.php';
@@ -15,12 +28,30 @@ $evento_id   = isset($_POST['evento_id'])   ? intval($_POST['evento_id'])   : 0;
 $facultad_id = isset($_POST['facultad_id']) ? intval($_POST['facultad_id']) : 0;
 $carrera_id  = isset($_POST['carrera_id'])  ? intval($_POST['carrera_id'])  : 0;
 $sexo        = isset($_POST['sexo'])        ? trim($_POST['sexo'])          : '';
+/* La matricula quedo OPCIONAL a proposito.
+   Se pidio durante un tiempo para evitar registros repetidos, pero no habia
+   contra que verificarla: la tabla usuario solo tiene a quienes ya se
+   registraron antes, no el padron completo de la universidad. Sin verificacion
+   real, cualquiera podia inventar una distinta cada vez, asi que solo agregaba
+   friccion sin dar integridad.
+   La columna y el indice unico se conservan por si mas adelante se conecta una
+   fuente confiable (padron escolar o inicio de sesion institucional). */
+$matricula = isset($_POST['matricula']) ? strtoupper(trim($_POST['matricula'])) : '';
+if ($matricula !== '' && !preg_match('/^[A-Z0-9]{4,15}$/', $matricula)) {
+    $matricula = '';   // si viene con basura, se guarda vacia en vez de rechazar
+}
+$matricula = ($matricula === '') ? null : $matricula;
 
 if (!$evento_id || !$facultad_id || !$carrera_id || !in_array($sexo, ['Hombre', 'Mujer'])) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Datos incompletos o inválidos.']);
     exit;
 }
+
+// Datos de auditoria: no bloquean nada, permiten revisar despues si un
+// mismo equipo genero una rafaga de registros.
+$ip         = substr($_SERVER['REMOTE_ADDR'] ?? '', 0, 45);
+$userAgent  = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
 
 ob_start();
 mysqli_begin_transaction($conexion);
@@ -63,13 +94,36 @@ try {
     }
 
     // 4. Insertar registro
-    $sqlInsert = "INSERT INTO inscripcion_pausa_activa (evento_id, facultad_id, carrera_id, sexo, fecha_registro) 
-                  VALUES (?, ?, ?, ?, NOW())";
+    $sqlInsert = "INSERT INTO inscripcion_pausa_activa
+                    (evento_id, facultad_id, carrera_id, sexo, matricula, ip, user_agent, fecha_registro)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
     $stmtInsert = mysqli_prepare($conexion, $sqlInsert);
     if (!$stmtInsert) throw new Exception(mysqli_error($conexion));
-    mysqli_stmt_bind_param($stmtInsert, 'iiis', $evento_id, $facultad_id, $carrera_id, $sexo);
-    if (!mysqli_stmt_execute($stmtInsert)) {
-        throw new Exception('Error al guardar el registro: ' . mysqli_stmt_error($stmtInsert));
+    mysqli_stmt_bind_param($stmtInsert, 'iiissss',
+        $evento_id, $facultad_id, $carrera_id, $sexo, $matricula, $ip, $userAgent);
+
+    /* 1062 = clave duplicada, la lanza el indice unico (evento_id, matricula):
+       esa matricula ya se registro en este evento. Es el caso esperado cuando
+       alguien intenta repetir, no una falla tecnica.
+
+       Se contemplan las dos formas en que mysqli reporta el error: desde PHP 8
+       lanza mysqli_sql_exception, pero si el proyecto corre con el reporte de
+       errores apagado devuelve false. Asi el mensaje sale bien en ambos casos
+       y nunca se le muestra al usuario el texto crudo de MySQL. */
+    $EXISTE_DUPLICADO = 1062;
+    try {
+        $ok = mysqli_stmt_execute($stmtInsert);
+        $codigo = $ok ? 0 : mysqli_stmt_errno($stmtInsert);
+    } catch (mysqli_sql_exception $ex) {
+        $ok = false;
+        $codigo = (int) $ex->getCode();
+    }
+
+    if (!$ok) {
+        mysqli_stmt_close($stmtInsert);
+        throw new Exception($codigo === $EXISTE_DUPLICADO
+            ? 'Esa matrícula ya está registrada en esta actividad.'
+            : 'No se pudo guardar el registro. Intenta de nuevo.');
     }
     mysqli_stmt_close($stmtInsert);
 

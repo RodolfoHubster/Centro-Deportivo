@@ -6,6 +6,73 @@
 import { actualizarCamposSegunTipo, cargarFacultades, cargarCarreras, cargarCampus } from '../utils/formLogica.js';
 
 // =======================================================================
+// === PROTECCIÓN CONTRA PÉRDIDA DE DATOS ===
+// =======================================================================
+
+/**
+ * Evita que se pierda lo capturado en un formulario largo.
+ *
+ * Antes, un clic en el fondo oscuro ejecutaba modal.remove() sin preguntar:
+ * en el registro por equipos eso podia borrar al capitan y hasta 9 integrantes
+ * (nombre, matricula, correo, facultad, carrera y disponibilidad de cada uno)
+ * sin manera de recuperarlo.
+ *
+ * Compara el estado actual del formulario contra el que tenia al abrirse, asi
+ * solo molesta cuando de verdad hay algo escrito.
+ *
+ * @returns {{cerrar: Function, liberar: Function, huboCambios: Function}}
+ */
+function protegerCierre(modal, form) {
+    /* Detectamos que el USUARIO haya escrito o elegido algo, no que el
+       formulario haya cambiado de estado.
+
+       Comparar el estado inicial contra el actual no sirve aqui: el formulario
+       se arma solo despues de abrirse (el tipo de participante llega marcado
+       como "Estudiante", y las facultades y carreras se cargan por AJAX). Eso
+       hacia saltar el aviso de "vas a perder lo capturado" en un formulario
+       que el usuario ni habia tocado.
+
+       Los eventos input/change solo se disparan por interaccion real; asignar
+       un valor desde JS no los dispara. Y isTrusted descarta los eventos
+       sinteticos que la propia aplicacion emite al inicializarse. */
+    let tocadoPorUsuario = false;
+
+    const marcarTocado = (e) => {
+        if (e.isTrusted) tocadoPorUsuario = true;
+    };
+
+    if (form) {
+        form.addEventListener('input',  marcarTocado, true);
+        form.addEventListener('change', marcarTocado, true);
+    }
+
+    // Si el modal ya se quito del DOM (envio exitoso o cierre deliberado),
+    // no hay nada que proteger.
+    const huboCambios = () => tocadoPorUsuario && document.contains(form);
+
+    const avisarSalida = (e) => {
+        if (!huboCambios()) return;
+        e.preventDefault();
+        e.returnValue = '';   // requerido por navegadores antiguos
+    };
+
+    window.addEventListener('beforeunload', avisarSalida);
+
+    const liberar = () => window.removeEventListener('beforeunload', avisarSalida);
+
+    const cerrar = () => {
+        if (huboCambios() &&
+            !confirm('Se perderá la información que capturaste. ¿Cerrar de todos modos?')) {
+            return;
+        }
+        liberar();
+        modal.remove();
+    };
+
+    return { cerrar, liberar, huboCambios };
+}
+
+// =======================================================================
 // === UTILIDADES DE VALIDACIÓN Y DISPONIBILIDAD ===
 // =======================================================================
 
@@ -369,7 +436,9 @@ function agregarBotonesInscripcion() {
             justify-content: center;
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0, 132, 61, 0.3);
-            width: 100%;
+            width: auto;
+            min-width: 190px;
+            max-width: 100%;
         `;
 
         const esPorEquipo = tipoRegistro === 'Por equipos';
@@ -392,7 +461,8 @@ function agregarBotonesInscripcion() {
                     Registrar Mi Equipo
                 `;
                 btnCrearEquipo.className = 'btn-inscribir btn-crear-equipo';
-                btnCrearEquipo.style.cssText = estilosBaseBoton + `margin-bottom: 10px;`;
+                // Sin margen propio: la separacion la da el gap de .card-actions
+            btnCrearEquipo.style.cssText = estilosBaseBoton;
                 
                 btnCrearEquipo.addEventListener('click', () => {
                     // Acción directa al formulario de creación
@@ -433,7 +503,9 @@ function agregarBotonesInscripcion() {
                     justify-content: center;
                     transition: all 0.3s ease;
                     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-                    width: 100%;
+                    width: auto;
+                    min-width: 190px;
+                    max-width: 100%;
                 `;
             }
 
@@ -458,7 +530,7 @@ function agregarBotonesInscripcion() {
                 Registrarse al Evento
             `;
             btnInscribir.className = 'btn-inscribir';
-            btnInscribir.style.cssText = estilosBaseBoton + `margin-top: 15px;`;
+            btnInscribir.style.cssText = estilosBaseBoton;
 
             btnInscribir.addEventListener('click', () => {
                 mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego);
@@ -670,13 +742,13 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) 
                     <div>
                         <div>
                             <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Rango de horario en el que puedes asistir:</label>
-                            <div style="display: flex; align-items: center; gap: 15px; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
-                                <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px 15px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                                <div style="flex: 1 1 120px; min-width: 0;">
                                     <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Desde:</span>
                                     <input type="time" name="hora_inicio" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                                 </div>
                                 <div style="font-weight: bold; color: #00843D; margin-top: 15px;">a</div>
-                                <div style="flex: 1;">
+                                <div style="flex: 1 1 120px; min-width: 0;">
                                     <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Hasta:</span>
                                     <input type="time" name="hora_fin" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                                 </div>
@@ -872,18 +944,18 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) 
     });
     
     // Cerrar modal
-    document.getElementById('btnCerrarModal').addEventListener('click', (e) => {
-        modal.remove();
-    });
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-    
-    // Enviar inscripción
     const formInscripcion = document.getElementById('formInscripcion');
+
+    // Pide confirmacion antes de descartar lo capturado
+    const guardia = protegerCierre(modal, formInscripcion);
+
+    document.getElementById('btnCerrarModal').addEventListener('click', guardia.cerrar);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) guardia.cerrar();
+    });
+
+    // Enviar inscripción
     blindarEnvioFormulario(formInscripcion, document.getElementById('btnSubmit'));
 
     formInscripcion.addEventListener('submit', (e) => {
@@ -891,9 +963,7 @@ function mostrarFormularioInscripcion(eventoId, nombreEvento, diasJuego = null) 
         enviarInscripcion(e.target, modal);
     });
 
-    document.getElementById("btnCerrarX").addEventListener("click", function() {
-        modal.remove();
-    });
+    document.getElementById("btnCerrarX").addEventListener("click", guardia.cerrar);
 
 }
 
@@ -1173,13 +1243,13 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
                     </div>
                     <div>
                         <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Rango de horario en el que puedes asistir:</label>
-                        <div style="display: flex; align-items: center; gap: 15px; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
-                            <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px 15px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                            <div style="flex: 1 1 120px; min-width: 0;">
                                 <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Desde:</span>
                                 <input type="time" name="hora_inicio" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                             </div>
                             <div style="font-weight: bold; color: #00843D; margin-top: 15px;">a</div>
-                            <div style="flex: 1;">
+                            <div style="flex: 1 1 120px; min-width: 0;">
                                 <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Hasta:</span>
                                 <input type="time" name="hora_fin" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                             </div>
@@ -1489,13 +1559,16 @@ function mostrarFormularioEquipo(eventoId, nombreEvento, minIntegrantes = 8, max
         }
     });
 
-    document.getElementById('btnCerrarModalEquipo').addEventListener('click', () => modal.remove());
-    modal.querySelector('.btnCerrarXEquipo').addEventListener('click', () => modal.remove());
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.remove();
-    });
-
     const formEquipo = document.getElementById('formInscripcionEquipo');
+
+    // Este es el formulario mas caro de perder: capitan mas hasta 9 integrantes
+    const guardiaEquipo = protegerCierre(modal, formEquipo);
+
+    document.getElementById('btnCerrarModalEquipo').addEventListener('click', guardiaEquipo.cerrar);
+    modal.querySelector('.btnCerrarXEquipo').addEventListener('click', guardiaEquipo.cerrar);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) guardiaEquipo.cerrar();
+    });
     blindarEnvioFormulario(formEquipo, document.getElementById('btnSubmitEquipo'));
 
     formEquipo.addEventListener('submit', (e) => {
@@ -2278,13 +2351,13 @@ function mostrarFormularioUnirseIntegrante(equipoId, nombreEquipo, eventoId, nom
                     <div>
                         <div>
                             <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: #444;">2. Rango de horario en el que puedes asistir:</label>
-                            <div style="display: flex; align-items: center; gap: 15px; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
-                                <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px 15px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                                <div style="flex: 1 1 120px; min-width: 0;">
                                     <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Desde:</span>
                                     <input type="time" name="hora_inicio" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                                 </div>
                                 <div style="font-weight: bold; color: #00843D; margin-top: 15px;">a</div>
-                                <div style="flex: 1;">
+                                <div style="flex: 1 1 120px; min-width: 0;">
                                     <span style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Hasta:</span>
                                     <input type="time" name="hora_fin" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                                 </div>
