@@ -142,7 +142,11 @@ try {
         } else {
             $row['carrera_display'] = $row['carrera_nombre'];
         }
-        
+
+        // Externos y personal de servicio no tienen carrera, por lo tanto
+        // tampoco facultad: se marca en vez de dejar la celda vacía.
+        $row['facultad_display'] = !empty($row['facultad_nombre']) ? $row['facultad_nombre'] : 'No aplica';
+
         if ($esReporteEvento && empty($nombreEvento)) {
             $nombreEvento = $row['evento_nombre'];
             $tipoRegistroEvento = $row['tipo_registro']; 
@@ -162,7 +166,8 @@ try {
         ['titulo' => 'Apellido Materno', 'campo' => 'ap_materno', 'ancho' => 20],
         ['titulo' => 'Nombre',           'campo' => 'solo_nombre', 'ancho' => 20],
         ['titulo' => 'Matrícula',        'campo' => 'participante_matricula', 'ancho' => 15],
-        ['titulo' => 'Carrera / Facultad', 'campo' => 'carrera_display', 'ancho' => 30],
+        ['titulo' => 'Facultad',         'campo' => 'facultad_display', 'ancho' => 35],
+        ['titulo' => 'Carrera',          'campo' => 'carrera_display', 'ancho' => 30],
         ['titulo' => 'Correo',           'campo' => 'correo_institucional', 'ancho' => 30],
         ['titulo' => 'Tipo',             'campo' => 'tipo_participante', 'ancho' => 15],
         ['titulo' => 'Género',           'campo' => 'genero', 'ancho' => 15],

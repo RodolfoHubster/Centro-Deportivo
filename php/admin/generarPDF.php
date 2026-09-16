@@ -68,6 +68,7 @@ try {
                 es_tronco_comun,
                 area_tronco_comun,
                 facultad_nombre,
+                facultad_siglas,
                 campus_nombre,
                 fecha_inscripcion,
                 equipo_id,
@@ -145,7 +146,17 @@ try {
         } else {
             $row['carrera_display'] = abreviarCarrera($row['carrera_nombre']);
         }
-        
+
+        // En el PDF se usan las siglas de la facultad por el espacio disponible.
+        // Externos y personal de servicio no tienen carrera ni facultad.
+        if (!empty($row['facultad_siglas'])) {
+            $row['facultad_display'] = $row['facultad_siglas'];
+        } elseif (!empty($row['facultad_nombre'])) {
+            $row['facultad_display'] = abreviarCarrera($row['facultad_nombre']);
+        } else {
+            $row['facultad_display'] = 'N/A';
+        }
+
         if ($esReporteEvento && empty($nombreEvento)) {
             $nombreEvento = $row['evento_nombre']; $tipoRegistroEvento = $row['tipo_registro']; 
         }
@@ -254,8 +265,9 @@ try {
         ['titulo' => 'Apellido M.', 'campo' => 'ap_materno', 'w' => 15, 'align' => 'L'],
         ['titulo' => 'Nombre',      'campo' => 'solo_nombre', 'w' => 15, 'align' => 'L'],
         ['titulo' => 'Matrícula',   'campo' => 'participante_matricula', 'w' => 12, 'align' => 'C'],
-        ['titulo' => 'Carrera/Fac.', 'campo' => 'carrera_display', 'w' => 22, 'align' => 'L'],
-        ['titulo' => 'Correo',      'campo' => 'correo_institucional', 'w' => 25, 'align' => 'L'],
+        ['titulo' => 'Facultad',    'campo' => 'facultad_display', 'w' => 12, 'align' => 'C'],
+        ['titulo' => 'Carrera',     'campo' => 'carrera_display', 'w' => 19, 'align' => 'L'],
+        ['titulo' => 'Correo',      'campo' => 'correo_institucional', 'w' => 23, 'align' => 'L'],
         ['titulo' => 'Tipo',        'campo' => 'tipo_participante', 'w' => 10, 'align' => 'C'],
         ['titulo' => 'Género',      'campo' => 'genero', 'w' => 10, 'align' => 'C'],
     ];
